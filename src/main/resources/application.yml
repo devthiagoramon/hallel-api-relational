@@ -1,0 +1,14 @@
+spring:
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  application:
+    name: hallel-api
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+server:
+  port: 8080
