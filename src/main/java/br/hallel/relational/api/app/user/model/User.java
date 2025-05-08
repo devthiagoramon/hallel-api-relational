@@ -61,8 +61,6 @@ public class User implements Serializable, UserDetails {
     )
     private Set<Role> roles;
 
-    private UserStatus  status;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream().map(role-> new SimpleGrantedAuthority(role.getDescription())).toList();

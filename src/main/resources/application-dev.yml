@@ -2,5 +2,8 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/hallel-db
     driver-class-name: org.postgresql.Driver
-    username: root
+    username: postgres
     password: root
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

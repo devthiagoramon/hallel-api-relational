@@ -11,7 +11,7 @@ CREATE TABLE events
     banner_url            VARCHAR(255)     NOT NULL,
     is_important          BOOLEAN          NOT NULL,
     value                 DOUBLE PRECISION NOT NULL
-)
+);
 
 CREATE TABLE ministry
 (

@@ -72,7 +72,6 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(roles);
-        user.setStatus(UserStatus.ATIVO);
         user.setDateBirth(new Date());
         if (userRepository.
                 findByEmail(request.getEmail()).isPresent()) {

@@ -1,0 +1,80 @@
+# Build output
+/build/
+/out/
+/target/
+
+# IntelliJ IDEA
+/.idea/
+/*.iml
+*.iws
+
+# Eclipse
+*.classpath
+*.project
+*.settings/
+
+# NetBeans
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Gradle
+.gradle/
+/**/build/
+/gradle-app.setting
+!gradle-wrapper.jar
+!gradlew
+!gradlew.bat
+
+# Local environment
+.env
+*.env
+*.local
+*.properties.local
+
+# Logs
+*.log
+/logs/
+/*.log.*
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Test results
+/test-results/
+/surefire-reports/
+
+# Flyway (if storing SQL separately)
+/sql-migrations/
+
+# Spring specific
+.spring-boot-devtools.properties
+spring.log
+
+# Coverage and reports
+jacoco.exec
+/coverage/
+/build/reports/
+/build/test-results/
+
+# VS Code
+.vscode/
+
+# Others
+.idea/
+*.swp
+*~
+
+# Optional: Ignore Docker artifacts
+docker-compose.override.yml
+*.pid

@@ -1,12 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 create table "user"
 (
-    id             uuid PRIMARY KEY,
+    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name           varchar(255) NOT NULL,
     email          varchar(100) not null unique,
-    password       varchar(60)  not null,
+    password       text  not null,
     token          text,
     date_birth     date,
-    age            date,
+    age            int,
     cpf            varchar(11),
     file_image_url text,
     phone_number   varchar(12)
@@ -14,7 +15,7 @@ create table "user"
 
 create table "role"
 (
-    id          uuid PRIMARY KEY,
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     description varchar(255) not null
 );
 
