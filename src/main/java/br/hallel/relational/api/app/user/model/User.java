@@ -39,10 +39,10 @@ public class User implements Serializable, UserDetails {
     private String token;
 
     @Temporal(TemporalType.DATE)
-    @Column(name = "date_birth", nullable = false)
+    @Column(name = "date_birth")
     private Date dateBirth;
 
-    @Column(name = "phone_number", nullable = false, length = 11)
+    @Column(name = "phone_number", length = 11)
     private String phoneNumber;
 
     @Column(name = "file_image_url", length = 999)
@@ -60,6 +60,8 @@ public class User implements Serializable, UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    private UserStatus  status;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

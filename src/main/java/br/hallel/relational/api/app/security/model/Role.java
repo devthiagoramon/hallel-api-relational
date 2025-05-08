@@ -19,4 +19,12 @@ public class Role {
     private UUID id;
     @Column(nullable = false)
     private String description;
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "id=" + id +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }

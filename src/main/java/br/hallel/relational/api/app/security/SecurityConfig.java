@@ -32,8 +32,6 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
 
-
-
     private final JwtTokenFilter jwtTokenFilter;
     private final UserRepository userRepository;
 
