@@ -1,8 +1,10 @@
 package br.hallel.relational.api.app.ministry.model;
 
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Table(name = "ministry")
@@ -25,5 +27,13 @@ public class Ministry {
     @ManyToOne
     @JoinColumn(name = "vice_coordinator_id")
     private User vice_coordinator_id;
+
+    @ManyToMany
+    @JoinTable(
+            name = "scale_ministries",
+            joinColumns = @JoinColumn(name = "ministry_id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id")
+    )
+    private List<EventScale>  eventScalesList;
 
 }

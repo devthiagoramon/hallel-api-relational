@@ -1,24 +1,24 @@
 package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
-import br.hallel.relational.api.app.event.dto.EventHomePageResponse;
+import br.hallel.relational.api.app.event.dto.EventResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface EventInterface {
-    EventDTO create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner
+    EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner
     );
 
-    List<EventHomePageResponse> listEventsToHomePage();
+    List<EventResponse> listEventsToHomePage();
 
-    EventHomePageResponse getEventById(UUID id);
+    EventResponse getEventById(UUID id);
 
-    EventDTO updateById(UUID id, EventDTO eventDTO);
+    EventResponse updateById(UUID id, EventDTO eventDTO, MultipartFile img_url,  MultipartFile banner_url);
 
-    EventDTO deleteById(UUID id);
+    Boolean deleteById(UUID id);
 
-    List<EventHomePageResponse> listEventsByTitleAsc();
-    List<EventHomePageResponse> listEventsByDateExp();
+    List<EventResponse> listEventsByTitleAsc();
+    List<EventResponse> listEventsByDateExp();
 }

@@ -1,7 +1,5 @@
 package br.hallel.relational.api.app.event.model;
 
-import br.hallel.relational.api.app.ministry.model.Ministry;
-import br.hallel.relational.api.app.ministry.model.MinistryScale;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "event")
+@Table(name = "events")
 @Entity
 @Data
 @AllArgsConstructor
@@ -48,11 +46,10 @@ public class Event {
     @Column(nullable = false)
     private Boolean isImportant;
 
-    @Column(nullable = false)
     private Double value;
 
     @Column(nullable = false)
-    private String date_time;
+    private String date_hours;
 
 //    @ManyToMany(fetch = FetchType.EAGER)
 //    @JoinTable(
@@ -60,12 +57,12 @@ public class Event {
 //            joinColumns = @JoinColumn(name = "ministry_id"),
 //            inverseJoinColumns = @JoinColumn(name = "ministry_id"))
 //    private List<Ministry> ministriesAssociated;
-//
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    @JoinTable(
-//            name = "scale_ministries",
-//            joinColumns = @JoinColumn(name = "ministry_scale_id"),
-//            inverseJoinColumns = @JoinColumn(name = "ministry_scale_id")
-//    )
-//    private List<MinistryScale> ministriesScales;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "scale_ministries",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "ministry_id")
+    )
+    private List<EventScale> eventScalesList;
 }

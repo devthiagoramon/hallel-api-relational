@@ -5,20 +5,30 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 
-@Table(name = "ministry_scale")
+@Table(name = "music_ministry")
 @Entity
-public class MinistryScale {
+public class MusicMinistry {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID uuid;
+
     @Column
-    private String ministerioId;
+    private String name;
     @Column
-    private String eventoId;
+    private String description;
     @Column
-    private String date;
+    private String letter;
+    @Column
+    private String link;
+
+    @ManyToOne
+    @JoinColumn(name = "ministry_id")
+    private Ministry ministry;
 }

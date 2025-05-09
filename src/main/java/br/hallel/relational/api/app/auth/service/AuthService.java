@@ -8,9 +8,7 @@ import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.model.User;
-import br.hallel.relational.api.app.user.model.UserStatus;
 import br.hallel.relational.api.app.user.repository.UserRepository;
-import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,11 +36,13 @@ public class AuthService {
     private RoleRepository roleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
+
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new AuthRequestException("User not found"));
 
         var tokenResponse = new TokenDTO();
-        tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(), user.getRoles().stream().map(Role::getDescription).toList());
+        tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
+                user.getRoles().stream().map(Role::getDescription).toList());
         return tokenResponse;
     }
 

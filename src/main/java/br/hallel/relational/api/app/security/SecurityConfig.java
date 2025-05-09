@@ -42,6 +42,8 @@ public class SecurityConfig {
                             authorizeRequests
                                     .requestMatchers("/hallel-docs**").permitAll()
                                     .requestMatchers("/auth/**").permitAll()
+//                                    .requestMatchers("/admin/event/**").hasRole("ADM")
+                                    .requestMatchers("/admin/event/**").permitAll()
                                     .requestMatchers("/user/**").hasRole("USER");
                         }
                 )
