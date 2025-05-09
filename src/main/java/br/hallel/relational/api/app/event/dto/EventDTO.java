@@ -13,15 +13,8 @@ public record EventDTO(
         @NotBlank(message = "Campo 'Description' não pode ser nulo.")
         String description,
 
-        @NotBlank(message = "Campo 'Img_Url' não pode ser nulo.")
-        String image_url,
-
-        @NotBlank(message = "Campo 'Banner_Url' não pode ser nulo.")
-        String banner_url,
-
         @NotNull(message = "Campo 'date' não pode ser nulo.")
         Date date,
-
         String local_event_name,
         double local_event_longitude,
         double local_event_latitude,

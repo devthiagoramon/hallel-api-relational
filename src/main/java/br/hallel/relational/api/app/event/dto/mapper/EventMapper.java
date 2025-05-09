@@ -17,6 +17,8 @@ public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "value", ignore = true)
     @Mapping(target = "eventScalesList", ignore = true)
+    @Mapping(target = "banner_url", ignore = true)
+    @Mapping(target = "image_url", ignore = true)
     EventResponse dtoToResponse(EventDTO eventDTO);
 
     @Mapping(target = "eventScalesList", ignore = true)
@@ -28,5 +30,7 @@ public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "value", ignore = true)
     @Mapping(target = "eventScalesList", ignore = true)
+    @Mapping(target = "banner_url", ignore = true)  // Ignora banner_url
+    @Mapping(target = "image_url", ignore = true)   // Ignora image_url
     Event dtoToEntity(EventDTO event);
 }

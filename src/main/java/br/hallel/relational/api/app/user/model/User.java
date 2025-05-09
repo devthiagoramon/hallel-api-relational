@@ -51,7 +51,7 @@ public class User implements Serializable, UserDetails {
     @Column(length = 11)
     private String cpf;
 
-    private int age;
+    private Integer age;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

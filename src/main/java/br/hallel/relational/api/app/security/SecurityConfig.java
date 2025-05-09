@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.security;
 
+import br.hallel.relational.api.app.security.config.CustomCSRFRepository;
 import br.hallel.relational.api.app.security.exceptions.CredentialsAuthException;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,20 +41,34 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeRequests) -> {
                             authorizeRequests
-                                    .requestMatchers("/hallel-docs**").permitAll()
+                                    .requestMatchers("/swagger.html","/swagger-ui/**", "/swagger-ui.html", "/docs/**", "/v3/api-docs/**").permitAll()
                                     .requestMatchers("/auth/**").permitAll()
-//                                    .requestMatchers("/admin/event/**").hasRole("ADM")
-                                    .requestMatchers("/admin/event/**").permitAll()
+                                    .requestMatchers("/admin/event/**").hasRole("ADM")
+//                                    .requestMatchers("/admin/event/**").permitAll()
                                     .requestMatchers("/user/**").hasRole("USER");
                         }
                 )
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 
 

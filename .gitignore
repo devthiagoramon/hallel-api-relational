@@ -78,3 +78,5 @@ jacoco.exec
 # Optional: Ignore Docker artifacts
 docker-compose.override.yml
 *.pid
+
+/src/main/resources/crypto-avatar.json

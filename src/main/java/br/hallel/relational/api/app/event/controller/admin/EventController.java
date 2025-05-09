@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.event.controller.admin;
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.service.EventService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/admin/event")
 @RequiredArgsConstructor
+@Tag(name = "Admin Event", description = "Admin part for event managment")
 public class EventController {
 
     @Autowired

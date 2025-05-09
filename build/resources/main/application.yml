@@ -16,11 +16,17 @@ spring:
   docker:
     compose:
       enabled: false
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
 server:
   port: 8080
 springdoc:
+
   api-docs:
-    path: "/hallel-docs"
+    path: "/v3/api-docs"
   swagger-ui:
-    path: "/hallel-docs-ui"
-    operations-sorter: method
+    path: "/swagger-ui.html"
+    enabled: true

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.auth.exception.handler;
 
+import br.hallel.relational.api.app.auth.exception.AuthRequestException;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +14,8 @@ import java.util.Date;
 @RestControllerAdvice
 public class AuthExceptionHandler {
 
-    @ExceptionHandler(value = AuthenticationException.class)
-    public ResponseEntity<ExceptionResponse> handleAuthenticationException(AuthenticationException exception, WebRequest request) {
+    @ExceptionHandler(value = AuthRequestException.class)
+    public ResponseEntity<ExceptionResponse> handleAuthenticationException(AuthRequestException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }

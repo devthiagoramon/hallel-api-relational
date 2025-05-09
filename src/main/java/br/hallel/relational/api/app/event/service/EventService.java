@@ -31,9 +31,7 @@ public class EventService implements EventInterface {
     public EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner) {
         if (eventDTO.title() == null
                 || eventDTO.description() == null
-                || eventDTO.date() == null
-                || eventDTO.image_url() == null
-                || eventDTO.banner_url() == null) {
+                || eventDTO.date() == null) {
 
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }

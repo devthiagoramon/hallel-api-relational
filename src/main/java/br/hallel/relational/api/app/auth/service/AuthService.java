@@ -36,14 +36,20 @@ public class AuthService {
     private RoleRepository roleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+                                      .orElseThrow(() -> new AuthRequestException("User not found"));
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new AuthRequestException("User not found"));
-
-        var tokenResponse = new TokenDTO();
-        tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
-                user.getRoles().stream().map(Role::getDescription).toList());
-        return tokenResponse;
+            var tokenResponse = new TokenDTO();
+            tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
+                    user.getRoles().stream().map(Role::getDescription)
+                        .toList());
+            return tokenResponse;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AuthRequestException("User not found");
+        }
     }
 
     public TokenDTO refreshToken(String email, String refreshToken) {
