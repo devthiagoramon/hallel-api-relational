@@ -9,6 +9,11 @@ spring:
       ddl-auto: none
     show-sql: false
     open-in-view: false
+  cloud:
+    gcp:
+      storage:
+        bucket: hallel-bucket
+
   application:
     name: hallel-api
   profiles:

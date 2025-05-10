@@ -7,12 +7,22 @@ import br.hallel.relational.api.app.event.exception.EventIllegalArumentException
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.repository.EventRepository;
+import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
+import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -20,6 +30,8 @@ public class EventService implements EventInterface {
 
     @Autowired
     private EventRepository repository;
+    @Autowired
+    private GoogleBucketService bucketService;
 
     private final EventMapper mapper;
 
@@ -37,33 +49,35 @@ public class EventService implements EventInterface {
         }
 
         log.info("Creating evento...");
-        this.repository.save(mapper.dtoToEntity(eventDTO));
+        Event event = this.repository.save(mapper.dtoToEntity(eventDTO));
 
-//        if ((fileImage != null && !(fileImage.isEmpty())) && (fileBanner != null && !(fileBanner.isEmpty()))) {
-//
-//            String imageUrl = null;
-//            String bannerImageUrl = null;
-//            try {
-//                imageUrl = bucketService.sendImageToBucket(fileImage, GoogleBucketUtils
-//                        .getImageName(
-//                                eventos.getId(),
-//                                Eventos.class.getSimpleName(),
-//                                "image"));
-//                bannerImageUrl = bucketService.sendImageToBucket(fileBanner, GoogleBucketUtils
-//                        .getImageName(
-//                                eventos.getId(),
-//                                Eventos.class.getSimpleName(),
-//                                "banner"));
-//
-//                event.setFileImageUrl(imageUrl);
-//                event.setBanner(bannerImageUrl);
-//                log.info(event.getFileImageUrl());
-//                log.info(event.getBanner());
-//                event = this.repository.save(eventos);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
+        if ((fileImage != null && !(fileImage.isEmpty()))
+                && (fileBanner != null && !(fileBanner.isEmpty()))) {
+
+            String imageUrl = null;
+            String bannerImageUrl = null;
+            try {
+                imageUrl = bucketService.sendImageToBucket(fileImage, GoogleBucketUtils
+                        .getImageName(
+                                event.getId().toString(),
+                                Event.class.getSimpleName(),
+                                "image"));
+
+                bannerImageUrl = bucketService.sendImageToBucket(fileBanner, GoogleBucketUtils
+                        .getImageName(
+                                event.getId().toString(),
+                                Event.class.getSimpleName(),
+                                "banner"));
+
+                event.setImage_url(imageUrl);
+                event.setBanner_url(bannerImageUrl);
+                log.info(event.getImage_url());
+                log.info(event.getBanner_url());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
 
 //        try {
 //            if (event.getMinistriesAssociated() != null && !event.getMinistriesAssociated()
@@ -85,15 +99,17 @@ public class EventService implements EventInterface {
 //
 //        }
 
-        return mapper.dtoToResponse(eventDTO);
+        return mapper.entityToResponse(this.repository.save(event));
     }
 
     @Override
-    public List<EventResponse> listEventsToHomePage() {
-        List<EventResponse> listResponse = new ArrayList<>();
-        for (Event event : repository.findAll()) {
-            listResponse.add(mapper.entityToResponse(event));
-        }
+    public List<EventResponse> listEventsToHomePage(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPagination = this.repository.findAll(pageable);
+
+        List<EventResponse> listResponse =
+                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
         log.info("Listing events...", listResponse);
         return listResponse;
     }
@@ -145,21 +161,27 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public List<EventResponse> listEventsByTitleAsc() {
-        List<EventResponse> listResponse = new ArrayList<>();
-        for (Event event : repository.findAllByOrderByTitleAsc()) {
-            listResponse.add(mapper.entityToResponse(event));
-        }
+    public List<EventResponse> listEventsByTitleAsc(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+
+        List<EventResponse> listResponse =
+                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
+        log.info("Listing events Order by title ASC...", listResponse);
         return listResponse;
+
     }
 
     @Override
-    public List<EventResponse> listEventsByDateExp() {
-        List<EventResponse> listResponse = new ArrayList<>();
-        for (Event event : repository.findAllByOrderByDateAsc()) {
-            listResponse.add(mapper.entityToResponse(event));
-        }
+    public List<EventResponse> listEventsByDateExp(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPagination = this.repository.findAllByOrderByDateAsc(pageable);
+
+        List<EventResponse> listResponse =
+                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
+        log.info("Listing events Order By Data expiration...", listResponse);
         return listResponse;
+
     }
 
 }

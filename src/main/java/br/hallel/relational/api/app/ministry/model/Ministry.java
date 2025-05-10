@@ -3,9 +3,15 @@ package br.hallel.relational.api.app.ministry.model;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
+
+@Data
+@AllArgsConstructor @NoArgsConstructor
 
 @Table(name = "ministry")
 @Entity
@@ -22,11 +28,11 @@ public class Ministry {
 
     @ManyToOne
     @JoinColumn(name = "coordinator_id")
-    private User coordinator_id;
+    private User coordinatorId;
 
     @ManyToOne
     @JoinColumn(name = "vice_coordinator_id")
-    private User vice_coordinator_id;
+    private User viceCoordinatorId;
 
     @ManyToMany
     @JoinTable(

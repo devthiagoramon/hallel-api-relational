@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/admin/event")
 @RequiredArgsConstructor
 @Tag(name = "Admin Event", description = "Admin part for event managment")
-public class EventController {
+public class AdminEventController {
 
     @Autowired
     private EventService eventService;
@@ -42,7 +42,7 @@ public class EventController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Map<String, Object>> deleteEvent(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, Object>> deleteEvent(@PathVariable(name = "id") UUID id) {
         boolean deleted = this.eventService.deleteById(id);
 
         Map<String, Object> response = new HashMap<>();
@@ -54,36 +54,4 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    // ** CONSULTAS DE EVENTOS **
-    @GetMapping("/list-all")
-    public ResponseEntity<List<EventResponse>> getAllEvents() {
-        return ResponseEntity.ok(this.eventService.listEventsToHomePage());
-    }
-
-    @GetMapping("/get/{id}")
-    public ResponseEntity<EventResponse> getEvent(@PathVariable(value = "id") UUID id) {
-        EventResponse event = eventService.getEventById(id);
-        if (event == null) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(event);
-    }
-
-    @GetMapping("/list-all/title")
-    public ResponseEntity<List<EventResponse>> getAllEventsByTitle() {
-        List<EventResponse> events = eventService.listEventsByTitleAsc();
-        if (events.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(events);
-    }
-
-    @GetMapping("/list-all/date-exp")
-    public ResponseEntity<List<EventResponse>> getAllEventsByDateExp() {
-        List<EventResponse> events = eventService.listEventsByDateExp();
-        if (events.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(events);
-    }
 }

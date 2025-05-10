@@ -11,7 +11,7 @@ public interface EventInterface {
     EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner
     );
 
-    List<EventResponse> listEventsToHomePage();
+    List<EventResponse> listEventsToHomePage(int page, int size);
 
     EventResponse getEventById(UUID id);
 
@@ -19,6 +19,6 @@ public interface EventInterface {
 
     Boolean deleteById(UUID id);
 
-    List<EventResponse> listEventsByTitleAsc();
-    List<EventResponse> listEventsByDateExp();
+    List<EventResponse> listEventsByTitleAsc(int page, int size);
+    List<EventResponse> listEventsByDateExp(int page, int size);
 }

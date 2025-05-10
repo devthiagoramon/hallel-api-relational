@@ -42,8 +42,8 @@ public class GoogleBucketService {
 
 
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-                                    .setContentType(file.getContentType())
-                                    .build();
+                .setContentType(file.getContentType())
+                .build();
 
         try {
 
