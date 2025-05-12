@@ -42,4 +42,12 @@ public class Ministry {
     )
     private List<EventScale>  eventScalesList;
 
+    @ManyToMany
+    @JoinTable(
+            name = "member_ministry",
+            joinColumns = @JoinColumn(name = "ministry_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> membersMinistry;
+
 }

@@ -22,6 +22,8 @@ public interface MinistryMapper {
     Ministry responseToEntity(MinistryResponse ministryResponse);
 
 
+    @Mapping(target = "coordinatorId", ignore = true)
+    @Mapping(target = "viceCoordinatorId", ignore = true)
     Ministry requestToEntity(MinistryRequestDTO ministryRequestDTO);
 
 }
