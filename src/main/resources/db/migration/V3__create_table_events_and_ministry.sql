@@ -110,17 +110,17 @@ CREATE TABLE member_event_scale
 (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_scale_id UUID    NOT NULL,
-    member_id      UUID    NOT NULL,
+    user_id      UUID    NOT NULL,
     status         VARCHAR NOT NULL,
     reason_absence TEXT    NOT NULL,
-    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id) ON DELETE CASCADE ,
+    CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE ,
     CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE member_ministry
 (
-    member_id   UUID NOT NULL,
+    user_id   UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 )

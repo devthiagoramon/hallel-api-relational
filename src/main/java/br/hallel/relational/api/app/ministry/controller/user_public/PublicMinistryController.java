@@ -1,10 +1,16 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
+import br.hallel.relational.api.app.user.model.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +21,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/public/ministry")
 @RequiredArgsConstructor
+@Tag(name = "Ministry public", description = "Public routes for ministry usage")
 public class PublicMinistryController {
 
-    @Autowired
-    private MinistryService service;
+    private final MinistryService service;
+    private final MemberMinistryService memberMinistryService;
 
     @GetMapping("/list-all")
     public ResponseEntity<List<MinistryResponse>> litAllMinistries(
@@ -33,4 +40,14 @@ public class PublicMinistryController {
     public ResponseEntity<MinistryResponse> getMinistryById(@PathVariable(name = "id") UUID id) {
         return ResponseEntity.ok(this.service.getMinistryById(id));
     }
+
+    @GetMapping("/member-ministry/list/{ministry-id}")
+    @Operation(summary = "List all members of ministry", description = "List all the members inserted in ministry by ministry identifier, you can paginate this request")
+    public ResponseEntity<Page<User>> listAllMembersMinistryByMinistryId(@PathVariable("ministry-id") UUID ministryId,
+                                                                         @RequestParam(name = "page", defaultValue = "0") int page,
+                                                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
+    }
+
 }

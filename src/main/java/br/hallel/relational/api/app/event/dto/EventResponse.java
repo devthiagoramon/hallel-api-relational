@@ -21,7 +21,6 @@ public class EventResponse {
     private String banner_url;
     private String image_url;
     private Boolean isImportant;
-    private String date_hours;
     private String local_event_name;
     private Double local_event_longitude;
     private Double local_event_latitude;

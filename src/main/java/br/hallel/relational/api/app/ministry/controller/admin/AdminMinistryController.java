@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/admin/ministry")
 @RequiredArgsConstructor
+@Tag(name = "Admin Ministry", description = "Admin part for ministr managment")
 public class AdminMinistryController {
 
     @Autowired
@@ -42,7 +44,6 @@ public class AdminMinistryController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteEvent(@PathVariable(name = "id") UUID id) {
         this.service.deleteMinistryById(id);
-
         return ResponseEntity.ok("Evento Deletado com sucesso!");
     }
 
