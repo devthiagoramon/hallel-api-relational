@@ -22,5 +22,4 @@ public class MinistryResponse {
     private MinistryType ministryType;
     private User coordinatorId;
     private User viceCoordinatorId;
-    private List<EventScale> eventScalesList;
 }

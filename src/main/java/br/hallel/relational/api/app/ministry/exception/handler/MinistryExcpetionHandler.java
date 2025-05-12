@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.ministry.exception.handler;
 
-import br.hallel.relational.api.app.auth.exception.AuthRequestException;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
+import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +12,18 @@ import org.springframework.web.context.request.WebRequest;
 import java.util.Date;
 
 @RestControllerAdvice
-public class MinistryIllegalArgumentHandler {
+public class MinistryExcpetionHandler {
 
     @ExceptionHandler(value = MinistryIllegalArgumentException.class)
     public ResponseEntity<ExceptionResponse> handleAuthenticationException(MinistryIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(value = MemberMinistryRegisterNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleMemberMinistryRegisterNotFoundException(MemberMinistryRegisterNotFoundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
 }

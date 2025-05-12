@@ -21,20 +21,24 @@ public class Ministry {
     private UUID id;
     @Column(nullable = false)
     private String title;
+    @Column(nullable = false)
     private String description;
+    @Column(name = "image_url", nullable = false)
     private String image;
+    @Column(name = "repertorio")
     private Boolean hasRepertoire;
+
     private MinistryType ministryType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coordinator_id")
     private User coordinatorId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vice_coordinator_id")
     private User viceCoordinatorId;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "scale_ministries",
             joinColumns = @JoinColumn(name = "ministry_id"),
@@ -42,7 +46,7 @@ public class Ministry {
     )
     private List<EventScale>  eventScalesList;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "member_ministry",
             joinColumns = @JoinColumn(name = "ministry_id"),

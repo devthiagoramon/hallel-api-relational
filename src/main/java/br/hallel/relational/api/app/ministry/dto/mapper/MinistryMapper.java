@@ -14,16 +14,21 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy = ReportingPolicy.ERROR
 )
 public interface MinistryMapper {
-    MinistryResponse requestToMinistryResponse(MinistryRequestDTO ministryRequestDTO);
 
 
     MinistryResponse entityMinistryToResponse(Ministry ministry);
 
+    @Mapping(target = "membersMinistry", ignore = true)
+    @Mapping(target = "eventScalesList", ignore = true)
     Ministry responseToEntity(MinistryResponse ministryResponse);
 
 
     @Mapping(target = "coordinatorId", ignore = true)
     @Mapping(target = "viceCoordinatorId", ignore = true)
+    @Mapping(target = "eventScalesList", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "membersMinistry", ignore = true)
+    @Mapping(target = "image", ignore = true)
     Ministry requestToEntity(MinistryRequestDTO ministryRequestDTO);
 
 }

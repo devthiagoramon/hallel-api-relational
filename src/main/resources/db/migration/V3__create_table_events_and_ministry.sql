@@ -34,8 +34,8 @@ CREATE TABLE event_scale
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id    UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    CONSTRAINT fk_event_id FOREIGN KEY (event_id) REFERENCES "events" (id),
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_event_id FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE audition_ministry
@@ -45,7 +45,7 @@ CREATE TABLE audition_ministry
     title       VARCHAR(100) NOT NULL,
     description VARCHAR(250) NOT NULL,
     date        TIMESTAMP    NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE repertory_ministry
     name          VARCHAR(100) NOT NULL,
     description   VARCHAR(250) NOT NULL,
     ministry_type VARCHAR(50)  NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
 );
 
@@ -68,7 +68,7 @@ CREATE TABLE music_ministry
     description VARCHAR(250) NOT NULL,
     letter      TEXT         NOT NULL,
     link        TEXT         NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
 );
 
@@ -79,7 +79,7 @@ CREATE TABLE dance_ministry
     name        VARCHAR(100) NOT NULL,
     description VARCHAR(250) NOT NULL,
     link        TEXT         NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
 );
 
@@ -90,7 +90,7 @@ CREATE TABLE video_ministry
     name        VARCHAR(100) NOT NULL,
     description VARCHAR(250) NOT NULL,
     link        TEXT         NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 );
 
 
@@ -101,8 +101,8 @@ CREATE TABLE playlist_repertory
     music_ministry_id UUID,
     dance_ministry_id UUID,
     ministry_type     VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_music_ministry_id FOREIGN KEY (music_ministry_id) REFERENCES "music_ministry" (id),
-    CONSTRAINT fk_dance_ministry_id FOREIGN KEY (dance_ministry_id) REFERENCES "dance_ministry" (id)
+    CONSTRAINT fk_music_ministry_id FOREIGN KEY (music_ministry_id) REFERENCES "music_ministry" (id) ON DELETE CASCADE ,
+    CONSTRAINT fk_dance_ministry_id FOREIGN KEY (dance_ministry_id) REFERENCES "dance_ministry" (id) ON DELETE CASCADE
 
 );
 
@@ -113,14 +113,14 @@ CREATE TABLE member_event_scale
     member_id      UUID    NOT NULL,
     status         VARCHAR NOT NULL,
     reason_absence TEXT    NOT NULL,
-    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id),
-    CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id)
+    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id) ON DELETE CASCADE ,
+    CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE member_ministry
 (
     member_id   UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id),
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id)
+    CONSTRAINT fk_member_id FOREIGN KEY (member_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 )

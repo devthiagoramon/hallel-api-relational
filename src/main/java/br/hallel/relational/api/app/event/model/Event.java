@@ -25,31 +25,28 @@ public class Event {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "date", nullable = false)
     private Date date;
 
-    @Column(nullable = false)
+    @Column(name = "local_event_name", nullable = false)
     private String local_event_name;
 
-    @Column(nullable = false)
+    @Column(name = "local_event_longitude", nullable = false)
     private Double local_event_longitude;
 
-    @Column(nullable = false)
+    @Column(name = "local_event_latitude", nullable = false)
     private Double local_event_latitude;
 
-    @Column(nullable = false)
+    @Column(name = "image_url", nullable = false)
     private String image_url;
 
-    @Column(nullable = false)
+    @Column(name = "banner_url", nullable = false)
     private String banner_url;
 
-    @Column(nullable = false)
+    @Column(name = "is_important", nullable = false)
     private Boolean isImportant;
 
     private Double value;
-
-    @Column(nullable = false)
-    private String date_hours;
 
 //    @ManyToMany(fetch = FetchType.EAGER)
 //    @JoinTable(
@@ -58,7 +55,7 @@ public class Event {
 //            inverseJoinColumns = @JoinColumn(name = "ministry_id"))
 //    private List<Ministry> ministriesAssociated;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "scale_ministries",
             joinColumns = @JoinColumn(name = "event_id"),
