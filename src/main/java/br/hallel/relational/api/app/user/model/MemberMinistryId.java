@@ -12,4 +12,5 @@ public class MemberMinistryId implements Serializable {
     private UUID ministry;
 
     // Getters, Setters, equals() e hashCode()
+
 }

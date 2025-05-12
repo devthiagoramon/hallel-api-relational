@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.service.EventService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/public/event")
 @RequiredArgsConstructor
+@Tag(name = "Events", description = "Events part for public")
 public class PublicEventController {
 
     @Autowired

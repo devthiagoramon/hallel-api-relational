@@ -8,7 +8,10 @@ import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.model.UserRole;
+import br.hallel.relational.api.app.user.model.UserRoleIds;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import br.hallel.relational.api.app.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -34,6 +38,9 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private UserRoleRepository userRoleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
         try {
@@ -53,8 +60,10 @@ public class AuthService {
     }
 
     public TokenDTO refreshToken(String email, String refreshToken) {
-        var user = userRepository.findByEmail(email).orElseThrow(() -> new AuthRequestException("User not found"));
-        if (user != null) throw new AuthRequestException("User not found");
+        var user = userRepository.findByEmail(email)
+                                 .orElseThrow(() -> new AuthRequestException("User not found"));
+        if (user != null)
+            throw new AuthRequestException("User not found");
         var tokenResponse = new TokenDTO();
         tokenResponse = jwtTokenProvider.refreshToken(refreshToken);
         return tokenResponse;
@@ -62,35 +71,38 @@ public class AuthService {
 
     public TokenDTO singUp(
             SingUpRequest request
-    ) {
-        HashSet<Role> roles = new HashSet<>();
+                          ) {
+
         List<Role> rolesBD = roleRepository.findAll();
-        rolesBD.forEach(role -> {
-            System.out.println(role.getDescription());
-            if (role.getDescription().equals("USER")) {
-                roles.add(role);
-            }
-        });
-        log.info("Roles found: " + roles);
         log.info("Add member...");
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(roles);
         user.setDateBirth(new Date());
         if (userRepository.
                 findByEmail(request.getEmail()).isPresent()) {
             throw new AuthRequestException("User already exists in Database");
         }
-        log.info(user.getRoles().toString());
+
         var tokenResponse = new TokenDTO();
         log.info("Antes do token...");
-        tokenResponse = jwtTokenProvider.createAccessToken(request.getEmail(), user.getRoles().stream().map(Role::getDescription).toList());
+        tokenResponse = jwtTokenProvider.createAccessToken(request.getEmail(), user.getRoles()
+                                                                                   .stream()
+                                                                                   .map(Role::getDescription)
+                                                                                   .toList());
 
         user.setToken(tokenResponse.getAccessToken());
 
-        userRepository.save(user);
+        User userSaved = userRepository.save(user);
+
+        UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), rolesBD.stream()
+                                                                            .filter(item -> item.getDescription()
+                                                                                                .equals("USER"))
+                                                                            .toList()
+                                                                            .get(0)
+                                                                            .getId());
+        userRoleRepository.save(new UserRole(userRoleIds));
         log.info("SAVING MEMBER...");
 
         return tokenResponse;
