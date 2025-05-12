@@ -28,6 +28,7 @@
 !gradle-wrapper.jar
 !gradlew
 !gradlew.bat
+.gradle/**
 
 # Local environment
 .env
