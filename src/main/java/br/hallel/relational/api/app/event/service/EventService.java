@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
@@ -9,6 +10,7 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.ministry.model.Ministry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -142,11 +144,30 @@ public class EventService implements EventInterface {
         event.setIsImportant(eventDTO.isImportant());
 
         if (img_url != null && banner_url != null) {
-            //BUCKET!
+            log.info("has image");
+            String imageUrl = null, bannerUrl = null;
+            try {
+                imageUrl = bucketService.updateImageOfBucket(
+                        img_url, GoogleBucketUtils.getImageName(
+                                event.getId()
+                                        .toString(), Ministry.class.getSimpleName(), "image"
+                        ));
+                bannerUrl = bucketService.updateImageOfBucket(
+                        banner_url, GoogleBucketUtils.getImageName(
+                                event.getId()
+                                        .toString(), Ministry.class.getSimpleName(), "banner"
+                        ));
+                event.setImage_url(imageUrl);
+                event.setBanner_url(bannerUrl);
+                log.info("image Url Response: " + imageUrl);
+                log.info("image Url Response: " + bannerUrl);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            event.setBanner_url(event.getBanner_url());
+            event.setImage_url(event.getImage_url());
         }
-
-        event.setBanner_url("teste");
-        event.setImage_url("teste");
 
         log.info("Updating event... id: " + id);
         return mapper.entityToResponse(this.repository.save(event));
@@ -154,9 +175,27 @@ public class EventService implements EventInterface {
 
     @Override
     public Boolean deleteById(UUID id) {
-        this.getEventById(id);
+        Event event = mapper.responseToEntity(this.getEventById(id));
+        try {
+            this.bucketService.deleteImageOfBucket(event.getImage_url());
+            this.bucketService.deleteImageOfBucket(event.getBanner_url());
+            log.info("Image and banner deleted from bucket...");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.repository.deleteById(id);
         return true;
+    }
+
+    @Override
+    public EventShortResponse listEventInScaleInfo(UUID id) {
+        log.info("Listing evento in escala info by id {}", id);
+        Optional<EventShortResponse> optional = this.repository.findByIdShort(id);
+        if (optional.isEmpty()) {
+            throw new EventIllegalArumentException("Can't find evento by this id");
+        }
+
+        return optional.get();
     }
 
     @Override
@@ -182,5 +221,6 @@ public class EventService implements EventInterface {
         return listResponse;
 
     }
+
 
 }

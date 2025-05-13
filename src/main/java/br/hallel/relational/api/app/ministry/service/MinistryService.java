@@ -49,8 +49,8 @@ public class MinistryService implements MinistryInterface {
 
     private final MinistryMapper mapper;
 
-    public MinistryService(MinistryMapper Ministrymapper) {
-        this.mapper = Ministrymapper;
+    public MinistryService(MinistryMapper ministryMapper) {
+        this.mapper = ministryMapper;
     }
 
     @Override
@@ -186,7 +186,13 @@ public class MinistryService implements MinistryInterface {
 
     @Override
     public void deleteMinistryById(UUID id) {
-        this.getMinistryById(id);
+        Ministry ministry = mapper.responseToEntity(this.getMinistryById(id));
+        try {
+            googleBucketService.deleteImageOfBucket(ministry.getImage());
+            log.info("Image deleted from bucket...");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         log.info("Deleting Ministry by Id: " + id);
         this.ministryRepository.deleteById(id);
     }

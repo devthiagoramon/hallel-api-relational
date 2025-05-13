@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -19,6 +20,11 @@ public interface EventInterface {
 
     Boolean deleteById(UUID id);
 
+    EventShortResponse listEventInScaleInfo(UUID id);
+
+
+
     List<EventResponse> listEventsByTitleAsc(int page, int size);
     List<EventResponse> listEventsByDateExp(int page, int size);
+
 }

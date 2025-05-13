@@ -25,4 +25,5 @@ public interface MemberMinistryRepository extends JpaRepository<MemberMinistry, 
                     where mm.ministry_id = :ministry_id"""
             , nativeQuery = true)
     Page<User> findAllMembersFromMinistry(@Param("ministry_id") UUID ministryId, Pageable pageable);
+    Page<MemberMinistry> findByMinistryId(Pageable pageable, UUID ministryId);
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Table(name = "member_event_scale")
 @Entity
-public class MemberEventSacel {
+public class MemberEventScale {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
