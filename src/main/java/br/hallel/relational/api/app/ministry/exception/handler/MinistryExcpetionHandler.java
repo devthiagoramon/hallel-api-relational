@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.exception.handler;
 
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
+import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFound;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
@@ -29,6 +30,12 @@ public class MinistryExcpetionHandler {
 
     @ExceptionHandler(value = RepertoryNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleRepertoryIllegalArgument(RepertoryNotFoundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = FunctionMinistryNotFound.class)
+    public ResponseEntity<ExceptionResponse> handleFunctionMinistyrNotFound(FunctionMinistryNotFound exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
