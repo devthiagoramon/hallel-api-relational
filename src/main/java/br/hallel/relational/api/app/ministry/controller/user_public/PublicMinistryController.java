@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import br.hallel.relational.api.app.user.model.User;
@@ -21,7 +22,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/public/ministry")
 @RequiredArgsConstructor
-@Tag(name = "Ministry public", description = "Public routes for ministry usage")
+@Tag(name = "Ministry public",
+     description = "Public routes for ministry usage")
 public class PublicMinistryController {
 
     private final MinistryService service;
@@ -32,22 +34,36 @@ public class PublicMinistryController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
 
-    ) {
+                                                                  ) {
         return ResponseEntity.ok(this.service.listAllMinistries(page, size));
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<MinistryResponse> getMinistryById(@PathVariable(name = "id") UUID id) {
+    public ResponseEntity<MinistryResponse> getMinistryById(
+            @PathVariable(name = "id") UUID id) {
         return ResponseEntity.ok(this.service.getMinistryById(id));
     }
 
     @GetMapping("/member-ministry/list/{ministry-id}")
-    @Operation(summary = "List all members of ministry", description = "List all the members inserted in ministry by ministry identifier, you can paginate this request")
-    public ResponseEntity<Page<User>> listAllMembersMinistryByMinistryId(@PathVariable("ministry-id") UUID ministryId,
-                                                                         @RequestParam(name = "page", defaultValue = "0") int page,
-                                                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+    @Operation(summary = "List all members of ministry",
+               description = "List all the members inserted in ministry by ministry identifier, you can paginate this request")
+    public ResponseEntity<Page<User>> listAllMembersMinistryByMinistryId(
+            @PathVariable("ministry-id") UUID ministryId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        return ResponseEntity.ok().body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
+        return ResponseEntity.ok()
+                             .body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
+    }
+
+    @GetMapping("/ministry-user-participate/{user-id}")
+    @Operation(summary = "List all ministry of user",
+               description = "Route to list all the ministry that user participate just passing his id")
+    public ResponseEntity<List<Ministry>> listAllMinistryThatUserParticipate(
+            @PathVariable("user-id") UUID userId) {
+        return ResponseEntity.ok()
+                             .body(memberMinistryService.getMinistryThatUserParticipate(userId));
     }
 
 }

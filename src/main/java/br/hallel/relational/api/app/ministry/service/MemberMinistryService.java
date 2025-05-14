@@ -1,7 +1,8 @@
 package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
-import br.hallel.relational.api.app.ministry.interfaces.MemberMinistryRepository;
+import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.user.model.User;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,20 +51,9 @@ public class MemberMinistryService {
         memberMinistryRepository.delete(memberMinistry);
     }
 
-    private void deleteCoordinatorFromMemberMinistryTable(UUID userId, UUID ministryId) {
-        log.info("Deleting coordinator from member ministry table...");
-        Optional<MemberMinistry> optionalMemberMinistry = memberMinistryRepository.findById(new MemberMinistryId(userId, ministryId));
-        if (optionalMemberMinistry.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException("Member Ministry Id: " + userId + " not found as member ministry!");
-        }
-        MemberMinistry oldMinistryMember = optionalMemberMinistry.get();
-        memberMinistryRepository.delete(oldMinistryMember);
-    }
-
-    private void addCoordinatorToMemberMinistryTable(UUID userId, UUID ministryId) {
-        log.info("Adding coordinator to member ministry table...");
-        MemberMinistryId memberMinistryId = new MemberMinistryId(userId, ministryId);
-        memberMinistryRepository.save(new MemberMinistry(memberMinistryId));
+    public List<Ministry> getMinistryThatUserParticipate(UUID userId){
+        log.info("Listing ministries that user participate");
+        return memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId);
     }
 
 }

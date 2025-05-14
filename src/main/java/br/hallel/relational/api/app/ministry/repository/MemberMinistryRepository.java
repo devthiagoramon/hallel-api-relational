@@ -1,7 +1,8 @@
-package br.hallel.relational.api.app.ministry.interfaces;
+package br.hallel.relational.api.app.ministry.repository;
 
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
+import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,10 +11,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface MemberMinistryRepository extends JpaRepository<MemberMinistry, MemberMinistryId> {
+public interface MemberMinistryRepository
+        extends JpaRepository<MemberMinistry, MemberMinistryId> {
 
     @Query(
             value = """
@@ -24,6 +27,18 @@ public interface MemberMinistryRepository extends JpaRepository<MemberMinistry, 
                     SELECT count(*) from member_ministry mm
                     where mm.ministry_id = :ministry_id"""
             , nativeQuery = true)
-    Page<User> findAllMembersFromMinistry(@Param("ministry_id") UUID ministryId, Pageable pageable);
-    Page<MemberMinistry> findByMinistryId(Pageable pageable, UUID ministryId);
+    Page<User> findAllMembersFromMinistry(
+            @Param("ministry_id") UUID ministryId, Pageable pageable);
+
+    Page<MemberMinistry> findByMinistryId(Pageable pageable,
+                                          UUID ministryId);
+
+    @Query(
+            value = """
+                    SELECT m.* from ministry m
+                    join member_ministry mm on m.id = mm.ministry_id
+                    where mm.user_id = :user_id""", nativeQuery = true
+    )
+    List<Ministry> listMinistryThatUserParticipateByUserId(
+            @Param("user_id") UUID userId);
 }

@@ -7,7 +7,7 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.interfaces.MemberMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import lombok.extern.slf4j.Slf4j;

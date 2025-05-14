@@ -7,7 +7,7 @@ import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
-import br.hallel.relational.api.app.ministry.interfaces.MemberMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
@@ -26,8 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.lang.reflect.Member;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
