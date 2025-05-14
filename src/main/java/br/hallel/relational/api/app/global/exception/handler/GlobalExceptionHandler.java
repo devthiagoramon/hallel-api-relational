@@ -15,7 +15,7 @@ import java.util.Date;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = IllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleAuthenticationException(IllegalArgumentException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleInvalidArg1Exception(IllegalArgumentException exception, WebRequest request) {
         if (exception.getMessage().startsWith("Invalid UUID string")) {
             throw new UUIDFormatException("Invalid UUID format, try again");
         }
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = UUIDFormatException.class)
-    public ResponseEntity<ExceptionResponse> handleAuthenticationException(MinistryIllegalArgumentException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleInvalidUUIDFormatException(MinistryIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }

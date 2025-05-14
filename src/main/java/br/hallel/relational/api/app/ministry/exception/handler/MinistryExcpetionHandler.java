@@ -27,7 +27,7 @@ public class MinistryExcpetionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = MemberMinistryRegisterNotFoundException.class)
+    @ExceptionHandler(value = RepertoryNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleRepertoryIllegalArgument(RepertoryNotFoundException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);

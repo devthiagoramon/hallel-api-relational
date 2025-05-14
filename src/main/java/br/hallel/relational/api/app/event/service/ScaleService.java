@@ -140,7 +140,8 @@ public class ScaleService implements ScaleInterface {
 
     @Override
     public List<NotConfirmedScaleMinistryWithInfos> listReasonsAbsenceMemberEventByIdScalesMinistry(UUID idEscala) {
-        return this.eventScaleRepository.findReasonsAbsenceByEscalaId(idEscala);
+//        return this.eventScaleRepository.findReasonsAbsenceByEscalaId(idEscala);
+        return null;
     }
 
     @Override

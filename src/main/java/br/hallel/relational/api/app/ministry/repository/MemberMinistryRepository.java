@@ -30,9 +30,6 @@ public interface MemberMinistryRepository
     Page<User> findAllMembersFromMinistry(
             @Param("ministry_id") UUID ministryId, Pageable pageable);
 
-    Page<MemberMinistry> findByMinistryId(Pageable pageable,
-                                          UUID ministryId);
-
     @Query(
             value = """
                     SELECT m.* from ministry m

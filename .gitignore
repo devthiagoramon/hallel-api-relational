@@ -80,4 +80,5 @@ jacoco.exec
 docker-compose.override.yml
 *.pid
 
+
 /src/main/resources/crypto-avatar.json

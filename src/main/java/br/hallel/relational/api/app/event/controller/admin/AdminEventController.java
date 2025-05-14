@@ -37,7 +37,6 @@ public class AdminEventController {
                                                      @RequestPart(name = "request") EventDTO eventDTO,
                                                      @RequestPart(name = "image_url") MultipartFile img_url,
                                                      @RequestPart(name = "banner_url") MultipartFile banner_url) {
-
         return ResponseEntity.ok(this.eventService.updateById(id, eventDTO, img_url, banner_url));
     }
 

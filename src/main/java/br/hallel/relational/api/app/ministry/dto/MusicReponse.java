@@ -23,5 +23,5 @@ public class MusicReponse {
     private String letter;
     private String link;
 
-    private UUID ministry;
+    private Ministry ministry;
 }

@@ -6,15 +6,16 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.Date;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @ToString
 public class ScaleEventWithEventInfoResponse {
-    private String id;
+    private UUID id;
     private EventShortResponse evento;
-    private String ministerioId;
+    private UUID ministerioId;
     private Date date;
 
 }

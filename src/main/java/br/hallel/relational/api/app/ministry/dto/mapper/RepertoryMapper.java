@@ -21,8 +21,10 @@ import java.util.List;
 public interface RepertoryMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "ministry", ignore = true)
     RepertoryResponse requestToResponse(RepertoryRequestDTO repertoryRequestDTO);
 
+    @Mapping(target = "ministry", ignore = true)
     RepertoryRequestDTO responseToRequest(RepertoryResponse repertoryResponse);
 
     RepertoryResponse entityToResponse(RepertoryMinistry repertory);

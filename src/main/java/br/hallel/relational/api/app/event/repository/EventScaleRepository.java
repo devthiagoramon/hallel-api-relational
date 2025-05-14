@@ -17,11 +17,11 @@ import java.util.UUID;
 public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
-                    CAST(es.id AS string),
+                    es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                        e.id, e.title, e.date, e.image_url, e.banner_url
                     ),
-                    CAST(m.id AS string),
+                    m.id,
                     e.date
                 )
                 FROM EventScale es
@@ -34,7 +34,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                 es.id,
                 new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                    e.id, e.title, e.date, e.image_url, e.banner_url
                 ),
                 m.id,
                 e.date
@@ -55,7 +55,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 )
                 FROM EventScale es
                 JOIN es.event e
-                WHERE CAST(:membroId AS String) IN elements(es.membersMinistryInvitedIds)
+                WHERE :membroId IN elements(es.membersMinistryInvitedIds)
                   AND e.date BETWEEN :start AND :end
             """)
     List<SimpleScaleResponse> findEscalaMinisterioIdsByMembroIdCanPaticipate(
@@ -68,7 +68,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                       CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                       e.id AS UUID, e.title, e.date, e.image_url, e.banner_url
                     ),
                     m.id,
                     e.date
@@ -105,7 +105,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                    e.id AS UUID, e.title, e.date, e.image_url, e.banner_url
             
                     ),
                     m.id,
@@ -126,7 +126,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                    e.id AS UUID, e.title, e.date, e.image_url, e.banner_url
                     ),
                     m.id,
                     e.date
@@ -147,7 +147,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        CAST(e.id AS string), e.title, e.date, e.image_url, e.banner_url
+                        e.id, e.title, e.date, e.image_url, e.banner_url
                     ),
                     m.id,
                     e.date
@@ -159,6 +159,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             """)
     ScaleEventWithEventInfoResponse findScaleByIdWithInfos(@Param("idEscalaMinisterio") UUID idEscalaMinisterio);
 
+    /*
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.NotConfirmedScaleMinistryWithInfos(
                     a.id,
@@ -170,6 +171,6 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 WHERE a.escala.id = :idEscala
             """)
     List<NotConfirmedScaleMinistryWithInfos> findReasonsAbsenceByEscalaId(@Param("idEscala") UUID idEscala);
-
+    */
     List<EventScale> findByRepertoryIdsContaining(UUID idRepertory);
 }
