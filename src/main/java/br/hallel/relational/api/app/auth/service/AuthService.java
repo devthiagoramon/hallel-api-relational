@@ -52,6 +52,8 @@ public class AuthService {
             tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
                     user.getRoles().stream().map(Role::getDescription)
                         .toList());
+            user.setToken(tokenResponse.getAccessToken());
+            userRepository.save(user);
             return tokenResponse;
         } catch (Exception e) {
             log.error(e.getMessage());

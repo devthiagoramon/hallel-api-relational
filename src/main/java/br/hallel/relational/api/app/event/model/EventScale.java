@@ -18,42 +18,10 @@ public class EventScale {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "event_scale_id")
+    @JoinColumn(name = "event_id")
     private Event event;
 
     @ManyToOne
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
-
-    @OneToOne(mappedBy = "eventScale", cascade = CascadeType.ALL)
-    private AuditionMinistry auditionMinistry;
-
-    @Column(name = "date")
-    private Date date;
-
-    @Column(name = "is_audition")
-    private boolean isAudition;
-
-    @ElementCollection
-    @CollectionTable(
-            name = "event_scale_members_invited",
-            joinColumns = @JoinColumn(name = "event_scale_id"))
-    @Column(name = "members_id", nullable = false)
-    private List<UUID> membersMinistryInvitedIds;
-
-    @ElementCollection
-    @CollectionTable(name = "event_scale_members_confirmed",
-            joinColumns = @JoinColumn(name = "event_scale_id"))
-    @Column(name = "members_id", nullable = false)
-    private List<UUID> membersMinistryConfirmeds;
-
-    @ElementCollection
-    @CollectionTable(name = "event_scale_members_not_confirmed", joinColumns = @JoinColumn(name = "event_scale_id"))
-    @Column(name = "members_id", nullable = false)
-    private List<UUID> membersMinistryNotConfirmedIds;
-
-    @ElementCollection
-    @CollectionTable(name = "event_scale_repertories", joinColumns = @JoinColumn(name = "event_scale_id"))
-    @Column(name = "repertories_id", nullable = false)
-    private List<UUID> repertoryIds;
 }

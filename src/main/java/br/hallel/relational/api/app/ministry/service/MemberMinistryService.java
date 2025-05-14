@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
@@ -24,6 +26,8 @@ import java.util.UUID;
 public class MemberMinistryService {
 
     private final MemberMinistryRepository memberMinistryRepository;
+
+    private final MinistryMapper mapper;
 
 
     public Page<User> getAllMemberOfMinistry(UUID ministryId, Pageable pageable) {
@@ -51,9 +55,9 @@ public class MemberMinistryService {
         memberMinistryRepository.delete(memberMinistry);
     }
 
-    public List<Ministry> getMinistryThatUserParticipate(UUID userId){
+    public List<MinistryResponse> getMinistryThatUserParticipate(UUID userId) {
         log.info("Listing ministries that user participate");
-        return memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId);
+        return mapper.entityMinistriesToResponse(memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId));
     }
 
 }

@@ -3,13 +3,13 @@ CREATE TABLE events
 (
     id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title                 VARCHAR(255)     NOT NULL,
-    description           VARCHAR(255)     NOT NULL,
+    description           TEXT     NOT NULL,
     date                  TIMESTAMP        NOT NULL,
     local_event_name      VARCHAR(255)     NOT NULL,
     local_event_longitude DOUBLE PRECISION NOT NULL,
     local_event_latitude  DOUBLE PRECISION NOT NULL,
-    image_url             VARCHAR(255)     NOT NULL,
-    banner_url            VARCHAR(255)     NOT NULL,
+    image_url             TEXT     NOT NULL,
+    banner_url            TEXT     NOT NULL,
     is_important          BOOLEAN          NOT NULL,
     value                 DOUBLE PRECISION NOT NULL
 );
@@ -19,8 +19,8 @@ CREATE TABLE ministry
 (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title               VARCHAR(255) NOT NULL,
-    description         VARCHAR(255),
-    image               VARCHAR(255),
+    description         TEXT,
+    image               TEXT,
     has_repertoire      BOOLEAN,
     ministry_type       VARCHAR(255),
     coordinator_id      UUID,
@@ -43,7 +43,7 @@ CREATE TABLE audition_ministry
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id UUID         NOT NULL,
     title       VARCHAR(100) NOT NULL,
-    description VARCHAR(250) NOT NULL,
+    description TEXT NOT NULL,
     date        TIMESTAMP    NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
@@ -54,7 +54,7 @@ CREATE TABLE repertory_ministry
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id   UUID,
     name          VARCHAR(100) NOT NULL,
-    description   VARCHAR(250) NOT NULL,
+    description   TEXT NOT NULL,
     ministry_type VARCHAR(50)  NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
@@ -65,7 +65,7 @@ CREATE TABLE music_ministry
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id UUID,
     name        VARCHAR(100) NOT NULL,
-    description VARCHAR(250) NOT NULL,
+    description TEXT NOT NULL,
     letter      TEXT         NOT NULL,
     link        TEXT         NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
@@ -76,8 +76,8 @@ CREATE TABLE dance_ministry
 (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id UUID,
-    name        VARCHAR(100) NOT NULL,
-    description VARCHAR(250) NOT NULL,
+    name        TEXT NOT NULL,
+    description TEXT NOT NULL,
     link        TEXT         NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
@@ -88,7 +88,7 @@ CREATE TABLE video_ministry
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id UUID,
     name        VARCHAR(100) NOT NULL,
-    description VARCHAR(250) NOT NULL,
+    description TEXT NOT NULL,
     link        TEXT         NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 );

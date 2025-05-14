@@ -57,7 +57,7 @@ public class MinistryService implements MinistryInterface {
             MultipartFile image) {
         log.info("Ministry RequestDTO: " + ministryRequestDTO.toString());
 
-        if (image != null) {
+        if (image == null) {
             throw new MinistryIllegalArgumentException("Ministry image can't be null!");
         }
 
@@ -66,8 +66,8 @@ public class MinistryService implements MinistryInterface {
         User coordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
                 .orElseThrow(() -> new UserNotFoundException("User to add as coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
                         .toString())));
-        User viceCoordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
-                .orElseThrow(() -> new UserNotFoundException("User to add as vice-coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
+        User viceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
+                .orElseThrow(() -> new UserNotFoundException("User to add as vice-coordinator not found by id: %s".formatted(ministryRequestDTO.getViceCoordinatorId()
                         .toString())));
         ministryMapped.setCoordinatorId(coordinator);
         ministryMapped.setViceCoordinatorId(viceCoordinator);

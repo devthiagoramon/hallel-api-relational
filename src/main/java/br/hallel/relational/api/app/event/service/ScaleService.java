@@ -42,16 +42,6 @@ public class ScaleService implements ScaleInterface {
 
         Ministry ministry = ministryMapper.responseToEntity(ministryService.getMinistryById(idMinistry));
         eventScale.setMinistry(ministry);
-        eventScale.setDate(event.getDate());
-        eventScale.setMembersMinistryInvitedIds(new ArrayList<>());
-        eventScale.getMembersMinistryInvitedIds()
-                .addAll(List.of(
-                        ministry.getCoordinatorId().getId(),
-                        ministry.getViceCoordinatorId().getId()
-                ));
-        eventScale.setMembersMinistryConfirmeds(new ArrayList<>());
-        eventScale.setMembersMinistryNotConfirmedIds(new ArrayList<>());
-
         EventScale eventScaleSaved = this.eventScaleRepository.save(eventScale);
         log.info("Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
         return scaleMapper.entityToResponse(eventScaleSaved);
@@ -65,7 +55,6 @@ public class ScaleService implements ScaleInterface {
             throw new RuntimeException("Can't find escala with id " + id);
         }
         EventScale oldEventScale = eventScale.get();
-        oldEventScale.setDate(date);
         EventScale scaleUpdated = this.eventScaleRepository.save(oldEventScale);
 
         return scaleMapper.entityToResponse(scaleUpdated);
@@ -100,22 +89,26 @@ public class ScaleService implements ScaleInterface {
 
     @Override
     public List<ScaleEventWithEventInfoResponse> listScaleMemberIdCanParticipate(UUID memberId, LocalDateTime start, LocalDateTime end) {
-        return this.eventScaleRepository.findAllByMemberIdAndDateBetween(memberId, start, end);
+//        return this.eventScaleRepository.findAllByMemberIdAndDateBetween(memberId, start, end);
+        return null;
     }
 
     @Override
     public List<SimpleScaleResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end) {
-        return this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdCanPaticipate(membroId, start, end);
+//        return this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdCanPaticipate(membroId, start, end);
+        return null;
     }
 
     @Override
     public List<ScaleEventWithEventInfoResponse> listScaleMinistryConfirmedMember(UUID membroId, LocalDateTime start, LocalDateTime end) {
-        return this.eventScaleRepository.findConfirmedScalesByMemberAndDateRange(membroId, start, end);
+//        return this.eventScaleRepository.findConfirmedScalesByMemberAndDateRange(membroId, start, end);
+        return null;
     }
 
     @Override
     public List<SimpleScaleResponse> listScaleMinistryIdsByMembroIdThatConfirmed(UUID membroId, LocalDateTime start, LocalDateTime end) {
-        return this.eventScaleRepository.findScalesConfirmedByMemberIdAndDateRange(membroId, start, end);
+//        return this.eventScaleRepository.findScalesConfirmedByMemberIdAndDateRange(membroId, start, end);
+        return null;
     }
 
     @Override

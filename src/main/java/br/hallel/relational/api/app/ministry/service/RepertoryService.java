@@ -125,18 +125,11 @@ public class RepertoryService implements RepertoryInterface {
         RepertoryMinistry repertory =
                 mapper.responseToEntity(getRepertoryById(id));
         this.repository.delete(repertory);
-        List<EventScale> scalesMinistry = this.scaleRepository.findByRepertoryIdsContaining(id);
+//        List<EventScale> scalesMinistry = this.scaleRepository.findByRepertoryIdsContaining(id);
 
-        if (scalesMinistry.isEmpty()) {
-            throw new RepertoryNotFoundException("Repertory Id: " + id + " not found! Maybe you need to create one!");
-        }
-
-        for (EventScale scale : scalesMinistry) {
-            List<UUID> idsScales = scale.getRepertoryIds();
-            idsScales.remove(id);
-            scale.setRepertoryIds(idsScales);
-            this.scaleRepository.save(scale);
-        }
+//        if (scalesMinistry.isEmpty()) {
+//            throw new RepertoryNotFoundException("Repertory Id: " + id + " not found! Maybe you need to create one!");
+//        }
 
         log.info("Repertorio " + repertory.getId() + " deleted");
     }

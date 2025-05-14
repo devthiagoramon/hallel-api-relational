@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.security;
 
 import br.hallel.relational.api.app.security.config.CustomCSRFRepository;
 import br.hallel.relational.api.app.security.exceptions.CredentialsAuthException;
+import br.hallel.relational.api.app.security.exceptions.handler.CustomAccessDeniedHandler;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,7 +39,6 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
 
     private final JwtTokenFilter jwtTokenFilter;
-    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,13 +46,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeRequests) -> {
                             authorizeRequests
-                                    .requestMatchers("/swagger.html","/swagger-ui/**", "/swagger-ui.html", "/docs/**", "/v3/api-docs/**").permitAll()
+                                    .requestMatchers("/swagger.html", "/swagger-ui/**", "/swagger-ui.html", "/docs/**", "/v3/api-docs/**").permitAll()
                                     .requestMatchers("/auth/**").permitAll()
-                                    .requestMatchers("/admin/event/**").hasRole("ADM")
+                                    .requestMatchers("/error").permitAll()
+                                    .requestMatchers("/public/**").permitAll()
+                                    .requestMatchers("/admin/event/**").hasRole("ADMIN")
+                                    .requestMatchers("/admin/ministry/**").hasRole("ADMIN")
 //                                    .requestMatchers("/admin/event/**").permitAll()
                                     .requestMatchers("/user/**").hasRole("USER");
                         }
                 )
+                .exceptionHandling(configurer -> configurer
+                        .accessDeniedHandler(accessDeniedHandler()))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -71,5 +77,8 @@ public class SecurityConfig {
         return new CorsFilter(source);
     }
 
+    private AccessDeniedHandler accessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
+    }
 
 }

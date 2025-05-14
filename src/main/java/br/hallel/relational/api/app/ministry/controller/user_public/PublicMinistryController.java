@@ -60,7 +60,7 @@ public class PublicMinistryController {
     @GetMapping("/ministry-user-participate/{user-id}")
     @Operation(summary = "List all ministry of user",
                description = "Route to list all the ministry that user participate just passing his id")
-    public ResponseEntity<List<Ministry>> listAllMinistryThatUserParticipate(
+    public ResponseEntity<List<MinistryResponse>> listAllMinistryThatUserParticipate(
             @PathVariable("user-id") UUID userId) {
         return ResponseEntity.ok()
                              .body(memberMinistryService.getMinistryThatUserParticipate(userId));

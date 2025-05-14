@@ -20,11 +20,4 @@ public class EventScaleResponse {
     private UUID id;
     private Event event;
     private Ministry ministry;
-    private AuditionMinistry auditionMinistry;
-    private Date date;
-    private boolean isAudition;
-    private List<UUID> membersMinistryInvitedIds;
-    private List<UUID> membersMinistryConfirmeds;
-    private List<UUID> membersMinistryNotConfirmedIds;
-    private List<UUID> repertoryIds;
 }

@@ -26,19 +26,19 @@ public class AdminMinistryController {
     @Autowired
     private MinistryService service;
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ResponseEntity<MinistryResponse> createMinistry(
             @RequestPart(name = "request") MinistryRequestDTO ministry,
             @RequestPart(name = "image") MultipartFile image) {
         return ResponseEntity.ok(this.service.createMinistry(ministry, image));
     }
 
-    @PostMapping("/edit/{id}")
+    @PutMapping(value = "/edit/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<MinistryResponse> editMinistry(
             @PathVariable(name = "id") UUID id,
             @RequestPart(name = "request") MinistryRequestDTO ministry,
-            @RequestPart(name = "image") MultipartFile image) {
-        return ResponseEntity.ok(this.service.createMinistry(ministry, image));
+            @RequestPart(name = "image", required = false) MultipartFile image) {
+        return ResponseEntity.ok(this.service.editMinistry(id, ministry, image));
     }
 
     @DeleteMapping("/delete/{id}")

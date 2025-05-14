@@ -23,11 +23,12 @@ public class Ministry {
     private String title;
     @Column(nullable = false)
     private String description;
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image", nullable = false)
     private String image;
-    @Column(name = "repertorio")
+    @Column(name = "has_repertoire")
     private Boolean hasRepertoire;
 
+    @Column(name = "ministry_type", nullable = false)
     private MinistryType ministryType;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -40,7 +41,7 @@ public class Ministry {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "scale_ministries",
+            name = "event_scale",
             joinColumns = @JoinColumn(name = "ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )
