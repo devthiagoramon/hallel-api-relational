@@ -171,5 +171,5 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             """)
     List<NotConfirmedScaleMinistryWithInfos> findReasonsAbsenceByEscalaId(@Param("idEscala") UUID idEscala);
 
-    String id(UUID id);
+    List<EventScale> findByRepertoryIdsContaining(UUID idRepertory);
 }

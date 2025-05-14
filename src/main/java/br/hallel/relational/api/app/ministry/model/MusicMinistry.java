@@ -17,7 +17,7 @@ public class MusicMinistry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID uuid;
+    private UUID id;
 
     @Column
     private String name;
