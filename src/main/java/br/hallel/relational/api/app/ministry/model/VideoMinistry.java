@@ -16,7 +16,7 @@ public class VideoMinistry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID uuid;
+    private UUID id;
     private String name;
     @Column
     private String description;

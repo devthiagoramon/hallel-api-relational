@@ -7,14 +7,12 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class DanceEditDTO {
-    private UUID id;
+@Getter @Setter
+@AllArgsConstructor @NoArgsConstructor
+public class MusicAddEditDTO {
     private String name;
     private String description;
+    private String letter;
     private String link;
     private UUID ministry;
 }

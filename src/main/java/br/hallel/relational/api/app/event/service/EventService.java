@@ -192,7 +192,7 @@ public class EventService implements EventInterface {
         log.info("Listing evento in escala info by id {}", id);
         Optional<EventShortResponse> optional = this.repository.findByIdShort(id);
         if (optional.isEmpty()) {
-            throw new EventIllegalArumentException("Can't find evento by this id");
+            throw new EventIllegalArumentException("Can't find event by this id");
         }
 
         return optional.get();

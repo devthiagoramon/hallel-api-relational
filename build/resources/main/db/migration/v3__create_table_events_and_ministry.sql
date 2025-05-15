@@ -105,7 +105,32 @@ CREATE TABLE video_ministry
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 );
 
+CREATE TABLE repertory_music
+(
+    repertory_ministry_id UUID,
+    music_ministry_id     UUID,
+    PRIMARY KEY (repertory_ministry_id, music_ministry_id),
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id),
+    FOREIGN KEY (music_ministry_id) REFERENCES music_ministry (id)
+);
 
+CREATE TABLE repertory_dance
+(
+    repertory_ministry_id UUID,
+    dance_ministry_id     UUID,
+    PRIMARY KEY (repertory_ministry_id, dance_ministry_id),
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id),
+    FOREIGN KEY (dance_ministry_id) REFERENCES dance_ministry (id)
+);
+
+CREATE TABLE repertory_video
+(
+    repertory_ministry_id UUID NOT NULL,
+    video_ministry_id     UUID NOT NULL,
+    PRIMARY KEY (repertory_ministry_id, video_ministry_id),
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) ON DELETE CASCADE,
+    FOREIGN KEY (video_ministry_id) REFERENCES video_ministry (id) ON DELETE CASCADE
+);
 
 CREATE TABLE playlist_repertory
 (
@@ -117,6 +142,16 @@ CREATE TABLE playlist_repertory
     CONSTRAINT fk_dance_ministry_id FOREIGN KEY (dance_ministry_id) REFERENCES "dance_ministry" (id) ON DELETE CASCADE
 
 );
+
+CREATE TABLE repertory_playlist
+(
+    repertory_ministry_id UUID NOT NULL,
+    playlist_ministry_id     UUID NOT NULL,
+    PRIMARY KEY (repertory_ministry_id, playlist_ministry_id),
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) ON DELETE CASCADE,
+    FOREIGN KEY (playlist_ministry_id) REFERENCES playlist_repertory (id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE member_event_scale
 (

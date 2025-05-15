@@ -32,6 +32,7 @@ public class MemberMinistryService {
 
     public Page<User> getAllMemberOfMinistry(UUID ministryId, Pageable pageable) {
         log.info("Listing all members of ministry {}", ministryId);
+
         return this.memberMinistryRepository.findAllMembersFromMinistry(ministryId, pageable);
     }
 

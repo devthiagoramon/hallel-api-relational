@@ -1,7 +1,5 @@
 package br.hallel.relational.api.app.ministry.dto;
 
-
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +11,9 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MusicReponse {
-
-
-    private UUID id;
-
+public class DanceAddEditDTO {
     private String name;
     private String description;
-    private String letter;
     private String link;
-
-    private Ministry ministry;
+    private UUID ministry;
 }

@@ -39,7 +39,7 @@ public class Ministry {
     @JoinColumn(name = "vice_coordinator_id")
     private User viceCoordinatorId;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "event_scale",
             joinColumns = @JoinColumn(name = "ministry_id"),
@@ -47,7 +47,7 @@ public class Ministry {
     )
     private List<EventScale>  eventScalesList;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "member_ministry",
             joinColumns = @JoinColumn(name = "ministry_id"),

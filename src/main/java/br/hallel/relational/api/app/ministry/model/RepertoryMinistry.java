@@ -22,40 +22,41 @@ public class RepertoryMinistry {
     private String name;
     @Column
     private String description;
-    @Column
+
+    @Column(name = "ministry_type")
     private MinistryType ministryType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "playlist_ministries",
+            name = "repertory_playlist",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
-            inverseJoinColumns = @JoinColumn(name = "playlist_id")
+            inverseJoinColumns = @JoinColumn(name = "playlist_ministry_id")
     )
     private List<PlaylistRepertory> playlistRepertoryList;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "video_ministries",
+            name = "repertory_video",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
-            inverseJoinColumns = @JoinColumn(name = "video_id")
+            inverseJoinColumns = @JoinColumn(name = "video_ministry_id")
     )
     private List<VideoMinistry> videoMinistryList;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "music_ministries",
+            name = "repertory_music",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
-            inverseJoinColumns = @JoinColumn(name = "ministry_id")
+            inverseJoinColumns = @JoinColumn(name = "music_ministry_id")
     )
     private List<MusicMinistry> musicMinistryList;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "dance_ministries",
+            name = "repertory_dance",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "dance_ministry_id")
     )

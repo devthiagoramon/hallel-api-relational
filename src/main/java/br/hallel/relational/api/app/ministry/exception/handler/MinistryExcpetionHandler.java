@@ -1,10 +1,7 @@
 package br.hallel.relational.api.app.ministry.exception.handler;
 
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
-import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFound;
-import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
-import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
+import br.hallel.relational.api.app.ministry.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +33,12 @@ public class MinistryExcpetionHandler {
 
     @ExceptionHandler(value = FunctionMinistryNotFound.class)
     public ResponseEntity<ExceptionResponse> handleFunctionMinistyrNotFound(FunctionMinistryNotFound exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = ListRepertoryEmptyException.class)
+    public ResponseEntity<ExceptionResponse> listRepertoryEmptyException(ListRepertoryEmptyException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
