@@ -44,7 +44,7 @@ public class MemberMinistryService {
         }
 
         List<UUID> userIds = users.stream().map(User::getId).toList();
-        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByUserIds(userIds);
+        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByUserIds(userIds, ministryId);
 
         Map<UUID, List<FunctionMinistry>> functionsByUserId = functionMinistryMembers.stream()
                                                                                      .collect(Collectors.groupingBy(

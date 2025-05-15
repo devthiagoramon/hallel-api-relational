@@ -24,6 +24,7 @@ public class FunctionMinistryService {
     public FunctionMinistryResponse addNewFunctionIntoMinistry(UUID ministryId, FunctionMinistryDTO dto) {
         log.info("Add new function into ministry {}", ministryId);
         FunctionMinistry functionMinistry = mapper.dtoToModel(dto);
+        functionMinistry.setMinistryId(ministryId);
         return mapper.modelToResponse(functionMinistryRepository.save(functionMinistry));
     }
 

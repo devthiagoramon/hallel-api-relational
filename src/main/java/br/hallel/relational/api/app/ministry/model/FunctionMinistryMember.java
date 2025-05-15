@@ -26,4 +26,6 @@ public class FunctionMinistryMember {
     @MapsId("functionMinistryId")
     @JoinColumn(name = "function_ministry_id")
     private FunctionMinistry functionMinistry;
+
+
 }

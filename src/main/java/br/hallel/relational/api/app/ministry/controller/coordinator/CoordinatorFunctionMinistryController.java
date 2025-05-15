@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryDTO;
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryResponse;
+import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberService;
 import br.hallel.relational.api.app.ministry.service.FunctionMinistryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CoordinatorFunctionMinistryController {
 
-    public final FunctionMinistryService functionMinistryService;
+    private final FunctionMinistryService functionMinistryService;
+
 
     @PostMapping("/add/{ministry-id}")
     @Operation(
@@ -47,4 +49,5 @@ public class CoordinatorFunctionMinistryController {
         functionMinistryService.deleteFunctionMinistryById(functionMinistryId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
 }

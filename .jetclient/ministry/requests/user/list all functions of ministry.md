@@ -1,9 +1,9 @@
 ```toml
-name = 'list all members of ministry'
+name = 'list all functions of ministry'
 method = 'GET'
-url = '{{url}}/coordinator/ministry/member-ministry/list/{ministry-id}'
-sortWeight = 1000000
-id = '906bce01-e188-443f-9fe4-b137d3731fbf'
+url = '{{url}}/user/ministry/function-ministry/list/{ministry-id}'
+sortWeight = 2000000
+id = '759a041b-ad0e-46b1-ac4b-693f467ec856'
 
 [[pathVariables]]
 key = 'ministry-id'
