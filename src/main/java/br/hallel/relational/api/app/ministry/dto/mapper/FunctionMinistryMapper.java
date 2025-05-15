@@ -15,19 +15,20 @@ public interface FunctionMinistryMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "ministryId", ignore = true)
     })
     FunctionMinistry dtoToModel(FunctionMinistryDTO dto);
 
     @Mappings({
-            @Mapping(target = "id", source = "id.id"),
-            @Mapping(target = "ministryId", source = "id.ministryId")
+            @Mapping(target = "id", source = "id"),
+            @Mapping(target = "ministryId", source = "id")
     })
     FunctionMinistryResponse modelToResponse(FunctionMinistry model);
 
 
     @Mappings({
-            @Mapping(target = "id", source = "id.id"),
-            @Mapping(target = "ministryId", source = "id.ministryId")
+            @Mapping(target = "id", source = "id"),
+            @Mapping(target = "ministryId", source = "ministryId")
     })
     List<FunctionMinistryResponse> listModelToResponseModel(List<FunctionMinistryResponse> functionMinistryResponses);
 }

@@ -38,8 +38,18 @@ CREATE TABLE function_ministry
     icon        text         not null,
     color       text         not null,
     CONSTRAINT fk_ministry FOREIGN KEY (ministry_id) REFERENCES ministry on delete cascade on update cascade,
-    primary key (id, ministry_id)
+    primary key (id)
 );
+
+CREATE TABLE function_ministry_member
+(
+    user_id              uuid not null,
+    function_ministry_id uuid not null,
+    primary key (user_id, function_ministry_id),
+    CONSTRAINT fk_user foreign key (user_id) REFERENCES "user" (id) on delete cascade,
+    CONSTRAINT fk_function_ministry foreign key (function_ministry_id) references function_ministry (id) on delete cascade on update cascade
+);
+
 
 CREATE TABLE event_scale
 (
@@ -146,7 +156,7 @@ CREATE TABLE playlist_repertory
 CREATE TABLE repertory_playlist
 (
     repertory_ministry_id UUID NOT NULL,
-    playlist_ministry_id     UUID NOT NULL,
+    playlist_ministry_id  UUID NOT NULL,
     PRIMARY KEY (repertory_ministry_id, playlist_ministry_id),
     FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) ON DELETE CASCADE,
     FOREIGN KEY (playlist_ministry_id) REFERENCES playlist_repertory (id) ON DELETE CASCADE

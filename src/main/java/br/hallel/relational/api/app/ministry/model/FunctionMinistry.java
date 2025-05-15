@@ -16,7 +16,11 @@ import java.util.UUID;
 public class FunctionMinistry {
 
     @Id
-    private FunctionMinistryId id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false, name = "ministry_id")
+    private UUID ministryId;
 
     @Column(nullable = false)
     private String name;

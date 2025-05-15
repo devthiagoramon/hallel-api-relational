@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
 import br.hallel.relational.api.app.user.model.User;
@@ -26,7 +27,7 @@ public class CoordinatorMemberMinistryController {
             summary = "List all members of ministry",
             description = "List all the members inserted in ministry by ministry identifier, you can paginate this request"
     )
-    public ResponseEntity<Page<User>> listAllMembersMinistryByMinistryId(@PathVariable("ministry-id") UUID ministryId, @RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "10") int size) {
+    public ResponseEntity<Page<MemberMinistryResponseWithFunctions>> listAllMembersMinistryByMinistryId(@PathVariable("ministry-id") UUID ministryId, @RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "10") int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok().body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
     }

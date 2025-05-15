@@ -50,6 +50,7 @@ public class SecurityConfig {
                                     .requestMatchers("/auth/**").permitAll()
                                     .requestMatchers("/error").permitAll()
                                     .requestMatchers("/public/**").permitAll()
+                                    .requestMatchers("/coordinator/**").hasAnyRole("USER", "ADMIN")
                                     .requestMatchers("/admin/event/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/ministry/**").hasRole("ADMIN")
 //                                    .requestMatchers("/admin/event/**").permitAll()
