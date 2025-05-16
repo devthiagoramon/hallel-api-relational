@@ -18,6 +18,7 @@ import java.util.UUID;
 public class EventScaleResponse {
 
     private UUID id;
+    private Date date;
     private Event event;
     private Ministry ministry;
 }

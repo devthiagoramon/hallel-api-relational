@@ -46,6 +46,7 @@ CREATE TABLE event_scale
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id    UUID NOT NULL,
     ministry_id UUID NOT NULL,
+    date  TIMESTAMP    ,
     CONSTRAINT fk_event_id FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -168,6 +169,7 @@ CREATE TABLE member_ministry
 (
     user_id     UUID NOT NULL,
     ministry_id UUID NOT NULL,
+    PRIMARY KEY (user_id, ministry_id),
     CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 )

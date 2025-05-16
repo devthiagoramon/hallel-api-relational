@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

@@ -178,8 +178,15 @@ public class MinistryService implements MinistryInterface {
 
     private void addCoordinatorToMemberMinistryTable(UUID userId, UUID ministryId) {
         log.info("Adding coordinator to member ministry table...");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        Ministry ministry = ministryRepository.findById(ministryId)
+                .orElseThrow(() -> new RuntimeException("Ministry not found with id: " + ministryId));
+
         MemberMinistryId memberMinistryId = new MemberMinistryId(userId, ministryId);
-        memberMinistryRepository.save(new MemberMinistry(memberMinistryId));
+
+        memberMinistryRepository.save(new MemberMinistry(memberMinistryId, user, ministry));
     }
 
     @Override

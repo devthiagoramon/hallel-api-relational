@@ -61,4 +61,17 @@ public class RepertoryMinistry {
             inverseJoinColumns = @JoinColumn(name = "dance_ministry_id")
     )
     private List<DanceMinistry> danceMinistryList;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RepertoryMinistry that = (RepertoryMinistry) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

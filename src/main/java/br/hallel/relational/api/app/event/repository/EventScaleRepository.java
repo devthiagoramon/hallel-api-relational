@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.event.repository;
 
-import br.hallel.relational.api.app.event.dto.NotConfirmedScaleMinistryWithInfos;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.dto.SimpleScaleResponse;
 import br.hallel.relational.api.app.event.model.EventScale;
@@ -15,6 +14,9 @@ import java.util.UUID;
 
 @Repository
 public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
+
+    List<EventScale> findByEventId(UUID id);
+
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
@@ -30,76 +32,95 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             """)
     List<ScaleEventWithEventInfoResponse> findAllWithEventosInfos();
 
-//    @Query("""
-//            SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
-//                es.id,
-//                new br.hallel.relational.api.app.event.dto.EventShortResponse(
-//                    e.id, e.title, e.date, e.image_url, e.banner_url
-//                ),
-//                m.id,
-//                e.date
-//            )
-//            FROM EventScale es JOIN es.event e JOIN es.ministry m
-//            WHERE :memberId IN elements(es.membersMinistryInvitedIds) AND e.date BETWEEN :start AND :end """)
-//    List<ScaleEventWithEventInfoResponse> findAllByMemberIdAndDateBetween(
-//            @Param("memberId") UUID memberId,
-//            @Param("start") LocalDateTime start,
-//            @Param("end") LocalDateTime end
-//    );
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
+                    es.id,
+                    new br.hallel.relational.api.app.event.dto.EventShortResponse(
+                        e.id, e.title, e.date, e.image_url, e.banner_url
+                    ),
+                    m.id,
+                    e.date
+                )
+                FROM EventScale es
+                JOIN es.event e
+                JOIN es.ministry m
+                JOIN m.membersMinistry u
+                WHERE u.id = :membroId
+                AND e.date BETWEEN :start AND :end
+            """)
+    List<ScaleEventWithEventInfoResponse> findAllWithEventsInfosCanParticipateByMembroId(
+            @Param("membroId") UUID membroId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 
 
-//    @Query("""
-//                SELECT new br.hallel.relational.api.app.event.dto.SimpleScaleResponse(
-//                    es.id,
-//                    e.date
-//                )
-//                FROM EventScale es
-//                JOIN es.event e
-//                WHERE :membroId IN elements(es.membersMinistryInvitedIds)
-//                  AND e.date BETWEEN :start AND :end
-//            """)
-//    List<SimpleScaleResponse> findEscalaMinisterioIdsByMembroIdCanPaticipate(
-//            @Param("membroId") UUID membroId,
-//            @Param("start") LocalDateTime start,
-//            @Param("end") LocalDateTime end
-//    );
-//
-//    @Query("""
-//                SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
-//                    es.id,
-//                    new br.hallel.relational.api.app.event.dto.EventShortResponse(
-//                       e.id AS UUID, e.title, e.date, e.image_url, e.banner_url
-//                    ),
-//                    m.id,
-//                    e.date
-//                )
-//                FROM EventScale es
-//                JOIN es.event e
-//                JOIN es.ministry m
-//                WHERE :membroId IN elements(es.membersMinistryConfirmeds)
-//                  AND e.date BETWEEN :start AND :end
-//            """)
-//    List<ScaleEventWithEventInfoResponse> findConfirmedScalesByMemberAndDateRange(
-//            @Param("membroId") UUID membroId,
-//            @Param("start") LocalDateTime start,
-//            @Param("end") LocalDateTime end
-//    );
-//
-//    @Query("""
-//                SELECT new br.hallel.relational.api.app.event.dto.SimpleScaleResponse(
-//                    es.id,
-//                    e.date
-//                )
-//                FROM EventScale es
-//                JOIN es.event e
-//                WHERE :membroId IN elements(es.membersMinistryConfirmeds)
-//                  AND e.date BETWEEN :start AND :end
-//            """)
-//    List<SimpleScaleResponse> findScalesConfirmedByMemberIdAndDateRange(
-//            @Param("membroId") UUID membroId,
-//            @Param("start") LocalDateTime start,
-//            @Param("end") LocalDateTime end
-//    );
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
+                    es.id,
+                    new br.hallel.relational.api.app.event.dto.EventShortResponse(
+                        e.id,
+                        e.title,
+                        e.date,
+                        e.image_url,
+                        e.banner_url
+                    ),
+                    m.id,
+                    e.date
+                )
+                FROM EventScale es
+                JOIN es.event e
+                JOIN es.ministry m
+                JOIN es.invitedMembers im
+                WHERE im.id = :memberId
+                  AND e.date BETWEEN :start AND :end
+            """)
+    List<ScaleEventWithEventInfoResponse> findScaleEventsWithInfoByMemberIdCanParticipate(
+            @Param("memberId") UUID memberId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
+                    es.id,
+                    new br.hallel.relational.api.app.event.dto.EventShortResponse(
+                        e.id,
+                        e.title,
+                        e.date,
+                        e.image_url,
+                        e.banner_url
+                    ),
+                    m.id,
+                    e.date
+                )
+                FROM EventScale es
+                JOIN es.event e
+                JOIN es.ministry m
+                WHERE :membroId IN elements(es.confirmedMembers)
+                  AND e.date BETWEEN :start AND :end
+            """)
+    List<ScaleEventWithEventInfoResponse> findConfirmedScalesByMemberAndDateRange(
+            @Param("membroId") UUID membroId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.SimpleScaleResponse(
+                    es.id,
+                    e.date
+                )
+                FROM EventScale es
+                JOIN es.event e
+                JOIN es.confirmedMembers cm
+                WHERE cm.id = :memberId
+                  AND e.date BETWEEN :start AND :end
+            """)
+    List<SimpleScaleResponse> findScaleIdsByMemberIdParticipate(
+            @Param("memberId") UUID memberId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(

@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.Event;
+import br.hallel.relational.api.app.event.model.NotConfirmedScaleMinistry;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -30,7 +31,7 @@ public interface ScaleInterface {
 
     List<ScaleEventWithEventInfoResponse> listScaleMemberIdCanParticipate(
             UUID memberId, LocalDateTime start, LocalDateTime end);
-    List<SimpleScaleResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end);
+    List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end);
 
     List<ScaleEventWithEventInfoResponse> listScaleMinistryConfirmedMember(UUID membroId, LocalDateTime start, LocalDateTime end);
 
@@ -49,12 +50,15 @@ public interface ScaleInterface {
             UUID idEscalaMinisterio);
 
 
-    List<NotConfirmedScaleMinistryWithInfos> listReasonsAbsenceMemberEventByIdScalesMinistry(
+    List<NotConfirmedScaleMinistry> listReasonsAbsenceMemberEventByIdScalesMinistry(
             UUID idEscala);
 
     void deleteSacleWithDeletingEvent(UUID idEvento);
 
     ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(
-            String idEscalaMinisterio,
+            UUID idEscalaMinisterio,
             ScaleRepertoryDTO escalaRepertorioDTO);
+
+    EventScaleResponse getEventScaleById(UUID id);
 }
+
