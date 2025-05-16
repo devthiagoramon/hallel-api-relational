@@ -50,6 +50,6 @@ public class CoordinatorEventScaleController {
     public ResponseEntity<ScaleEventResponseWithInfos> addAndRemoveRepertoryInScala(
             @PathVariable(name = "idScale") UUID idScale,
             @RequestBody ScaleRepertoryDTO dto) {
-        return ResponseEntity.ok(this.service.addAndRemoveRepertoryInScala(idScale, dto));
+        return ResponseEntity.ok(this.service.addAndRemoveRepertoryInScale(idScale, dto));
     }
 }

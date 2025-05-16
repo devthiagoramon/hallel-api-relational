@@ -168,7 +168,7 @@ public class ScaleService implements ScaleInterface {
     }
 
     @Override
-    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(
+    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(
             UUID idScale, ScaleRepertoryDTO scaleRepertoryDTO) {
         log.info("Adding or removing repertorio of escala " + idScale + "...");
 

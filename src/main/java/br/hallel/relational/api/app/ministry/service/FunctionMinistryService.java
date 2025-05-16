@@ -5,10 +5,7 @@ import br.hallel.relational.api.app.ministry.dto.FunctionMinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.FunctionMinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFound;
 import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
-import br.hallel.relational.api.app.ministry.model.FunctionMinistryId;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +24,7 @@ public class FunctionMinistryService {
     public FunctionMinistryResponse addNewFunctionIntoMinistry(UUID ministryId, FunctionMinistryDTO dto) {
         log.info("Add new function into ministry {}", ministryId);
         FunctionMinistry functionMinistry = mapper.dtoToModel(dto);
-        functionMinistry.setId(new FunctionMinistryId(ministryId));
+        functionMinistry.setMinistryId(ministryId);
         return mapper.modelToResponse(functionMinistryRepository.save(functionMinistry));
     }
 

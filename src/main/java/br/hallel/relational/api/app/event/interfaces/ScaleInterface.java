@@ -55,7 +55,7 @@ public interface ScaleInterface {
 
     void deleteSacleWithDeletingEvent(UUID idEvento);
 
-    ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(
+    ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(
             UUID idEscalaMinisterio,
             ScaleRepertoryDTO escalaRepertorioDTO);
 

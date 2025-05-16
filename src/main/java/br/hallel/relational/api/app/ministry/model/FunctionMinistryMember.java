@@ -1,35 +1,31 @@
 package br.hallel.relational.api.app.ministry.model;
 
+import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
-@Entity(name = "member_ministry")
+@Entity(name = "function_ministry_member")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class MemberMinistry {
+@NoArgsConstructor
+public class FunctionMinistryMember {
 
     @EmbeddedId
-    private MemberMinistryId id;
+    private FunctionMinistryMemberId id;
 
-<<<<<<< HEAD
-    @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("userId")
     @JoinColumn(name = "user_id")
     private User user;
 
-    @MapsId("ministryId")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ministry_id")
-    private Ministry ministry;
+    @MapsId("functionMinistryId")
+    @JoinColumn(name = "function_ministry_id")
+    private FunctionMinistry functionMinistry;
 
 
-=======
->>>>>>> bfbe13ee13b1279d0c42d25833634fd487069bb7
 }
