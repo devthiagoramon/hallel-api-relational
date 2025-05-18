@@ -2,6 +2,8 @@ package br.hallel.relational.api.app.event.model;
 
 import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
+import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +22,9 @@ public class EventScale {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "date")
+    private Date date;
 
     @ManyToOne
     @JoinColumn(name = "event_id")

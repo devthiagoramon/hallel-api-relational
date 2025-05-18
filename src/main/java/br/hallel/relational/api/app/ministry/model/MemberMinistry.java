@@ -18,4 +18,18 @@ public class MemberMinistry {
     @EmbeddedId
     private MemberMinistryId id;
 
+<<<<<<< HEAD
+    @MapsId("userId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @MapsId("ministryId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ministry_id")
+    private Ministry ministry;
+
+
+=======
+>>>>>>> bfbe13ee13b1279d0c42d25833634fd487069bb7
 }
