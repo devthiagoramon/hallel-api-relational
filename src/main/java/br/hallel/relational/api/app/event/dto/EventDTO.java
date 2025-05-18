@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public record EventDTO(
         @NotBlank(message = "Campo 'Title' não pode ser nulo.")
@@ -20,6 +22,7 @@ public record EventDTO(
         double local_event_latitude,
         Boolean isImportant,
         @NotNull(message = "Campo 'date_hours' não pode ser nulo." )
-        String date_hours
+        String date_hours,
+        List<UUID> ministryIds
 ) {
 }

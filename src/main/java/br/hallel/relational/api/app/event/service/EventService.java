@@ -7,10 +7,14 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventRepository;
+import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +38,10 @@ public class EventService implements EventInterface {
     private EventRepository repository;
     @Autowired
     private GoogleBucketService bucketService;
+    @Autowired
+    private MinistryRepository ministryRepository;
+    @Autowired
+    private ScaleService scaleService;
 
     private final EventMapper mapper;
 
@@ -42,7 +50,9 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner) {
+    public EventResponse create(EventDTO eventDTO,
+                                MultipartFile fileImage,
+                                MultipartFile fileBanner) {
         if (eventDTO.title() == null
                 || eventDTO.description() == null
                 || eventDTO.date() == null) {
@@ -80,6 +90,12 @@ public class EventService implements EventInterface {
             }
         }
 
+        if (eventDTO.ministryIds() != null) {
+            for (UUID ministryId : eventDTO.ministryIds()) {
+                log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
+                scaleService.createScale(event, ministryId);
+            }
+        }
 
 //        try {
 //            if (event.getMinistriesAssociated() != null && !event.getMinistriesAssociated()
@@ -105,13 +121,16 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public List<EventResponse> listEventsToHomePage(int page, int size) {
+    public List<EventResponse> listEventsToHomePage(int page,
+                                                    int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAll(pageable);
 
         List<EventResponse> listResponse =
-                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
+                eventsPagination.stream()
+                                .map(event -> mapper.entityToResponse(event))
+                                .collect(Collectors.toList());
         log.info("Listing events...", listResponse);
         return listResponse;
     }
@@ -130,9 +149,11 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public EventResponse updateById(UUID id, EventDTO eventDTO, MultipartFile img_url, MultipartFile banner_url) {
+    public EventResponse updateById(UUID id, EventDTO eventDTO,
+                                    MultipartFile img_url,
+                                    MultipartFile banner_url) {
         Event event = this.repository.findById(id).
-                orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
+                                     orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
         event.setId(id);
         event.setTitle(eventDTO.title());
@@ -150,13 +171,13 @@ public class EventService implements EventInterface {
                 imageUrl = bucketService.updateImageOfBucket(
                         img_url, GoogleBucketUtils.getImageName(
                                 event.getId()
-                                        .toString(), Ministry.class.getSimpleName(), "image"
-                        ));
+                                     .toString(), Ministry.class.getSimpleName(), "image"
+                                                               ));
                 bannerUrl = bucketService.updateImageOfBucket(
                         banner_url, GoogleBucketUtils.getImageName(
                                 event.getId()
-                                        .toString(), Ministry.class.getSimpleName(), "banner"
-                        ));
+                                     .toString(), Ministry.class.getSimpleName(), "banner"
+                                                                  ));
                 event.setImage_url(imageUrl);
                 event.setBanner_url(bannerUrl);
                 log.info("image Url Response: " + imageUrl);
@@ -199,24 +220,30 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public List<EventResponse> listEventsByTitleAsc(int page, int size) {
+    public List<EventResponse> listEventsByTitleAsc(int page,
+                                                    int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
 
         List<EventResponse> listResponse =
-                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
+                eventsPagination.stream()
+                                .map(event -> mapper.entityToResponse(event))
+                                .collect(Collectors.toList());
         log.info("Listing events Order by title ASC...", listResponse);
         return listResponse;
 
     }
 
     @Override
-    public List<EventResponse> listEventsByDateExp(int page, int size) {
+    public List<EventResponse> listEventsByDateExp(int page,
+                                                   int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAllByOrderByDateAsc(pageable);
 
         List<EventResponse> listResponse =
-                eventsPagination.stream().map(event -> mapper.entityToResponse(event)).collect(Collectors.toList());
+                eventsPagination.stream()
+                                .map(event -> mapper.entityToResponse(event))
+                                .collect(Collectors.toList());
         log.info("Listing events Order By Data expiration...", listResponse);
         return listResponse;
 

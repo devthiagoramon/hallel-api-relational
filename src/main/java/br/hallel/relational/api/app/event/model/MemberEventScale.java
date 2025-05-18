@@ -8,26 +8,35 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 
 @Table(name = "member_event_scale")
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MemberEventScale {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column
-    private String stastus;
-    @Column
+    @Column(name = "status", nullable = false)
+    private MemberEventScaleStatus status;
+    @Column(name = "reason_absence")
     private String reason_absence;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private User member;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_scale_id")
     private EventScale eventScale;
+
+    public MemberEventScale(MemberEventScaleStatus status,
+                            String reason_absence, User user,
+                            EventScale eventScale) {
+        this.status = status;
+        this.reason_absence = reason_absence;
+        this.user = user;
+        this.eventScale = eventScale;
+    }
 }

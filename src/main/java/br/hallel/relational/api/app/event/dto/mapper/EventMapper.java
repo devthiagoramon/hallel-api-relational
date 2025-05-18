@@ -19,6 +19,7 @@ public interface EventMapper {
     @Mapping(target = "eventScalesList", ignore = true)
     @Mapping(target = "banner_url", ignore = true)
     @Mapping(target = "image_url", ignore = true)
+
     EventResponse dtoToResponse(EventDTO eventDTO);
 
     @Mapping(target = "eventScalesList", ignore = true)
