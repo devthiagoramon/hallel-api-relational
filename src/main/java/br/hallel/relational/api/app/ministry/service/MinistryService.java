@@ -194,4 +194,12 @@ public class MinistryService implements MinistryInterface {
         log.info("Deleting Ministry by Id: " + id);
         this.ministryRepository.deleteById(id);
     }
+
+    public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
+        Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(() -> new MinistryIllegalArgumentException("Can't find ministry of id %s".formatted(ministryId)));
+
+        if (ministry.getCoordinatorId().getId() == userId) return true;
+        if (ministry.getViceCoordinatorId().getId() == userId) return true;
+        return false;
+    }
 }

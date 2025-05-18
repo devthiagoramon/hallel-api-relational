@@ -43,4 +43,10 @@ public class MinistryExcpetionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(value = CoordinatorNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> coordinatorNotFoundException(CoordinatorNotFoundException exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+    }
+
 }
