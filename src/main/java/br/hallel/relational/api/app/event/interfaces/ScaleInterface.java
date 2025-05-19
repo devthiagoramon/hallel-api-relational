@@ -50,8 +50,8 @@ public interface ScaleInterface {
             UUID idEscalaMinisterio);
 
 
-    List<NotConfirmedScaleMinistry> listReasonsAbsenceMemberEventByIdScalesMinistry(
-            UUID idEscala);
+//    List<NotConfirmedScaleMinistry> listReasonsAbsenceMemberEventByIdScalesMinistry(
+//            UUID idEscala);
 
     void deleteSacleWithDeletingEvent(UUID idEvento);
 

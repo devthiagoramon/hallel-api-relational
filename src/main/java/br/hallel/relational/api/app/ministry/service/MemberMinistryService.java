@@ -6,14 +6,8 @@ import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
-import br.hallel.relational.api.app.ministry.repository.FunctionMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
-<<<<<<< HEAD
-import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
-=======
->>>>>>> bfbe13ee13b1279d0c42d25833634fd487069bb7
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;

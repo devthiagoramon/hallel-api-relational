@@ -52,4 +52,6 @@ public class CoordinatorEventScaleController {
             @RequestBody ScaleRepertoryDTO dto) {
         return ResponseEntity.ok(this.service.addAndRemoveRepertoryInScale(idScale, dto));
     }
+
+
 }

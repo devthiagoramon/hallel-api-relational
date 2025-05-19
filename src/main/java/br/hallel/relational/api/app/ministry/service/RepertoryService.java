@@ -8,22 +8,17 @@ import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.ListRepertoryEmptyException;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
 import br.hallel.relational.api.app.ministry.interfaces.RepertoryInterface;
-import br.hallel.relational.api.app.ministry.model.DanceMinistry;
-import br.hallel.relational.api.app.ministry.model.Ministry;
-import br.hallel.relational.api.app.ministry.model.MusicMinistry;
-import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
+import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.DanceRepository;
 import br.hallel.relational.api.app.ministry.repository.MusicRespository;
+import br.hallel.relational.api.app.ministry.repository.PlaylistRepository;
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,6 +34,8 @@ public class RepertoryService implements RepertoryInterface {
     private DanceRepository danceRepository;
     @Autowired
     private MusicRespository musicRespository;
+    @Autowired
+    private PlaylistRepository playlistRepertoryRepository;
 
     private final RepertoryMapper mapper;
     private final MinistryMapper ministryMapper;
@@ -54,8 +51,7 @@ public class RepertoryService implements RepertoryInterface {
         RepertoryMinistry repertorioModel = new RepertoryMinistry();
 
         System.out.println("REQUEST DTO: " + requestDTO.getMinistryType());
-        Ministry ministry = ministryMapper.
-                responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
+        Ministry ministry = ministryMapper.responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
 
         repertorioModel.setMinistry(ministry);
         repertorioModel.setName(requestDTO.getName());
@@ -72,9 +68,7 @@ public class RepertoryService implements RepertoryInterface {
     @Override
     public List<RepertoryResponse> listRepertoryByMinistryId(UUID id) {
         log.info("Listing repertories ministry of ministry: " + id);
-        return this.mapper.toListResponseRepertory(
-                this.repository.findAllByMinistry_Id(id)
-        );
+        return this.mapper.toListResponseRepertory(this.repository.findAllByMinistry_Id(id));
     }
 
     @Override
@@ -102,10 +96,8 @@ public class RepertoryService implements RepertoryInterface {
     @Override
     public RepertoryResponse editRepertory(UUID id, RepertoryRequestDTO requestDTO) {
         log.info("Editing repertory ministry " + id + "...");
-        RepertoryMinistry oldRepertory =
-                mapper.responseToEntity(this.getRepertoryById(id));
-        Ministry ministry = ministryMapper.
-                responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
+        RepertoryMinistry oldRepertory = mapper.responseToEntity(this.getRepertoryById(id));
+        Ministry ministry = ministryMapper.responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
 
         oldRepertory.setName(requestDTO.getName());
         oldRepertory.setDescription(requestDTO.getDescription());
@@ -123,8 +115,7 @@ public class RepertoryService implements RepertoryInterface {
     @Override
     public void deleteRepertory(UUID id) {
         log.info("Deleting repertory ministry " + id + "...");
-        RepertoryMinistry repertory =
-                mapper.responseToEntity(getRepertoryById(id));
+        RepertoryMinistry repertory = mapper.responseToEntity(getRepertoryById(id));
         this.repository.delete(repertory);
 //        List<EventScale> scalesMinistry = this.scaleRepository.findByRepertoryIdsContaining(id);
 
@@ -136,27 +127,20 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
-    public RepertoryResponse addOrRemoveMusicsRepertory(UUID idRepertory, MusicRepertoryAddRemoveDTO repertoryMusicDTO) {
+    public RepertoryResponse addOrRemoveMusicsRepertory(UUID idRepertory, MusicRepertoryAddRemoveDTO musicDTO) {
         log.info("Adding or removing musics repertory...");
-        RepertoryMinistry repertoryMinistry =
-                mapper.responseToEntity(this.getRepertoryById(idRepertory));
+        RepertoryMinistry repertoryMinistry = mapper.responseToEntity(this.getRepertoryById(idRepertory));
         List<UUID> musicIdList = new ArrayList<>();
 
         if (repertoryMinistry.getMusicMinistryList() != null) {
-            List<UUID> musicIdsMinistry = new ArrayList<>
-                    (repertoryMinistry.getMusicMinistryList().stream()
-                            .map(MusicMinistry::getId)
-                            .toList());
+            List<UUID> musicIdsMinistry = new ArrayList<>(repertoryMinistry.getMusicMinistryList().stream().map(MusicMinistry::getId).toList());
             musicIdList = musicIdsMinistry;
         }
-        if (repertoryMusicDTO.getMusicIdsAdd() != null) {
-            musicIdList.addAll(repertoryMusicDTO.getMusicIdsAdd());
+        if (musicDTO.getMusicIdsAdd() != null) {
+            musicIdList.addAll(musicDTO.getMusicIdsAdd());
         }
-        if (repertoryMusicDTO.getMusicIdsRemove() != null) {
-            musicIdList = musicIdList.stream()
-                    .filter(dance -> !(repertoryMusicDTO.getMusicIdsRemove()
-                            .contains(dance)))
-                    .toList();
+        if (musicDTO.getMusicIdsRemove() != null) {
+            musicIdList = musicIdList.stream().filter(dance -> !(musicDTO.getMusicIdsRemove().contains(dance))).toList();
         }
 
         List<MusicMinistry> musicList = this.musicRespository.findAllById(musicIdList);
@@ -167,27 +151,20 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
-    public RepertoryResponse addOrRemoveDanceRepertory(UUID idRepertory, DanceRepertoryAddRemoveDTO repertoryDanceDTO) {
+    public RepertoryResponse addOrRemoveDanceRepertory(UUID idRepertory, DanceRepertoryAddRemoveDTO danceDTO) {
         log.info("Adding or removing dances repertory...");
-        RepertoryMinistry repertoryMinistry =
-                mapper.responseToEntity(this.getRepertoryById(idRepertory));
+        RepertoryMinistry repertoryMinistry = mapper.responseToEntity(this.getRepertoryById(idRepertory));
         List<UUID> danceIdList = new ArrayList<>();
 
         if (repertoryMinistry.getDanceMinistryList() != null) {
-            List<UUID> danceIdsMinistry = new ArrayList<>(
-                    repertoryMinistry.getMusicMinistryList().stream()
-                            .map(MusicMinistry::getId)
-                            .toList());
+            List<UUID> danceIdsMinistry = new ArrayList<>(repertoryMinistry.getDanceMinistryList().stream().map(DanceMinistry::getId).toList());
             danceIdList = danceIdsMinistry;
         }
-        if (repertoryDanceDTO.getDanceIdsAdd() != null) {
-            danceIdList.addAll(repertoryDanceDTO.getDanceIdsAdd());
+        if (danceDTO.getDanceIdsAdd() != null) {
+            danceIdList.addAll(danceDTO.getDanceIdsAdd());
         }
-        if (repertoryDanceDTO.getDanceIdsRemove() != null) {
-            danceIdList = danceIdList.stream()
-                    .filter(music -> !(repertoryDanceDTO.getDanceIdsRemove()
-                            .contains(music)))
-                    .toList();
+        if (danceDTO.getDanceIdsRemove() != null) {
+            danceIdList = danceIdList.stream().filter(music -> !(danceDTO.getDanceIdsRemove().contains(music))).toList();
         }
 
         List<DanceMinistry> danceList = this.danceRepository.findAllById(danceIdList);
@@ -198,11 +175,66 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
+    public RepertoryResponse addOrRemovePlaylistRepertory(UUID idRepertory, PlaylistAddRemoveDTO playlistDTO) {
+        log.info("Adding or removing playlists from repertory...");
+
+        RepertoryMinistry repertory = mapper.responseToEntity(this.getRepertoryById(idRepertory));
+
+        PlaylistRepertory playlist = repertory.getPlaylistRepertoryList().stream().filter(pl -> pl.getMinistryType() == playlistDTO.getMinistryType()).findFirst().orElseGet(() -> {
+            PlaylistRepertory newPlaylist = new PlaylistRepertory();
+            newPlaylist.setMinistryType(playlistDTO.getMinistryType());
+            return newPlaylist;
+        });
+
+        if (playlistDTO.getAddMusicMinistry() != null) {
+            List<MusicMinistry> musicsToAdd = musicRespository.findAllById(playlistDTO.getAddMusicMinistry());
+            if (playlist.getMusicMinistries() == null) {
+                playlist.setMusicMinistries(new ArrayList<>());
+            }
+            Set<UUID> existingIds = playlist.getMusicMinistries().stream().map(MusicMinistry::getId).collect(Collectors.toSet());
+            for (MusicMinistry music : musicsToAdd) {
+                if (!existingIds.contains(music.getId())) {
+                    playlist.getMusicMinistries().add(music);
+                }
+            }
+        }
+
+        if (playlistDTO.getRemoveMusicMinistry() != null && playlist.getMusicMinistries() != null) {
+            playlist.getMusicMinistries().removeIf(music -> playlistDTO.getRemoveMusicMinistry().contains(music.getId()));
+        }
+
+        if (playlistDTO.getAddDanceMinistry() != null) {
+            List<DanceMinistry> dancesToAdd = danceRepository.findAllById(playlistDTO.getAddDanceMinistry());
+            if (playlist.getDanceMinistries() == null) {
+                playlist.setDanceMinistries(new ArrayList<>());
+            }
+            Set<UUID> existingIds = playlist.getDanceMinistries().
+                    stream().map(DanceMinistry::getId).collect(Collectors.toSet());
+            for (DanceMinistry dance : dancesToAdd) {
+                if (!existingIds.contains(dance.getId())) {
+                    playlist.getDanceMinistries().add(dance);
+                }
+            }
+        }
+
+        if (playlistDTO.getRemoveDanceMinistry() != null && playlist.getDanceMinistries() != null) {
+            playlist.getDanceMinistries().removeIf(dance -> playlistDTO.getRemoveDanceMinistry().contains(dance.getId()));
+        }
+
+        if (!repertory.getPlaylistRepertoryList().contains(playlist)) {
+            repertory.getPlaylistRepertoryList().add(playlist);
+        }
+
+        PlaylistRepertory playlistRepertory = this.playlistRepertoryRepository.save(playlist);
+
+        RepertoryMinistry repertoryUpdated = this.repository.save(repertory);
+        return mapper.entityToResponse(repertoryUpdated);
+    }
+
+    @Override
     public RepertoryResponse listRepertoryWithDancesAndMusic(UUID idRepertorio) {
         log.info("Listing repertorio with dances and music");
-        return
-                mapper.entityToResponse(
-                        this.repository.findByIdWithDanceAndMusicInfos(idRepertorio).get());
+        return mapper.entityToResponse(this.repository.findByIdWithDanceAndMusicInfos(idRepertorio).get());
     }
 
     @Override
@@ -224,20 +256,39 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
+    public List<PlaylistResponse> listPlaylistsByRepertoryId(UUID repertoryId) {
+        List<PlaylistRepertory> response = this.repository.findAllPlaylistsByRepertoryId(repertoryId);
+        if (response.isEmpty()) {
+            throw new ListRepertoryEmptyException("List is empty! Maybe you need to add one dance in repertory by id " + repertoryId + " !");
+        }
+        return mapper.toListPlaylistResponse(response);
+    }
+
+    @Override
+    public RepertoryMusicAndDanceResponse listMusicAndDanceByRepertoryId(UUID repertoryId) {
+        RepertoryMusicAndDanceResponse response = new RepertoryMusicAndDanceResponse();
+
+        response.setMusicMinistryList(
+                mapper.toListMusicResponse(this.repository.findAllMusicByRepertoryId(repertoryId))
+        );
+        response.setDanceMinistryList(
+                mapper.toListDanceResponse(this.repository.findAllDancesByRepertoryId(repertoryId))
+        );
+        response.setId(repertoryId);
+        return response;
+    }
+
+    @Override
     public MusicResponse editMusicRepertory(UUID idRepertory, UUID idMusic, MusicAddEditDTO musicAddEditDTO) {
         log.info("Editing music repertory...");
 
-        RepertoryMinistry repertoryMinistry =
-                mapper.responseToEntity(this.getRepertoryById(idRepertory));
+        RepertoryMinistry repertoryMinistry = mapper.responseToEntity(this.getRepertoryById(idRepertory));
 
         if (repertoryMinistry.getMusicMinistryList().isEmpty()) {
             throw new ListRepertoryEmptyException("Music List is empty! Maybe you need to create one!");
         }
 
-        MusicMinistry musicOld = repertoryMinistry.getMusicMinistryList().stream()
-                .filter(m -> m.getId().equals(idMusic))
-                .findFirst()
-                .orElseThrow(() -> new RepertoryNotFoundException("Music not found in repertory."));
+        MusicMinistry musicOld = repertoryMinistry.getMusicMinistryList().stream().filter(m -> m.getId().equals(idMusic)).findFirst().orElseThrow(() -> new RepertoryNotFoundException("Music not found in repertory."));
 
         musicOld.setName(musicAddEditDTO.getName());
         musicOld.setDescription(musicAddEditDTO.getDescription());
@@ -245,8 +296,7 @@ public class RepertoryService implements RepertoryInterface {
         musicOld.setLink(musicAddEditDTO.getLink());
 
         if (musicAddEditDTO.getMinistry() != null) {
-            Ministry ministry = this.ministryMapper
-                    .responseToEntity(this.ministryService.getMinistryById(musicAddEditDTO.getMinistry()));
+            Ministry ministry = this.ministryMapper.responseToEntity(this.ministryService.getMinistryById(musicAddEditDTO.getMinistry()));
             musicOld.setMinistry(ministry);
         }
 
@@ -259,24 +309,19 @@ public class RepertoryService implements RepertoryInterface {
     public DanceResponse editDanceRepertory(UUID id, UUID idDance, DanceAddEditDTO danceEditDTO) {
         log.info("Editing music repertory...");
 
-        RepertoryMinistry repertoryMinistry =
-                mapper.responseToEntity(this.getRepertoryById(id));
+        RepertoryMinistry repertoryMinistry = mapper.responseToEntity(this.getRepertoryById(id));
 
         if (repertoryMinistry.getDanceMinistryList().isEmpty()) {
             throw new ListRepertoryEmptyException("Dance List is empty! Maybe you need to create one!");
         }
 
-        DanceMinistry danceOld = repertoryMinistry.getDanceMinistryList().stream()
-                .filter(d -> d.getId().equals(idDance))
-                .findFirst()
-                .orElseThrow(() -> new RepertoryNotFoundException("Music not found in repertory."));
+        DanceMinistry danceOld = repertoryMinistry.getDanceMinistryList().stream().filter(d -> d.getId().equals(idDance)).findFirst().orElseThrow(() -> new RepertoryNotFoundException("Music not found in repertory."));
 
         danceOld.setName(danceEditDTO.getName());
         danceOld.setDescription(danceEditDTO.getDescription());
         danceOld.setLink(danceEditDTO.getLink());
         if (danceEditDTO.getMinistry() != null) {
-            Ministry ministry = this.ministryMapper
-                    .responseToEntity(this.ministryService.getMinistryById(danceEditDTO.getMinistry()));
+            Ministry ministry = this.ministryMapper.responseToEntity(this.ministryService.getMinistryById(danceEditDTO.getMinistry()));
             danceOld.setMinistry(ministry);
         }
 

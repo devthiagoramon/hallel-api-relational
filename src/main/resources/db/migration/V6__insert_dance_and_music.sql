@@ -14,3 +14,12 @@ VALUES ('123e4567-e89b-12d3-a456-426614174000',
         'https://youtu.be/example-danca',
         'dc317933-167f-4f76-b7cb-a2a219dc8191'
        );
+
+INSERT INTO "repertory_ministry" (id, name, description, ministry_type, ministry_id)
+VALUES (
+           gen_random_uuid(),
+           'Ministério de Louvor',
+           'Ministério responsável pelo louvor congregacional',
+           'MUSIC',
+           '8675330f-9c78-4c6d-9230-b046b4097392'
+       );

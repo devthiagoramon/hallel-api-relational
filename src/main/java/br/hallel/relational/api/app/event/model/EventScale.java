@@ -1,16 +1,12 @@
 package br.hallel.relational.api.app.event.model;
 
-import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.Ministry;
-import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
-import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Table(name = "event_scale")

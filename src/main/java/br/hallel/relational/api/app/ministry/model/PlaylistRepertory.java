@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,11 +21,20 @@ public class PlaylistRepertory {
     @Column
     private MinistryType ministryType;
 
-    @ManyToOne
-    @JoinColumn(name = "music_ministry_id")
-    private MusicMinistry musicMinistry;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "playlist_repertory_music",
+            joinColumns = @JoinColumn(name = "playlist_repertory_id"),
+            inverseJoinColumns = @JoinColumn(name = "music_ministry_id")
+    )
+    private List<MusicMinistry> musicMinistries;
 
-    @ManyToOne
-    @JoinColumn(name = "dance_ministry_id")
-    private DanceMinistry danceMinistry;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "playlist_repertory_dance",
+            joinColumns = @JoinColumn(name = "playlist_repertory_id"),
+            inverseJoinColumns = @JoinColumn(name = "dance_ministry_id")
+    )
+    private List<DanceMinistry> danceMinistries;
+
 }

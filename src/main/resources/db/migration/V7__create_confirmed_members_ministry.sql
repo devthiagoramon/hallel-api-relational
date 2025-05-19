@@ -1,38 +1,38 @@
-CREATE TABLE scale_ministry_confirmed
-(
-    scale_id UUID NOT NULL,
-    user_id  UUID NOT NULL,
-    PRIMARY KEY (scale_id, user_id),
-    FOREIGN KEY (scale_id) REFERENCES "event_scale" (id),
-    FOREIGN KEY (user_id) REFERENCES "user" (id)
-);
-
-CREATE TABLE scale_ministry_invited_members
-(
-    event_scale_id UUID NOT NULL,
-    user_id        UUID NOT NULL,
-    PRIMARY KEY (event_scale_id, user_id),
-    FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
-);
-
-
-CREATE TABLE not_confirmed_scale_ministry
-(
-    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id        UUID NOT NULL,
-    ministry_id    UUID NOT NULL,
-    event_scale_id UUID NOT NULL,
-    reason         TEXT,
-    CONSTRAINT fk_member_ministry FOREIGN KEY (user_id, ministry_id) REFERENCES member_ministry (user_id, ministry_id),
-    CONSTRAINT fk_event_scale FOREIGN KEY (event_scale_id) REFERENCES event_scale (id)
-);
-
-CREATE TABLE event_scale_repertory
-(
-    event_scale_id        UUID NOT NULL,
-    repertory_ministry_id UUID NOT NULL,
-    PRIMARY KEY (event_scale_id, repertory_ministry_id),
-    CONSTRAINT fk_event_scale FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_repertory FOREIGN KEY (repertory_ministry_id) REFERENCES "repertory_ministry" (id) ON DELETE CASCADE
-);
+-- CREATE TABLE scale_ministry_confirmed
+-- (
+--     scale_id UUID NOT NULL,
+--     user_id  UUID NOT NULL,
+--     PRIMARY KEY (scale_id, user_id),
+--     FOREIGN KEY (scale_id) REFERENCES "event_scale" (id),
+--     FOREIGN KEY (user_id) REFERENCES "user" (id)
+-- );
+--
+-- CREATE TABLE scale_ministry_invited_members
+-- (
+--     event_scale_id UUID NOT NULL,
+--     user_id        UUID NOT NULL,
+--     PRIMARY KEY (event_scale_id, user_id),
+--     FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE,
+--     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
+-- );
+--
+--
+-- CREATE TABLE not_confirmed_scale_ministry
+-- (
+--     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     user_id        UUID NOT NULL,
+--     ministry_id    UUID NOT NULL,
+--     event_scale_id UUID NOT NULL,
+--     reason         TEXT,
+--     CONSTRAINT fk_member_ministry FOREIGN KEY (user_id, ministry_id) REFERENCES member_ministry (user_id, ministry_id),
+--     CONSTRAINT fk_event_scale FOREIGN KEY (event_scale_id) REFERENCES event_scale (id)
+-- );
+--
+-- CREATE TABLE event_scale_repertory
+-- (
+--     event_scale_id        UUID NOT NULL,
+--     repertory_ministry_id UUID NOT NULL,
+--     PRIMARY KEY (event_scale_id, repertory_ministry_id),
+--     CONSTRAINT fk_event_scale FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE,
+--     CONSTRAINT fk_repertory FOREIGN KEY (repertory_ministry_id) REFERENCES "repertory_ministry" (id) ON DELETE CASCADE
+-- );

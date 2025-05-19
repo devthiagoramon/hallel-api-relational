@@ -1,6 +1,8 @@
 package br.hallel.relational.api.app.event.exception.handler;
 
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
+import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
+import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -101,10 +101,11 @@ public class ScaleService implements ScaleInterface {
     }
 
     @Override
-    public List<SimpleScaleResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end) {
 //        return this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdCanPaticipate(membroId, start, end);
         return null;
     }
+
 
     @Override
     public List<ScaleEventWithEventInfoResponse> listScaleMinistryConfirmedMember(UUID membroId, LocalDateTime start, LocalDateTime end) {
@@ -120,7 +121,8 @@ public class ScaleService implements ScaleInterface {
 
     @Override
     public List<ScaleEventWithEventInfoResponse> listScaleMinistryRangeDate(LocalDateTime start, LocalDateTime end) {
-        return this.eventScaleRepository.findScalesInRangeDate(start, end);
+//        return this.eventScaleRepository.findScalesInRangeDate(start, end);
+    return null;
     }
 
     @Override
@@ -138,18 +140,27 @@ public class ScaleService implements ScaleInterface {
         return this.eventScaleRepository.findScaleByIdWithInfos(idEscalaMinisterio);
     }
 
-    @Override
-    public List<NotConfirmedScaleMinistryWithInfos> listReasonsAbsenceMemberEventByIdScalesMinistry(UUID idEscala) {
-//        return this.eventScaleRepository.findReasonsAbsenceByEscalaId(idEscala);
-        return null;
-    }
+//    @Override
+//    public List<NotConfirmedScaleMinistryWithInfos> listReasonsAbsenceMemberEventByIdScalesMinistry(UUID idEscala) {
 
+    /// /        return this.eventScaleRepository.findReasonsAbsenceByEscalaId(idEscala);
+//        return null;
+//    }
     @Override
     public void deleteSacleWithDeletingEvent(UUID idEvento) {
 
     }
 
     @Override
+    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(UUID idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {
+        return null;
+    }
+
+    @Override
+    public EventScaleResponse getEventScaleById(UUID id) {
+        return null;
+    }
+
     public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(String idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {
         return null;
     }

@@ -15,10 +15,6 @@ public class ScaleEventResponseWithInfos {
     private UUID ministryId;
     private UUID eventId;
     private Date date;
-    private List<UUID> membersMinistryInvitedIds;
-    private List<UUID> membersMinistryConfirmedIds;
-    private List<UUID> membersMinistryNotConfirmedIds;
-    private List<UUID> repertoryIds;
     private UUID auditionMinistryId;
     private boolean isEnsaio;
 }

@@ -1,11 +1,9 @@
 package br.hallel.relational.api.app.ministry.dto.mapper;
 
-import br.hallel.relational.api.app.ministry.dto.DanceResponse;
-import br.hallel.relational.api.app.ministry.dto.MusicResponse;
-import br.hallel.relational.api.app.ministry.dto.RepertoryRequestDTO;
-import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;
+import br.hallel.relational.api.app.ministry.dto.*;
 import br.hallel.relational.api.app.ministry.model.DanceMinistry;
 import br.hallel.relational.api.app.ministry.model.MusicMinistry;
+import br.hallel.relational.api.app.ministry.model.PlaylistRepertory;
 import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,4 +39,5 @@ public interface RepertoryMapper {
 
     List<MusicResponse> toListMusicResponse(List<MusicMinistry> reponseList);
     List<DanceResponse> toListDanceResponse(List<DanceMinistry> reponseList);
+    List<PlaylistResponse> toListPlaylistResponse(List<PlaylistRepertory> reponseList);
 }

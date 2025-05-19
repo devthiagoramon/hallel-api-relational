@@ -18,9 +18,12 @@ public interface RepertoryInterface {
 
     void deleteRepertory(UUID id);
 
-    RepertoryResponse addOrRemoveMusicsRepertory(UUID idRepertorio, MusicRepertoryAddRemoveDTO repertorioMusicDTO);
+    RepertoryResponse addOrRemoveMusicsRepertory(UUID idRepertory, MusicRepertoryAddRemoveDTO musicDTO);
 
-    RepertoryResponse addOrRemoveDanceRepertory(UUID idRepertorio, DanceRepertoryAddRemoveDTO repertorioDancaDTO);
+    RepertoryResponse addOrRemoveDanceRepertory(UUID idRepertory, DanceRepertoryAddRemoveDTO danceDTO);
+
+    RepertoryResponse addOrRemovePlaylistRepertory(UUID idRepertory, PlaylistAddRemoveDTO playlistDTO)
+            ;
 
     RepertoryResponse listRepertoryWithDancesAndMusic(UUID idRepertorio);
 
@@ -28,7 +31,12 @@ public interface RepertoryInterface {
 
     List<DanceResponse> listDancesByRepertoryId(UUID ministryId);
 
+    List<PlaylistResponse> listPlaylistsByRepertoryId(UUID ministryId);
+
+    RepertoryMusicAndDanceResponse listMusicAndDanceByRepertoryId(UUID ministryId);
+
     MusicResponse editMusicRepertory(UUID idRepertory, UUID idMusic, MusicAddEditDTO musicRepertoryAddRemoveDTO);
 
     DanceResponse editDanceRepertory(UUID idRepertory, UUID idDance, DanceAddEditDTO danceRepertoryAddRemoveDTO);
+
 }

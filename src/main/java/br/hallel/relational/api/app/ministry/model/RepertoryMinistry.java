@@ -23,6 +23,7 @@ public class RepertoryMinistry {
     @Column
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ministry_type")
     private MinistryType ministryType;
 
