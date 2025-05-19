@@ -39,6 +39,11 @@ public class TokenCoordinatorMinistry {
 
     Algorithm algorithm = null;
 
+    @PostConstruct
+    public void init() {
+        this.algorithm = Algorithm.HMAC256(this.secretKey.getEncoded());
+    }
+
     public TokenCoordinatorDTO createAccessToken(UUID userId, UUID ministryId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTimeInMiliseconds);
