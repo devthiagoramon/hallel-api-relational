@@ -60,5 +60,7 @@ public interface ScaleInterface {
             ScaleRepertoryDTO escalaRepertorioDTO);
 
     EventScaleResponse getEventScaleById(UUID id);
+
+    EventByEventScaleResponse getEventByEventScaleId(UUID id);
 }
 

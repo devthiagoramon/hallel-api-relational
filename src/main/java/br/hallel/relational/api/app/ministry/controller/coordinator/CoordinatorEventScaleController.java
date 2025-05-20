@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
-import br.hallel.relational.api.app.event.dto.EventScaleMemberCanParticipateDTO;
-import br.hallel.relational.api.app.event.dto.ScaleEventResponseWithInfos;
-import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
-import br.hallel.relational.api.app.event.dto.ScaleRepertoryDTO;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.ScaleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -53,5 +50,10 @@ public class CoordinatorEventScaleController {
         return ResponseEntity.ok(this.service.addAndRemoveRepertoryInScale(idScale, dto));
     }
 
+    @GetMapping("/get-event/{idEventScale}")
+    public ResponseEntity<EventByEventScaleResponse> getEventByEventScaleId(
+            @PathVariable(name = "idEventScale") UUID idEventScale) {
+        return ResponseEntity.ok(this.service.getEventByEventScaleId(idEventScale));
+    }
 
 }

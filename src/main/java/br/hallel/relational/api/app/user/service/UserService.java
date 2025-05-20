@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.user.service;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
-import br.hallel.relational.api.app.user.dto.UserEditProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.dto.UserLoginDTO;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -52,7 +54,7 @@ public class UserService implements UserInterface {
     }
 
     @Override
-    public UserEditProfileResponse editProfile(UUID idUser, UserEditProfileDTO userDto) {
+    public UserProfileResponse editProfile(UUID idUser, UserEditProfileDTO userDto) {
         log.info("Edit Profile...");
 
         User user = this.getUserById(idUser);
@@ -80,7 +82,7 @@ public class UserService implements UserInterface {
     }
 
     @Override
-    public UserEditProfileResponse editImageProfile(UUID idUser, MultipartFile fileImageUrl) {
+    public UserProfileResponse editImageProfile(UUID idUser, MultipartFile fileImageUrl) {
         log.info("Edit Image Profile...");
         User user = this.getUserById(idUser);
 
@@ -104,5 +106,21 @@ public class UserService implements UserInterface {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(UUID idUser) {
+        User userById = this.getUserById(idUser);
+        return new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(), userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf());
+    }
+
+    @Override
+    public List<UserProfileResponse> listAllUsers() {
+        List<User> users = this.userRepository.findAll();
+        List<UserProfileResponse> response = new ArrayList<>();
+        for (User user : users) {
+            response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(), user.getDateBirth(), user.getFileImageUrl(), user.getCpf()));
+        }
+        return response;
     }
 }

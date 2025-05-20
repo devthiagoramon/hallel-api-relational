@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.event.exception.handler;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
-import br.hallel.relational.api.app.event.exception.ScaleIllegalArgumentException;
+import br.hallel.relational.api.app.event.exception.EventScaleIllegalArgumentException;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,8 +43,8 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ScaleIllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleScaleIllegalArgumentException(ScaleIllegalArgumentException exception, WebRequest request) {
+    @ExceptionHandler(EventScaleIllegalArgumentException.class)
+    public ResponseEntity<ExceptionResponse> handleScaleIllegalArgumentException(EventScaleIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(
                 exception.getMessage(),
                 new Date(),

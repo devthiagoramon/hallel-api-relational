@@ -2,14 +2,14 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
+import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.interfaces.ScaleInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
-import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +34,9 @@ public class ScaleService implements ScaleInterface {
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
 
-    public ScaleService(MinistryMapper ministryMapper, EventScaleMapper scaleMapper) {
+    public ScaleService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
         this.ministryMapper = ministryMapper;
-        this.scaleMapper = scaleMapper;
+        this.scaleMapper = eventScaleMapper;
     }
 
     @Override
@@ -141,7 +141,7 @@ public class ScaleService implements ScaleInterface {
     @Override
     public List<ScaleEventWithEventInfoResponse> listScaleMinistryRangeDate(LocalDateTime start, LocalDateTime end) {
 //        return this.eventScaleRepository.findScalesInRangeDate(start, end);
-    return null;
+        return null;
     }
 
     @Override
@@ -180,7 +180,18 @@ public class ScaleService implements ScaleInterface {
         return null;
     }
 
+    @Override
+    public EventByEventScaleResponse getEventByEventScaleId(UUID id) {
+        Event event = this.eventScaleRepository.findEventByEventScaleId(id);
+        if (event == null) {
+            throw new EventScaleNotFoundException("Not find event by id " + id +
+                    "maybe it's wrong ");
+        }
+        return new EventByEventScaleResponse().toEventByEventScaleResponse(event);
+    }
+
     public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(String idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {
         return null;
     }
+
 }

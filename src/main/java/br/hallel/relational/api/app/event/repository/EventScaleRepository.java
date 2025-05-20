@@ -1,7 +1,9 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.dto.SimpleScaleResponse;
+import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -54,6 +56,8 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             @Param("end") LocalDateTime end
     );
 
+    @Query("SELECT e.event FROM EventScale e WHERE e.id = :id")
+    Event findEventByEventScaleId(@Param("id") UUID eventScaleId);
 
 //    @Query("""
 //                SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(

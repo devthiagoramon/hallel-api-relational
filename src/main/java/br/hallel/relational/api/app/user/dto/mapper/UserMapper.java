@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.user.dto.mapper;
 
-import br.hallel.relational.api.app.user.dto.UserEditProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -12,5 +12,5 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface UserMapper {
 
-    UserEditProfileResponse userEditProfileToResponse(User user);
+    UserProfileResponse userEditProfileToResponse(User user);
 }
