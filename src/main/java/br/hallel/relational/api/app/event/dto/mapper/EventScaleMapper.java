@@ -6,10 +6,7 @@ import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.NotConfirmedScaleMinistry;
 import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import br.hallel.relational.api.app.user.model.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +16,9 @@ import java.util.UUID;
         unmappedTargetPolicy = ReportingPolicy.ERROR
 )
 public interface EventScaleMapper {
+    @Mappings({
+            @Mapping(target = "ministry", ignore = true),
+    })
     EventScaleResponse entityToResponse(EventScale eventScale);
 //    @Mapping(target = "confirmedMembers", ignore = true)
 //    @Mapping(target = "invitedMembers", ignore = true)

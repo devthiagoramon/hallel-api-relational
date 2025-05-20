@@ -62,8 +62,7 @@ public class EventService implements EventInterface {
         }
 
         log.info("Creating evento...");
-        Event event = this.repository.save(mapper.dtoToEntity(eventDTO));
-
+        Event eventToSave = mapper.dtoToEntity(eventDTO);
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
 
@@ -72,24 +71,25 @@ public class EventService implements EventInterface {
             try {
                 imageUrl = bucketService.sendImageToBucket(fileImage, GoogleBucketUtils
                         .getImageName(
-                                event.getId().toString(),
+                                eventToSave.getTitle(),
                                 Event.class.getSimpleName(),
                                 "image"));
 
                 bannerImageUrl = bucketService.sendImageToBucket(fileBanner, GoogleBucketUtils
                         .getImageName(
-                                event.getId().toString(),
+                                eventToSave.getTitle(),
                                 Event.class.getSimpleName(),
                                 "banner"));
 
-                event.setImage_url(imageUrl);
-                event.setBanner_url(bannerImageUrl);
-                log.info(event.getImage_url());
-                log.info(event.getBanner_url());
+                eventToSave.setImage_url(imageUrl);
+                eventToSave.setBanner_url(bannerImageUrl);
+                log.info(eventToSave.getImage_url());
+                log.info(eventToSave.getBanner_url());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+        Event event = this.repository.save(eventToSave);
 
         if (eventDTO.ministryIds() != null) {
             for (UUID ministryId : eventDTO.ministryIds()) {

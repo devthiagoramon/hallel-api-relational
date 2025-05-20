@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Date;
 
@@ -26,5 +27,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionResponse> handleInvalidUUIDFormatException(MinistryIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ExceptionResponse> handleMaxSizeException(MaxUploadSizeExceededException exc, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 }

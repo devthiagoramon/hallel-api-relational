@@ -10,8 +10,8 @@ CREATE TABLE events
     local_event_latitude  DOUBLE PRECISION NOT NULL,
     image_url             TEXT             NOT NULL,
     banner_url            TEXT             NOT NULL,
-    is_important          BOOLEAN          NOT NULL,
-    value                 DOUBLE PRECISION NOT NULL
+    is_important          BOOLEAN          NOT NULL DEFAULT false,
+    value                 DOUBLE PRECISION NOT NULL DEFAULT 0.0
 );
 
 
@@ -56,7 +56,7 @@ CREATE TABLE event_scale
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id    UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    date  TIMESTAMP    ,
+    date  DATE    ,
     CONSTRAINT fk_event_id FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -67,7 +67,7 @@ CREATE TABLE audition_ministry
     ministry_id UUID         NOT NULL,
     title       VARCHAR(100) NOT NULL,
     description TEXT         NOT NULL,
-    date        TIMESTAMP    NOT NULL,
+    date        DATE    NOT NULL,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
 
 );

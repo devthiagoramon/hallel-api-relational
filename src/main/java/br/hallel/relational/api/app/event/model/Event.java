@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -44,9 +46,10 @@ public class Event {
     private String banner_url;
 
     @Column(name = "is_important", nullable = false)
-    private Boolean isImportant;
+    private Boolean isImportant = false;
 
-    private Double value;
+    @Column(name = "value", nullable = false)
+    private Double value = 0.0;
 
 //    @ManyToMany(fetch = FetchType.EAGER)
 //    @JoinTable(
@@ -55,6 +58,4 @@ public class Event {
 //            inverseJoinColumns = @JoinColumn(name = "ministry_id"))
 //    private List<Ministry> ministriesAssociated;
 
-    @OneToMany(mappedBy = "event", fetch = FetchType.EAGER)
-    private List<EventScale> eventScalesList;
 }

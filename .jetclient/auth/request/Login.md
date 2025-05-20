@@ -9,7 +9,7 @@ id = 'bb9b1990-c37f-471b-8036-960e7b66d9ec'
 type = 'JSON'
 raw = '''
 {
-  "email": "barros@gmail.com",
-  "password": "barros123"
+  "email": "adm@hallel.com",
+  "password": "hallel2023"
 }'''
 ```

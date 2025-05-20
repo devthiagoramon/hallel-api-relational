@@ -11,7 +11,7 @@ value = 'dc317933-167f-4f76-b7cb-a2a219dc8191'
 
 [[headers]]
 key = 'coordenador-token'
-value = '{{coordenador-token'
+value = '{{coordenador-token}}'
 
 [auth.bearer]
 token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiYXJyb3NAZ21haWwuY29tIiwicm9sZXMiOlsiVVNFUiJdLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJleHAiOjE3NDk5MzI3NzEsImlhdCI6MTc0NzM0MDc3MX0.iUUnAiLgBn7kSoQRodT0YC0t7KGAMj53vTzt4H4PWHI'

@@ -21,8 +21,6 @@ public record EventDTO(
         double local_event_longitude,
         double local_event_latitude,
         Boolean isImportant,
-        @NotNull(message = "Campo 'date_hours' não pode ser nulo." )
-        String date_hours,
         List<UUID> ministryIds
 ) {
 }

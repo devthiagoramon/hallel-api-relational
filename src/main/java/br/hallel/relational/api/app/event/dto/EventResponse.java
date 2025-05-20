@@ -25,5 +25,4 @@ public class EventResponse {
     private Double local_event_longitude;
     private Double local_event_latitude;
     private Double value;
-    private List<EventScale> eventScalesList;
 }

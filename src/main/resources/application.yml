@@ -26,6 +26,10 @@ spring:
       enabled: false
     livereload:
       enabled: false
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
 server:
   port: 8080
 springdoc:
