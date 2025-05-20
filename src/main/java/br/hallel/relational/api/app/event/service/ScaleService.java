@@ -62,10 +62,29 @@ public class ScaleService implements ScaleInterface {
             throw new RuntimeException("Can't find escala with id " + id);
         }
         EventScale oldEventScale = eventScale.get();
+        oldEventScale.setDate(date);
         EventScale scaleUpdated = this.eventScaleRepository.save(oldEventScale);
 
         return scaleMapper.entityToResponse(scaleUpdated);
     }
+
+    public EventScaleResponse editDateScale(EventScale eventScale, Date date) {
+        log.info("Editing escala date " + eventScale.getId() + "...");
+        eventScale.setDate(date);
+        EventScale scaleUpdated = this.eventScaleRepository.save(eventScale);
+        return scaleMapper.entityToResponse(scaleUpdated);
+    }
+
+    public List<EventScaleResponse> editEventDate(UUID eventId, Date date) {
+        log.info("Editing event date and updating scales of event {}", eventId);
+        List<EventScale> scaleOfEvent = this.eventScaleRepository.findByEventId(eventId);
+        List<EventScaleResponse> responses = new ArrayList<>();
+        for (EventScale eventScale : scaleOfEvent) {
+            responses.add(editDateScale(eventScale, date));
+        }
+        return responses;
+    }
+
 
     @Override
     public List<String> listMemberMinisteryCanInviteToScale(UUID id, int page, int size) {
