@@ -43,6 +43,7 @@ public class EventService implements EventInterface {
     @Autowired
     private ScaleService scaleService;
 
+
     private final EventMapper mapper;
 
     public EventService(EventMapper eventMapper) {
@@ -155,6 +156,9 @@ public class EventService implements EventInterface {
         Event event = this.repository.findById(id).
                                      orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
+        if (!eventDTO.date().equals(event.getDate())){
+            this.scaleService.editEventDate(event.getId(), eventDTO.date());
+        }
         event.setId(id);
         event.setTitle(eventDTO.title());
         event.setDescription(eventDTO.description());
@@ -189,6 +193,7 @@ public class EventService implements EventInterface {
             event.setBanner_url(event.getBanner_url());
             event.setImage_url(event.getImage_url());
         }
+
 
         log.info("Updating event... id: " + id);
         return mapper.entityToResponse(this.repository.save(event));
