@@ -2,6 +2,8 @@ package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
+import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
+import br.hallel.relational.api.app.event.exception.ScaleIllegalArgumentException;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
@@ -25,9 +27,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -207,9 +211,19 @@ public class MinistryService implements MinistryInterface {
     }
 
     @Override
-    public List<EventScaleResponse> listAllEventScales(UUID ministryId) {
+    public List<EventScaleResponse> listAllEventScalesByMinistryId(UUID ministryId) {
         return this.eventScaleMapper.listEntityToResponse(this.ministryRepository.
                 findAllEventScalesByMinistryId(ministryId));
+    }
+
+    @Override
+    public List<EventScaleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new ScaleIllegalArgumentException("Data inicial não pode ser maior que a data final.");
+        }
+        return this.eventScaleMapper.listEntityToResponse(
+                this.ministryRepository.findAllEventScalesByMinistryIdAndDateRange(ministryId, startDate, endDate)
+        );
     }
 
     public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {

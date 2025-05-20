@@ -12,12 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/coordinator/ministry")
+@RequestMapping("/public/ministry")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Ministry", description = "Coordinator part for ministr managment")
 public class CoordinatorMinistryController {
@@ -47,8 +48,17 @@ public class CoordinatorMinistryController {
     }
 
     @GetMapping("/list-all/scales/{idMinistry}")
-    public ResponseEntity<List<EventScaleResponse>> listAllScales(@PathVariable(name = "idMinistry") UUID idMinistry) {
-        return ResponseEntity.ok(this.service.listAllEventScales(idMinistry));
+    public ResponseEntity<List<EventScaleResponse>> listAllScalesByMinistryId(@PathVariable(name = "idMinistry") UUID idMinistry) {
+        return ResponseEntity.ok(this.service.listAllEventScalesByMinistryId(idMinistry));
+    }
+
+    @GetMapping("/list-all/scales-range-date/{idMinistry}")
+    public ResponseEntity<List<EventScaleResponse>> listAllScalesByMinistryIdAndRangeDate(
+            @PathVariable(name = "idMinistry") UUID idMinistry,
+            @RequestParam(name = "start") LocalDateTime start,
+            @RequestParam(name = "end") LocalDateTime end) {
+        return ResponseEntity.ok(this.service.listAllEventScalesByMinistryIdAndRangeDate(idMinistry,
+                start, end));
     }
 
 

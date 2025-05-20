@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,5 +23,7 @@ public interface MinistryInterface {
 
     void deleteMinistryById(UUID id);
 
-    List<EventScaleResponse> listAllEventScales(UUID ministryId);
+    List<EventScaleResponse> listAllEventScalesByMinistryId(UUID ministryId);
+
+    List<EventScaleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate);
 }
