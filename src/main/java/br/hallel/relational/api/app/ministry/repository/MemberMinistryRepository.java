@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.repository;
 
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
 import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
@@ -40,5 +41,4 @@ public interface MemberMinistryRepository
     )
     List<Ministry> listMinistryThatUserParticipateByUserId(
             @Param("user_id") UUID userId);
-
 }

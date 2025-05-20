@@ -39,12 +39,8 @@ public class Ministry {
     @JoinColumn(name = "vice_coordinator_id")
     private User viceCoordinatorId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "event_scale",
-            joinColumns = @JoinColumn(name = "ministry_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id")
-    )
+
+    @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER)
     private List<EventScale>  eventScalesList;
 
     @ManyToMany(fetch = FetchType.EAGER)

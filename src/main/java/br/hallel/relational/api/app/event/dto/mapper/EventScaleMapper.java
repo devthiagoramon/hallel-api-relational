@@ -36,4 +36,5 @@ public interface EventScaleMapper {
     @Mapping( target = "ensaio", ignore = true)
     ScaleEventResponseWithInfos entityToResponseWithInfos(EventScale eventScale);
 
+    List<EventScaleResponse> listEntityToResponse(List<EventScale> eventScaleList);
 }

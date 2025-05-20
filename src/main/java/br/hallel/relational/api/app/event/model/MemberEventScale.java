@@ -18,6 +18,8 @@ public class MemberEventScale {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private MemberEventScaleStatus status;
     @Column(name = "reason_absence")

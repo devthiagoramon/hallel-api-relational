@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.dto.EventScaleResponse;
+import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
@@ -7,11 +9,11 @@ import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
-import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
@@ -46,9 +48,11 @@ public class MinistryService implements MinistryInterface {
     private UserRepository userRepository;
 
     private final MinistryMapper mapper;
+    private final EventScaleMapper eventScaleMapper;
 
-    public MinistryService(MinistryMapper ministryMapper) {
+    public MinistryService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
         this.mapper = ministryMapper;
+        this.eventScaleMapper = eventScaleMapper;
     }
 
     @Override
@@ -202,7 +206,13 @@ public class MinistryService implements MinistryInterface {
         this.ministryRepository.deleteById(id);
     }
 
-    public boolean  validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
+    @Override
+    public List<EventScaleResponse> listAllEventScales(UUID ministryId) {
+        return this.eventScaleMapper.listEntityToResponse(this.ministryRepository.
+                findAllEventScalesByMinistryId(ministryId));
+    }
+
+    public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
         Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(() -> new MinistryIllegalArgumentException("Can't find ministry of id %s".formatted(ministryId)));
 
         if (ministry.getCoordinatorId().getId().equals(userId)) return true;

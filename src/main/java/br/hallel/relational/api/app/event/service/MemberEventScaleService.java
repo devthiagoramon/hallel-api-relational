@@ -1,8 +1,11 @@
 package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.MemberEventScaleResponseUserInfos;
+import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
+import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
+import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
@@ -15,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -25,18 +30,59 @@ public class MemberEventScaleService {
     private final MemberEventScaleRepository memberEventScaleRepository;
     private final UserRepository userRepository;
     private final EventScaleRepository eventScaleRepository;
-    private final MemberEventScaleMapper mapper;
+    private final MemberEventScaleMapper memberEventScaleMapper;
 
     public MemberEventScaleResponseUserInfos inviteUserIntoScale(
             UUID eventScaleId, UUID userId) {
         log.info("Inviting user {} into scale {}", userId, eventScaleId);
         User user = userRepository.findById(userId)
-                                  .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(userId)));
+                .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(userId)));
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
-                                                    .orElseThrow(() -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId)));
+                .orElseThrow(() -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId)));
 
         MemberEventScale memberEventScale = memberEventScaleRepository.save(new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
 
-        return mapper.modelToResponseWithUserInfos(memberEventScale);
+        return memberEventScaleMapper.modelToResponseWithUserInfos(memberEventScale);
     }
+
+    public List<MemberNotConfirmedResponse> listNotConfirmedMembersEventScale(UUID eventScaleId) {
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.RECUSADO, eventScaleId);
+
+        List<MemberNotConfirmedResponse> responseList = new ArrayList<>();
+        for (MemberEventScale member : memberStatusList) {
+            responseList.add(new MemberNotConfirmedResponse(member.getId(), member.getUser().getName(), member.getReason_absence()));
+        }
+        return responseList;
+    }
+
+    public List<MemberInvitedAndConfirmedResponse> listConfirmedMembersEventScale(UUID eventScaleId) {
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO, eventScaleId);
+
+        List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
+        for (MemberEventScale member : memberStatusList) {
+            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName()));
+        }
+        return responseList;
+    }
+
+    public List<MemberInvitedAndConfirmedResponse> listInvitedMembersEventScale(UUID eventScaleId) {
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO, eventScaleId);
+
+        List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
+        for (MemberEventScale member : memberStatusList) {
+            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName()));
+        }
+        return responseList;
+    }
+
+    public MemberNotConfirmedResponse getMemberReasonAbscence(UUID eventScaleId, UUID userId) {
+        MemberEventScale memberStatus = this.memberEventScaleRepository.findByStatusAndEventScale_IdAndUser_Id(
+                MemberEventScaleStatus.RECUSADO, eventScaleId, userId
+        );
+        if (memberStatus == null){
+            throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! " + userId);
+        }
+        return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser().getName(), memberStatus.getReason_absence());
+    }
+
 }

@@ -1,9 +1,11 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
+import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
+import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.ministry.dto.AddRemoveFunctionMinistryToMemberMinistryDTO;
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryMemberResponse;
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
-import br.hallel.relational.api.app.ministry.model.FunctionMinistryMember;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberService;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +29,7 @@ public class CoordinatorMemberMinistryController {
 
     private final MemberMinistryService memberMinistryService;
     private final FunctionMinistryMemberService functionMinistryMemberService;
-
+    private final MemberEventScaleService memberEventScaleService;
     @GetMapping("/list/{ministry-id}")
     @Operation(
             summary = "List all members of ministry",
@@ -88,5 +91,26 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/list-all/members-not-confirmed/{idScale}")
+    public ResponseEntity<List<MemberNotConfirmedResponse>> listAllMembersThatNotConfirmed(@PathVariable(name = "idScale") UUID idScale) {
+        return ResponseEntity.ok(this.memberEventScaleService.listNotConfirmedMembersEventScale(idScale));
+    }
+
+    @GetMapping("/list-all/members-confirmed/{idScale}")
+    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatConfirmed(@PathVariable(name = "idScale") UUID idScale) {
+        return ResponseEntity.ok(this.memberEventScaleService.listConfirmedMembersEventScale(idScale));
+    }
+
+    @GetMapping("/list-all/members-invited/{idScale}")
+    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatInvited(@PathVariable(name = "idScale") UUID idScale) {
+        return ResponseEntity.ok(this.memberEventScaleService.listInvitedMembersEventScale(idScale));
+    }
+    @GetMapping("/get/member-not-confirmed/{idScale}/{idUser}")
+    public ResponseEntity<MemberNotConfirmedResponse> getMemberThatNotConfirmed(
+            @PathVariable(name = "idScale") UUID idScale,
+            @PathVariable(name = "idUser") UUID idUser
+    ) {
+        return ResponseEntity.ok(this.memberEventScaleService.getMemberReasonAbscence(idScale,idUser));
+    }
 
 }

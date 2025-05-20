@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/public/repertory")
+@RequestMapping("/coordinator/repertory")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Repertory Ministry", description = "Coordinator part for repertory ministry managment")
 public class CoordinatorRepertoryController {

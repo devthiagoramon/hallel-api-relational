@@ -55,11 +55,6 @@ public class Event {
 //            inverseJoinColumns = @JoinColumn(name = "ministry_id"))
 //    private List<Ministry> ministriesAssociated;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "scale_ministries",
-            joinColumns = @JoinColumn(name = "event_id"),
-            inverseJoinColumns = @JoinColumn(name = "ministry_id")
-    )
+    @OneToMany(mappedBy = "event", fetch = FetchType.EAGER)
     private List<EventScale> eventScalesList;
 }
