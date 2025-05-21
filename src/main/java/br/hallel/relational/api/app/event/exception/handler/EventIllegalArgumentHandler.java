@@ -56,9 +56,16 @@ public class EventIllegalArgumentHandler {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(MemberScaleAlreadyHasThatStatus.class)
     public ResponseEntity<ExceptionResponse> handleMemberScaleAlreadyHasThatStatus(MemberScaleAlreadyHasThatStatus exception, WebRequest request){
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(MemberEventScaleIllegalArgumentException.class)
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleIllegalArgumentException(MemberEventScaleIllegalArgumentException exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 }

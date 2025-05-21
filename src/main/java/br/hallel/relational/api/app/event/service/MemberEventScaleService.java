@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.event.service;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
+import br.hallel.relational.api.app.event.exception.MemberEventScaleIllegalArgumentException;
 import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
 import br.hallel.relational.api.app.event.exception.MemberScaleAlreadyHasThatStatus;
 import br.hallel.relational.api.app.event.model.EventScale;
@@ -137,9 +138,11 @@ public class MemberEventScaleService {
 
         if ((member.getStatus() == MemberEventScaleStatus.RECUSADO && !memberInScale.isAccept())
         || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())){
-            throw new MemberScaleAlreadyHasThatStatus("Member with id"+idMemberScale+" already has status!");
+            throw new MemberScaleAlreadyHasThatStatus("Member with id ("+idMemberScale+") already has status!");
         }
-
+        if (!memberInScale.isAccept() && memberInScale.reason_decline() == null){
+            throw new MemberEventScaleIllegalArgumentException("Member with id ("+idMemberScale+") must have a reason to decline the scale!");
+        }
         member.setStatus(memberInScale.isAccept() ? MemberEventScaleStatus.PARTICIPANDO : MemberEventScaleStatus.RECUSADO);
         member.setReason_absence(memberInScale.isAccept() ? null : memberInScale.reason_decline());
 
