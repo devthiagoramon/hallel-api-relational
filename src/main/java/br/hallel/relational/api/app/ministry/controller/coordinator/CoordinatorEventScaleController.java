@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.ScaleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +15,16 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/coordinator/event/scale")
+@RequestMapping("/public/event/scale")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator - Event Scale", description = "Coordinator part for event scale managment")
 public class CoordinatorEventScaleController {
 
     @Autowired
     private ScaleService service;
+    @Autowired
+    private MemberEventScaleService memberEventScaleService;
+
 
     @GetMapping("/list/members-can-participate/{idMember}")
     public ResponseEntity<List<ScaleEventWithEventInfoResponse>> listEventsMemberCanParticipate(
@@ -56,4 +60,16 @@ public class CoordinatorEventScaleController {
         return ResponseEntity.ok(this.service.getEventByEventScaleId(idEventScale));
     }
 
+    @GetMapping("/list-all/member-status/{idScale}")
+    public ResponseEntity<List<MemberEventScaleResponseUserInfos>> listAllMemberStatusByEventScaleId(
+            @PathVariable(name = "idScale") UUID idScale) {
+        return ResponseEntity.ok(this.memberEventScaleService.listAllMemberEventScaleStatus(idScale));
+    }
+
+    @PostMapping("/accept-decline/member/{idMember}")
+    public ResponseEntity<MemberEventScaleResponseUserInfos> acceptOrDeclineMemberScale(
+            @PathVariable(name = "idMember") UUID idMember,
+            @RequestBody AcceptOrDeclineMemberInScale isAccept) {
+        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember,isAccept));
+    }
 }

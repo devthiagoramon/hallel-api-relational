@@ -1,16 +1,16 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.event.dto.MemberEventScaleResponseUserInfos;
-import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
-import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
+import br.hallel.relational.api.app.event.exception.MemberScaleAlreadyHasThatStatus;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
+import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -117,5 +117,34 @@ public class MemberEventScaleService {
         memberEventScale.setReason_absence(reason);
         MemberEventScale save = this.memberEventScaleRepository.save(memberEventScale);
         return memberEventScaleMapper.modelToResponseWithUserInfos(save);
+    }
+
+    public List<MemberEventScaleResponseUserInfos> listAllMemberEventScaleStatus(UUID idScale){
+        List<MemberEventScaleResponseUserInfos> response = new ArrayList<>();
+        this.memberEventScaleRepository.findAllByEventScale_Id(idScale).forEach(member -> {
+            response.add(new MemberEventScaleResponseUserInfos(member.getId(),member.getStatus(), member.getReason_absence(),member.getUser()));
+        });
+        return response;
+    }
+
+    public MemberEventScaleResponseUserInfos acceptOrDeclineMember(
+            UUID idMemberScale,
+            AcceptOrDeclineMemberInScale memberInScale
+    ) {
+        MemberEventScale member = this.memberEventScaleRepository.findById(idMemberScale).orElseThrow(
+                () -> new MemberMinistryRegisterNotFoundException("Member with id"+idMemberScale+" not found!")
+        );
+
+        if ((member.getStatus() == MemberEventScaleStatus.RECUSADO && !memberInScale.isAccept())
+        || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())){
+            throw new MemberScaleAlreadyHasThatStatus("Member with id"+idMemberScale+" already has status!");
+        }
+
+        member.setStatus(memberInScale.isAccept() ? MemberEventScaleStatus.PARTICIPANDO : MemberEventScaleStatus.RECUSADO);
+        member.setReason_absence(memberInScale.isAccept() ? null : memberInScale.reason_decline());
+
+        memberEventScaleRepository.save(member);
+
+        return new MemberEventScaleResponseUserInfos(member.getId(),member.getStatus(), member.getReason_absence(),member.getUser());
     }
 }

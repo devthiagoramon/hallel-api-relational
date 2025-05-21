@@ -18,4 +18,6 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
             , UUID eventScaleId, UUID userId);
 
     Optional<MemberEventScale> findByUser_IdAndEventScale_Id(UUID userId, UUID eventScaleId);
+    List<MemberEventScale> findAllByEventScale_Id(UUID eventScaleId);
+
 }
