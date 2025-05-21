@@ -10,18 +10,18 @@ token = '{{token}}'
 
 [[body.formData]]
 key = 'request'
-value = '{    "title":"Missa de Pentecostes",    "description":"Celebração especial de Pentecostes com louvor, adoração e pregação.",    "date":"2025-06-08T19:00:00.000Z",    "local_event_name":"Igreja Matriz São Sebastião",    "local_event_longitude":-60.0231,    "local_event_latitude":-3.1316,    "isImportant":false,    "ministryIds":[       "8675330f-9c78-4c6d-9230-b046b4097392",       "dc317933-167f-4f76-b7cb-a2a219dc8191"    ] }'
+value = '{    "title":"Tarde com Maria",    "description":"Momento de espiritualidade mariana com oração do terço, meditação e missa.",    "date":"2025-08-10T15:00:00.000Z",    "local_event_name":"Capela São João Paulo II",    "local_event_longitude":-60.0350,    "local_event_latitude":-3.1052,    "isImportant":false }'
 contentType = 'application/json'
 
 [[body.formData]]
 type = 'FILE'
 key = 'image_url'
-value = 'C:\Users\thiag\OneDrive\Imagens\DummyImages\Imagem Evento Hallel.png'
+value = 'C:\Users\Callidus\Documents\hallel imagem\Imagem Evento Hallel.png'
 contentType = 'image/png'
 
 [[body.formData]]
 type = 'FILE'
 key = 'banner_url'
-value = 'C:\Users\thiag\OneDrive\Imagens\DummyImages\Banner Evento Hallel.png'
+value = 'C:\Users\Callidus\Documents\hallel imagem\Banner evento hallel.png'
 contentType = 'image/png'
 ```

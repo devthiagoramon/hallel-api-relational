@@ -170,7 +170,7 @@ CREATE TABLE member_event_scale
     event_scale_id UUID    NOT NULL,
     user_id        UUID    NOT NULL,
     status         VARCHAR NOT NULL,
-    reason_absence TEXT    NOT NULL,
+    reason_absence TEXT,
     CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE
 );
