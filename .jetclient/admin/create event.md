@@ -16,12 +16,12 @@ contentType = 'application/json'
 [[body.formData]]
 type = 'FILE'
 key = 'image_url'
-value = 'C:\Users\Callidus\Documents\hallel imagem\Imagem Evento Hallel.png'
+value = 'C:\Users\thiag\OneDrive\Imagens\DummyImages\Imagem Evento Hallel.png'
 contentType = 'image/png'
 
 [[body.formData]]
 type = 'FILE'
 key = 'banner_url'
-value = 'C:\Users\Callidus\Documents\hallel imagem\Banner evento hallel.png'
+value = 'C:\Users\thiag\OneDrive\Imagens\DummyImages\Banner Evento Hallel.png'
 contentType = 'image/png'
 ```

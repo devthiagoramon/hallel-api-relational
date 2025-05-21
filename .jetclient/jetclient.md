@@ -1,6 +1,6 @@
 ```toml
 name = 'Event'
-id = 'd6a7b05d-e0b5-45f9-929d-2207f30b7dbb'
+id = 'd4954ff7-9e85-454a-a4d2-97786737afcf'
 
 [[environmentGroups]]
 name = 'Default'
@@ -12,7 +12,7 @@ name = 'Default'
 {
   globals: {
     url: "http://localhost:8080",
-    token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1AaGFsbGVsLmNvbSIsInJvbGVzIjpbIkFETUlOIiwiVVNFUiJdLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJleHAiOjE3NTAzNTg3MTcsImlhdCI6MTc0Nzc2NjcxN30._b8i61hsX1PwZxt6UHTfHRWjNk8-DlEQgNc6b_VEcsM"
+    token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1AaGFsbGVsLmNvbSIsInJvbGVzIjpbIlVTRVIiLCJBRE1JTiJdLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJleHAiOjE3NTAzODcxODMsImlhdCI6MTc0Nzc5NTE4M30.DKP-m7u2zWhOs08xyRLq4FlRrjd48kmPs4X5mzd3gQE",
   }
 }
 ```

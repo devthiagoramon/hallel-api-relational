@@ -46,6 +46,8 @@ public class ScaleService implements ScaleInterface {
 
         Ministry ministry = ministryMapper.responseToEntity(ministryService.getMinistryById(idMinistry));
         eventScale.setMinistry(ministry);
+        eventScale.setEvent(event);
+        eventScale.setDate(event.getDate());
         EventScale eventScaleSaved = this.eventScaleRepository.save(eventScale);
         log.info("Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
         memberEventScaleService.inviteUserIntoScale(eventScaleSaved.getId(), ministry.getCoordinatorId().getId());
