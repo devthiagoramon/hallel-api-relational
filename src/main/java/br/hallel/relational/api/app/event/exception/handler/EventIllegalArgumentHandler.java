@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.exception.handler;
 
-import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
-import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
-import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
-import br.hallel.relational.api.app.event.exception.EventScaleIllegalArgumentException;
+import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,5 +49,11 @@ public class EventIllegalArgumentHandler {
         );
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
 
+    }
+
+    @ExceptionHandler(MemberEventScaleNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleNotFoundException(MemberEventScaleNotFoundException exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 }

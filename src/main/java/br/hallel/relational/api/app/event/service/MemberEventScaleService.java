@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
+import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
@@ -85,4 +86,11 @@ public class MemberEventScaleService {
         return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser().getName(), memberStatus.getReason_absence());
     }
 
+    public MemberEventScaleResponseUserInfos confirmParticipationUserInEvent(UUID eventScaleId, UUID userId) {
+        log.info("Confirming user {} into scale {}", userId, eventScaleId);
+        MemberEventScale memberEventScale = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(eventScaleId, userId).orElseThrow(() -> new MemberEventScaleNotFoundException("User not associated in scale %s".formatted(eventScaleId.toString())));
+        memberEventScale.setStatus(MemberEventScaleStatus.PARTICIPANDO);
+        MemberEventScale save = this.memberEventScaleRepository.save(memberEventScale);
+        return memberEventScaleMapper.modelToResponseWithUserInfos(save);
+    }
 }
