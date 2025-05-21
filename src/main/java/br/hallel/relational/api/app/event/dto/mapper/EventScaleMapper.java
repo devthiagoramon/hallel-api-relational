@@ -3,13 +3,9 @@ package br.hallel.relational.api.app.event.dto.mapper;
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventResponseWithInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
-import br.hallel.relational.api.app.event.model.NotConfirmedScaleMinistry;
-import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
-import br.hallel.relational.api.app.user.model.User;
 import org.mapstruct.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Mapper(
         componentModel = MappingConstants.ComponentModel.SPRING,

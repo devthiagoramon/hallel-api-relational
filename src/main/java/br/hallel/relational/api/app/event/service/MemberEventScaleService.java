@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
-import br.hallel.relational.api.app.event.exception.ListEventScaleIsEmpty;
 import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
@@ -39,25 +38,30 @@ public class MemberEventScaleService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(userId)));
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
-                .orElseThrow(() -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId)));
+                .orElseThrow(() -> new EventScaleNotFoundException(
+                        "Event scale with id %s not found".formatted(eventScaleId)));
 
-        MemberEventScale memberEventScale = memberEventScaleRepository.save(new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
+        MemberEventScale memberEventScale = memberEventScaleRepository.save(
+                new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
 
         return memberEventScaleMapper.modelToResponseWithUserInfos(memberEventScale);
     }
 
     public List<MemberNotConfirmedResponse> listNotConfirmedMembersEventScale(UUID eventScaleId) {
-        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.RECUSADO, eventScaleId);
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(
+                MemberEventScaleStatus.RECUSADO, eventScaleId);
 
         List<MemberNotConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
-            responseList.add(new MemberNotConfirmedResponse(member.getId(), member.getUser().getName(), member.getReason_absence()));
+            responseList.add(new MemberNotConfirmedResponse(member.getId(), member.getUser().getName(),
+                    member.getReason_absence()));
         }
         return responseList;
     }
 
     public List<MemberInvitedAndConfirmedResponse> listConfirmedMembersEventScale(UUID eventScaleId) {
-        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO, eventScaleId);
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(
+                MemberEventScaleStatus.PARTICIPANDO, eventScaleId);
 
         List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
@@ -67,7 +71,8 @@ public class MemberEventScaleService {
     }
 
     public List<MemberInvitedAndConfirmedResponse> listInvitedMembersEventScale(UUID eventScaleId) {
-        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO, eventScaleId);
+        List<MemberEventScale> memberStatusList = this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(
+                MemberEventScaleStatus.CONVIDADO, eventScaleId);
 
         List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
@@ -79,17 +84,37 @@ public class MemberEventScaleService {
     public MemberNotConfirmedResponse getMemberReasonAbscence(UUID eventScaleId, UUID userId) {
         MemberEventScale memberStatus = this.memberEventScaleRepository.findByStatusAndEventScale_IdAndUser_Id(
                 MemberEventScaleStatus.RECUSADO, eventScaleId, userId
-        );
-        if (memberStatus == null){
+                                                                                                              );
+        if (memberStatus == null) {
             throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! " + userId);
         }
-        return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser().getName(), memberStatus.getReason_absence());
+        return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser().getName(),
+                memberStatus.getReason_absence());
     }
 
     public MemberEventScaleResponseUserInfos confirmParticipationUserInEvent(UUID eventScaleId, UUID userId) {
         log.info("Confirming user {} into scale {}", userId, eventScaleId);
-        MemberEventScale memberEventScale = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(eventScaleId, userId).orElseThrow(() -> new MemberEventScaleNotFoundException("User not associated in scale %s".formatted(eventScaleId.toString())));
+        MemberEventScale memberEventScale = this.memberEventScaleRepository
+                .findByUser_IdAndEventScale_Id(eventScaleId, userId)
+                .orElseThrow(() -> new MemberEventScaleNotFoundException(
+                        "User not associated in scale %s".formatted(eventScaleId.toString())));
         memberEventScale.setStatus(MemberEventScaleStatus.PARTICIPANDO);
+        if (memberEventScale.getReason_absence() != null) {
+            memberEventScale.setReason_absence(null);
+        }
+        MemberEventScale save = this.memberEventScaleRepository.save(memberEventScale);
+        return memberEventScaleMapper.modelToResponseWithUserInfos(save);
+    }
+
+    public MemberEventScaleResponseUserInfos declineParticipationUserInEvent(UUID eventScaleId, UUID userId,
+                                                                             String reason) {
+        log.info("Declining user {} into scale {}", userId, eventScaleId);
+        MemberEventScale memberEventScale = this.memberEventScaleRepository
+                .findByUser_IdAndEventScale_Id(userId, eventScaleId)
+                .orElseThrow(() -> new MemberEventScaleNotFoundException(
+                        "User not associated in scale %s".formatted(eventScaleId.toString())));
+        memberEventScale.setStatus(MemberEventScaleStatus.RECUSADO);
+        memberEventScale.setReason_absence(reason);
         MemberEventScale save = this.memberEventScaleRepository.save(memberEventScale);
         return memberEventScaleMapper.modelToResponseWithUserInfos(save);
     }

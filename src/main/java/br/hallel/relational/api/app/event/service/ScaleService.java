@@ -105,11 +105,6 @@ public class ScaleService implements ScaleInterface {
     }
 
     @Override
-    public EventScaleResponse toggleScaleNOTConfirmedMemberMinistry(UUID id, List<NotConfirmedScaleDTO> notConfirmed) {
-        return null;
-    }
-
-    @Override
     public List<ScaleEventWithEventInfoResponse> listScale() {
         log.info("Listing all the escala ministerio...");
         return this.eventScaleRepository.findAllWithEventosInfos();

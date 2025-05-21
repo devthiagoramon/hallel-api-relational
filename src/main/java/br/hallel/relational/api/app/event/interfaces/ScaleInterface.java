@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.NotConfirmedScaleMinistry;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -22,12 +21,7 @@ public interface ScaleInterface {
 
     EventScaleResponse toggleScaleConfirmedMemberMinistry(UUID id, List<UUID> idMemberMinistryList);
 
-    EventScaleResponse toggleScaleNOTConfirmedMemberMinistry(
-            UUID id,
-            List<NotConfirmedScaleDTO> notConfirmed
-    );
-
-    List<ScaleEventWithEventInfoResponse> listScale();
+       List<ScaleEventWithEventInfoResponse> listScale();
 
     List<ScaleEventWithEventInfoResponse> listScaleMemberIdCanParticipate(
             UUID memberId, LocalDateTime start, LocalDateTime end);
