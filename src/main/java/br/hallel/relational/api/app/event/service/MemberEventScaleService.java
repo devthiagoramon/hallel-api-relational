@@ -95,7 +95,7 @@ public class MemberEventScaleService {
     public MemberEventScaleResponseUserInfos confirmParticipationUserInEvent(UUID eventScaleId, UUID userId) {
         log.info("Confirming user {} into scale {}", userId, eventScaleId);
         MemberEventScale memberEventScale = this.memberEventScaleRepository
-                .findByUser_IdAndEventScale_Id(eventScaleId, userId)
+                .findByUser_IdAndEventScale_Id(userId, eventScaleId)
                 .orElseThrow(() -> new MemberEventScaleNotFoundException(
                         "User not associated in scale %s".formatted(eventScaleId.toString())));
         memberEventScale.setStatus(MemberEventScaleStatus.PARTICIPANDO);

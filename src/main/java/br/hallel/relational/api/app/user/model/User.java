@@ -1,6 +1,8 @@
 package br.hallel.relational.api.app.user.model;
 
 import br.hallel.relational.api.app.security.model.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +22,7 @@ import java.util.*;
 @AllArgsConstructor
 @Setter
 @Getter
+@JsonIgnoreProperties({"password", "roles", "token", "enabled", "accountNonLocked", "accountNonExpired", "credentialsNonExpired"})
 public class User implements Serializable, UserDetails {
 
     @Serial
@@ -34,6 +37,7 @@ public class User implements Serializable, UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
+
     private String password;
     @Column(nullable = false)
     private String token;
@@ -62,16 +66,19 @@ public class User implements Serializable, UserDetails {
     private Set<Role> roles;
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream().map(role-> new SimpleGrantedAuthority("ROLE_"+role.getDescription())).toList();
+        return roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role.getDescription())).toList();
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return this.password;
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return this.email;
     }
