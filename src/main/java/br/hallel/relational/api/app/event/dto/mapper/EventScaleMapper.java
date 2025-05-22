@@ -12,14 +12,15 @@ import java.util.List;
         unmappedTargetPolicy = ReportingPolicy.ERROR
 )
 public interface EventScaleMapper {
-    @Mappings({
-            @Mapping(target = "ministry", ignore = true),
-    })
+
     EventScaleResponse entityToResponse(EventScale eventScale);
 //    @Mapping(target = "confirmedMembers", ignore = true)
 //    @Mapping(target = "invitedMembers", ignore = true)
 //    @Mapping(target = "notConfirmedMembers", ignore = true)
 //    @Mapping(target = "repertories", ignore = true)
+    @Mappings({
+            @Mapping(target = "ministry", ignore = true),
+    })
     EventScale responseToEntity(EventScaleResponse eventScaleResponse);
 
     @Mapping(source = "ministry.id", target = "ministryId")

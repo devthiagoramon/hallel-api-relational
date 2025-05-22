@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -120,10 +121,11 @@ public class MemberEventScaleService {
         return memberEventScaleMapper.modelToResponseWithUserInfos(save);
     }
 
-    public List<MemberEventScaleResponseUserInfos> listAllMemberEventScaleStatus(UUID idScale){
+    public List<MemberEventScaleResponseUserInfos> listAllMemberEventScaleStatus(UUID idScale) {
         List<MemberEventScaleResponseUserInfos> response = new ArrayList<>();
         this.memberEventScaleRepository.findAllByEventScale_Id(idScale).forEach(member -> {
-            response.add(new MemberEventScaleResponseUserInfos(member.getId(),member.getStatus(), member.getReason_absence(),member.getUser()));
+            response.add(new MemberEventScaleResponseUserInfos(member.getId(), member.getStatus(),
+                    member.getReason_absence(), member.getUser()));
         });
         return response;
     }
@@ -131,23 +133,33 @@ public class MemberEventScaleService {
     public MemberEventScaleResponseUserInfos acceptOrDeclineMember(
             UUID idMemberScale,
             AcceptOrDeclineMemberInScale memberInScale
-    ) {
+                                                                  ) {
         MemberEventScale member = this.memberEventScaleRepository.findById(idMemberScale).orElseThrow(
-                () -> new MemberMinistryRegisterNotFoundException("Member with id"+idMemberScale+" not found!")
-        );
+                () -> new MemberMinistryRegisterNotFoundException("Member with id" + idMemberScale + " not found!")
+                                                                                                     );
 
         if ((member.getStatus() == MemberEventScaleStatus.RECUSADO && !memberInScale.isAccept())
-        || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())){
-            throw new MemberScaleAlreadyHasThatStatus("Member with id ("+idMemberScale+") already has status!");
+                || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())) {
+            throw new MemberScaleAlreadyHasThatStatus("Member with id (" + idMemberScale + ") already has status!");
         }
-        if (!memberInScale.isAccept() && memberInScale.reason_decline() == null){
-            throw new MemberEventScaleIllegalArgumentException("Member with id ("+idMemberScale+") must have a reason to decline the scale!");
+        if (!memberInScale.isAccept() && memberInScale.reason_decline() == null) {
+            throw new MemberEventScaleIllegalArgumentException(
+                    "Member with id (" + idMemberScale + ") must have a reason to decline the scale!");
         }
-        member.setStatus(memberInScale.isAccept() ? MemberEventScaleStatus.PARTICIPANDO : MemberEventScaleStatus.RECUSADO);
+        member.setStatus(
+                memberInScale.isAccept() ? MemberEventScaleStatus.PARTICIPANDO : MemberEventScaleStatus.RECUSADO);
         member.setReason_absence(memberInScale.isAccept() ? null : memberInScale.reason_decline());
 
         memberEventScaleRepository.save(member);
 
-        return new MemberEventScaleResponseUserInfos(member.getId(),member.getStatus(), member.getReason_absence(),member.getUser());
+        return new MemberEventScaleResponseUserInfos(member.getId(), member.getStatus(), member.getReason_absence(),
+                member.getUser());
+    }
+
+    public List<EventScale> listAllInvitedScaleOfUserInMinistryInRangeOfDate(UUID userId, UUID ministryId,
+                                                                             Date initialDate, Date finalDate) {
+        log.info("Listing all invitated scales of user {}", userId);
+        return this.memberEventScaleRepository.listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(userId,
+                ministryId, initialDate, finalDate);
     }
 }

@@ -52,14 +52,7 @@ public class CoordinatorMinistryController {
         return ResponseEntity.ok(this.service.listAllEventScalesByMinistryId(idMinistry));
     }
 
-    @GetMapping("/list-all/scales-range-date/{idMinistry}")
-    public ResponseEntity<List<EventScaleResponse>> listAllScalesByMinistryIdAndRangeDate(
-            @PathVariable(name = "idMinistry") UUID idMinistry,
-            @RequestParam(name = "start") LocalDateTime start,
-            @RequestParam(name = "end") LocalDateTime end) {
-        return ResponseEntity.ok(this.service.listAllEventScalesByMinistryIdAndRangeDate(idMinistry,
-                start, end));
-    }
+
 
 
 }

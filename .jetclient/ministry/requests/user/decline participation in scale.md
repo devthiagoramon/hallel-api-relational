@@ -14,7 +14,7 @@ key = 'userId'
 value = '35e5d0dc-b95b-42c1-ab41-96954e488ea0'
 
 [auth.bearer]
-token = '{{token'
+token = '{{token}}'
 
 [body]
 type = 'JSON'
