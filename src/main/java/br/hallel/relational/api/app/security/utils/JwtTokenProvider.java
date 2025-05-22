@@ -120,5 +120,11 @@ public class JwtTokenProvider {
 
     }
 
+    public boolean verifyAdminRoleExisting(String token){
+        DecodedJWT decodedJWT = decodedToken(token);
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+        return roles.contains("ADMIN");
+    }
+
 
 }

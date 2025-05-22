@@ -2,7 +2,9 @@ package br.hallel.relational.api.app.auth.service;
 
 import br.hallel.relational.api.app.auth.dto.LoginRequest;
 import br.hallel.relational.api.app.auth.dto.SingUpRequest;
+import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.AuthRequestException;
+import br.hallel.relational.api.app.security.admin.TokenAdminValidationCode;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
@@ -21,10 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -38,6 +37,8 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private RoleRepository roleRepository;
+
+    private final TokenAdminValidationCode tokenAdminValidationCode = new TokenAdminValidationCode();
 
     @Autowired
     private UserRoleRepository userRoleRepository;
@@ -108,5 +109,22 @@ public class AuthService {
         log.info("SAVING MEMBER...");
 
         return tokenResponse;
+    }
+
+    public TokenAdminResponse verifyIfTokenIsAdmin(String token){
+        boolean isAdmin = jwtTokenProvider.verifyAdminRoleExisting(token);
+
+        if (isAdmin){
+            String code = tokenAdminValidationCode.generateCode();
+            User user = this.userRepository.findByToken(token).orElseThrow(() -> new AuthRequestException("User not found with this token"));
+            String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
+            return new TokenAdminResponse(tokenAdmin, code);
+        }else{
+            return null;
+        }
+    }
+
+    public Boolean validateTokenAdmin(String tokenAdmin, String code){
+        return tokenAdminValidationCode.validateToken(tokenAdmin).equals(code);
     }
 }
