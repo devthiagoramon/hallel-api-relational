@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
@@ -37,4 +38,22 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                                                                                      @Param("ministryId") UUID ministryId,
                                                                                      @Param("initial") Date initialDate,
                                                                                      @Param("final") Date finalDate);
+
+    @Query(
+            """
+                    select new br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos(
+                                        es.id,
+                                        es.date,
+                                        es.event,
+                                        mes.status
+                                        ) from EventScale es
+                    join MemberEventScale mes on mes.eventScale.id = es.id
+                    where user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final
+                    order by es.date asc
+                    """
+    )
+    List<EventScaleWithStatusInfos> listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(UUID userId,
+                                                                                              UUID ministryId,
+                                                                                              @Param("initial") Date initialDate,
+                                                                                              @Param("final") Date finalDate);
 }

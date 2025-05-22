@@ -162,4 +162,12 @@ public class MemberEventScaleService {
         return this.memberEventScaleRepository.listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(userId,
                 ministryId, initialDate, finalDate);
     }
+
+    public List<EventScaleWithStatusInfos> listAllScaleOfUserInMinistryInRangeOfDateStatus(UUID userId, UUID ministryId,
+                                                                                           Date initialDate,
+                                                                                           Date finalDate) {
+        log.info("Listing all scales of user {} with status", userId);
+        return this.memberEventScaleRepository.listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(userId,
+                ministryId, initialDate, finalDate);
+    }
 }
