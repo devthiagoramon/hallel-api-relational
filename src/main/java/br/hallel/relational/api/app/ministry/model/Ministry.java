@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor @NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Table(name = "ministry")
 @Entity
@@ -40,8 +41,8 @@ public class Ministry {
     private User viceCoordinatorId;
 
 
-    @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER)
-    private List<EventScale>  eventScalesList;
+    @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    private List<EventScale> eventScalesList;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

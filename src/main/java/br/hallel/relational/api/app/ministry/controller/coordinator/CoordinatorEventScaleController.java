@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/public/event/scale")
+@RequestMapping("/coordinator/event/scale")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator - Event Scale", description = "Coordinator part for event scale managment")
 public class CoordinatorEventScaleController {

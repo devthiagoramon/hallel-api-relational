@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.ministry.controller.coordinator;
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/coordinator/ministry")
+@RequestMapping("/public/ministry")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Ministry", description = "Coordinator part for ministr managment")
 public class CoordinatorMinistryController {
@@ -42,9 +45,14 @@ public class CoordinatorMinistryController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteEvent(@PathVariable(name = "id") UUID id) {
-        this.service.deleteMinistryById(id);
-        return ResponseEntity.ok("Evento Deletado com sucesso!");
+    public ResponseEntity<Map<String, String>> deleteEvent(@PathVariable(name = "id") UUID id) {
+
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Evento deletado com sucesso!");
+        response.put("Ministry: ", this.service.deleteMinistryById(id).toString());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/list-all/scales/{idMinistry}")

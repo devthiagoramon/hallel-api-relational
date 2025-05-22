@@ -119,14 +119,13 @@ public class MinistryService implements MinistryInterface {
 
     @Override
     public MinistryResponse getMinistryById(UUID id) {
-        Optional<Ministry> optional = this.ministryRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new MinistryIllegalArgumentException("Ministry Id: " + id + " not found!");
-        }
-        log.info("id" + id);
-        log.info("Ministry Response: " + optional.get());
+        log.info("Getting ministry by id" + id);
 
-        return mapper.entityMinistryToResponse(optional.get());
+        Ministry ministry = this.ministryRepository.findById(id).orElseThrow(() -> new MinistryIllegalArgumentException("Ministry Id: " + id + " not found!"));
+
+        log.info("Ministry Response: " + ministry.getId());
+
+        return mapper.entityMinistryToResponse(ministry);
     }
 
     @Override
@@ -196,7 +195,7 @@ public class MinistryService implements MinistryInterface {
     }
 
     @Override
-    public void deleteMinistryById(UUID id) {
+    public MinistryResponse deleteMinistryById(UUID id) {
         Ministry ministry = mapper.responseToEntity(this.getMinistryById(id));
         try {
             googleBucketService.deleteImageOfBucket(ministry.getImage());
@@ -204,8 +203,9 @@ public class MinistryService implements MinistryInterface {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        log.info("Deleting Ministry by Id: " + id);
         this.ministryRepository.deleteById(id);
+
+        return mapper.entityMinistryToResponse(ministry);
     }
 
     @Override

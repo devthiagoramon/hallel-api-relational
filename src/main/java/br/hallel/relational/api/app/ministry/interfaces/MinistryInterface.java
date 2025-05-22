@@ -21,7 +21,7 @@ public interface MinistryInterface {
     MinistryResponse
     editMinistry(UUID id, MinistryRequestDTO ministryRequestDTO, MultipartFile image);
 
-    void deleteMinistryById(UUID id);
+    MinistryResponse deleteMinistryById(UUID id);
 
     List<EventScaleResponse> listAllEventScalesByMinistryId(UUID ministryId);
 
