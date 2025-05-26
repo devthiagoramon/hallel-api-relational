@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +15,7 @@ public interface EventInterface {
 
     List<EventResponse> listEventsToHomePage(int page, int size);
 
-    EventResponse getEventById(UUID id);
+    EventResponseWithMinistryAssociated getEventById(UUID id);
 
     EventResponse updateById(UUID id, EventDTO eventDTO, MultipartFile img_url,  MultipartFile banner_url);
 

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.model.Event;
@@ -25,4 +26,11 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Optional<EventShortResponse> findByIdShort(@Param("idEvento") UUID idEvento);
 
 
+    @Query("""
+            SELECT e
+            FROM Event e
+            JOIN FETCH e.scales
+            WHERE e.id = :eventId
+            """)
+    Optional<Event> listByIdWithMinistryResponse(@Param("eventId") UUID id);
 }

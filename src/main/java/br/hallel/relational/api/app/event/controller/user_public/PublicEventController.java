@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,8 @@ public class PublicEventController {
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<EventResponse> getEvent(@PathVariable(value = "id") UUID id) {
-        EventResponse event = eventService.getEventById(id);
+    public ResponseEntity<EventResponseWithMinistryAssociated> getEvent(@PathVariable(value = "id") UUID id) {
+        EventResponseWithMinistryAssociated event = eventService.getEventById(id);
         if (event == null) {
             return ResponseEntity.noContent().build();
         }

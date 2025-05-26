@@ -33,6 +33,11 @@ public class AuthController {
         return authService.refreshToken(refreshToken, email);
     }
 
+    @GetMapping("/validate-token")
+    public boolean validateToken(@RequestParam(name = "token") String token) {
+        return authService.validateToken(token);
+    }
+
     @PostMapping("/sing-up")
     public TokenDTO singUp(@RequestBody SingUpRequest singUpRequest) {
         return authService.singUp(singUpRequest);

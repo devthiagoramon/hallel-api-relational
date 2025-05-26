@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +51,11 @@ public class Event {
 
     @Column(name = "value", nullable = false)
     private Double value = 0.0;
+
+    @OneToMany( fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "event_id")
+    @ToString.Exclude
+    private List<EventScale> scales;
 
 //    @ManyToMany(fetch = FetchType.EAGER)
 //    @JoinTable(

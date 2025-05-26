@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
@@ -9,12 +10,13 @@ import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventRepository;
-import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
+import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Transactional
+
 public class EventService implements EventInterface {
 
     @Autowired
@@ -45,9 +48,11 @@ public class EventService implements EventInterface {
 
 
     private final EventMapper mapper;
+    private final MinistryMapper ministryMapper;
 
-    public EventService(EventMapper eventMapper) {
+    public EventService(EventMapper eventMapper, MinistryMapper ministryMapper) {
         this.mapper = eventMapper;
+        this.ministryMapper = ministryMapper;
     }
 
     @Override
@@ -137,16 +142,18 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public EventResponse getEventById(UUID id) {
-        Optional<Event> optional = this.repository.findById(id);
+    public EventResponseWithMinistryAssociated getEventById(UUID id) {
+        log.info("Getting event by id {}", id);
+        Event event = this.repository.listByIdWithMinistryResponse(id)
+                .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
+        List<MinistryResponse> ministriesAssociated = event.getScales().stream().map((scale) -> {
+            Ministry ministry = scale.getMinistry();
+            return ministryMapper.entityMinistryToResponse(ministry);
+        }).collect(Collectors.toList());
+        EventResponseWithMinistryAssociated eventResponse = mapper.eventToResponseWithMinistryAssociated(event);
+        eventResponse.setMinistries(ministriesAssociated);
+        return eventResponse;
 
-
-        if (!optional.isPresent()) {
-            log.info("Event not found...");
-            throw new EventIllegalArumentException("Evento de ID" + id + " não encontrado!");
-        }
-
-        return mapper.entityToResponse(optional.get());
     }
 
     @Override
@@ -201,7 +208,7 @@ public class EventService implements EventInterface {
 
     @Override
     public Boolean deleteById(UUID id) {
-        Event event = mapper.responseToEntity(this.getEventById(id));
+        Event event = this.repository.findById(id).orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
         try {
             this.bucketService.deleteImageOfBucket(event.getImage_url());
             this.bucketService.deleteImageOfBucket(event.getBanner_url());

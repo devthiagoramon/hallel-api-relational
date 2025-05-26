@@ -127,4 +127,8 @@ public class AuthService {
     public Boolean validateTokenAdmin(String tokenAdmin, String code){
         return tokenAdminValidationCode.validateToken(tokenAdmin, code);
     }
+
+    public boolean validateToken(String token) {
+        return jwtTokenProvider.validateToken(token);
+    }
 }
