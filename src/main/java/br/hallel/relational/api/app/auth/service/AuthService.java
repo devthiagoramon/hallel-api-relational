@@ -125,6 +125,6 @@ public class AuthService {
     }
 
     public Boolean validateTokenAdmin(String tokenAdmin, String code){
-        return tokenAdminValidationCode.validateToken(tokenAdmin).equals(code);
+        return tokenAdminValidationCode.validateToken(tokenAdmin, code);
     }
 }

@@ -78,7 +78,8 @@ public class UserService implements UserInterface {
 
     @Override
     public User getUserById(UUID idUser) {
-        return this.userRepository.findById(idUser).orElseThrow(() -> new UserNotFoundException("User not find by id: " + idUser));
+        return this.userRepository.findById(idUser)
+                .orElseThrow(() -> new UserNotFoundException("User not find by id: " + idUser));
     }
 
     @Override
@@ -92,12 +93,12 @@ public class UserService implements UserInterface {
             if (user.getFileImageUrl() != null) {
                 imageUrl = this.bucketService.updateImageOfBucket(fileImageUrl,
                         GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                );
+                                                                 );
             } else {
                 imageUrl = this.bucketService.sendImageToBucket(
                         fileImageUrl,
                         GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                );
+                                                               );
             }
             user.setFileImageUrl(imageUrl);
             this.userRepository.save(user);
@@ -110,8 +111,10 @@ public class UserService implements UserInterface {
 
     @Override
     public UserProfileResponse getUserProfile(UUID idUser) {
+        log.info("Get User Profile by id: {}...", idUser);
         User userById = this.getUserById(idUser);
-        return new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(), userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf());
+        return new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
+                userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf());
     }
 
     @Override
@@ -119,8 +122,18 @@ public class UserService implements UserInterface {
         List<User> users = this.userRepository.findAll();
         List<UserProfileResponse> response = new ArrayList<>();
         for (User user : users) {
-            response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(), user.getDateBirth(), user.getFileImageUrl(), user.getCpf()));
+            response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf()));
         }
         return response;
+    }
+
+    @Override
+    public UserProfileResponse getUserProfileByToken(String token) {
+        log.info("Get User Profile By Token {}...", token);
+        User user = this.userRepository.findByToken(token)
+                .orElseThrow(() -> new UserNotFoundException("User not find by token: " + token));
+        return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
+                user.getDateBirth(), user.getFileImageUrl(), user.getCpf());
     }
 }

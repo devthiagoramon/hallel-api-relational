@@ -17,7 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/admin/user")
 @RequiredArgsConstructor
-@Tag(name = "User", description = "Admin part for users managment")
+@Tag(name = "User - Admin", description = "Admin part for users managment")
 public class AdminUserController {
     @Autowired
     private UserService userService;

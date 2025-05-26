@@ -29,12 +29,14 @@ public class TokenAdminValidationCode {
                 .compact();
     }
 
-    public String validateToken(String token) {
-        return Jwts.parserBuilder()
+    public Boolean validateToken(String token, String codigo) {
+        String codigoFromToken = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .get("codigo", String.class);
+
+        return codigoFromToken.equals(codigo);
     }
 }
