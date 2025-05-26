@@ -34,11 +34,11 @@ public class Ministry {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coordinator_id")
-    private User coordinatorId;
+    private User coordinator;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vice_coordinator_id")
-    private User viceCoordinatorId;
+    private User viceCoordinator;
 
 
     @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)

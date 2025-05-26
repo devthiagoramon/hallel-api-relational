@@ -3,8 +3,6 @@ package br.hallel.relational.api.app.event.dto;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
-import br.hallel.relational.api.app.ministry.model.Ministry;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -58,8 +56,8 @@ public class EventResponseWithMinistryAssociated {
                             ministryEntity.getImage(),
                             ministryEntity.getHasRepertoire(),
                             ministryEntity.getMinistryType(),
-                            ministryEntity.getCoordinatorId(),
-                            ministryEntity.getViceCoordinatorId()
+                            ministryEntity.getCoordinator(),
+                            ministryEntity.getViceCoordinator()
                     ))
                     .collect(Collectors.toList());
         } else {

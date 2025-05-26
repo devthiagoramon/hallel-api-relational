@@ -75,8 +75,8 @@ public class MinistryService implements MinistryInterface {
         User viceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
                 .orElseThrow(() -> new UserNotFoundException("User to add as vice-coordinator not found by id: %s".formatted(ministryRequestDTO.getViceCoordinatorId()
                         .toString())));
-        ministryMapped.setCoordinatorId(coordinator);
-        ministryMapped.setViceCoordinatorId(viceCoordinator);
+        ministryMapped.setCoordinator(coordinator);
+        ministryMapped.setViceCoordinator(viceCoordinator);
         Ministry ministry =
                 this.ministryRepository.save(ministryMapped);
         String imageUrl = null;
@@ -96,8 +96,8 @@ public class MinistryService implements MinistryInterface {
         log.info("Ministry Response: " + ministry.toString());
 
         log.info("Adding coordinator and vice-coordinator as members ministry");
-        addCoordinatorToMemberMinistryTable(ministry.getCoordinatorId().getId(), ministry.getId());
-        addCoordinatorToMemberMinistryTable(ministry.getViceCoordinatorId().getId(), ministry.getId());
+        addCoordinatorToMemberMinistryTable(ministry.getCoordinator().getId(), ministry.getId());
+        addCoordinatorToMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
 
         return mapper.entityMinistryToResponse(this.ministryRepository.save(ministry));
     }
@@ -158,14 +158,14 @@ public class MinistryService implements MinistryInterface {
         }
 
         if (ministryRequestDTO.getCoordinatorId() != null
-                && ministryRequestDTO.getCoordinatorId() != ministry.getCoordinatorId().getId()) {
-            deleteCoordinatorFromMemberMinistryTable(ministry.getCoordinatorId().getId(), ministry.getId());
+                && ministryRequestDTO.getCoordinatorId() != ministry.getCoordinator().getId()) {
+            deleteCoordinatorFromMemberMinistryTable(ministry.getCoordinator().getId(), ministry.getId());
             addCoordinatorToMemberMinistryTable(ministryRequestDTO.getCoordinatorId(), ministry.getId());
         }
         if (ministryRequestDTO.getViceCoordinatorId() != null
-                && ministryRequestDTO.getViceCoordinatorId() != ministry.getViceCoordinatorId().getId()) {
-            deleteCoordinatorFromMemberMinistryTable(ministry.getViceCoordinatorId().getId(), ministry.getId());
-            addCoordinatorToMemberMinistryTable(ministry.getViceCoordinatorId().getId(), ministry.getId());
+                && ministryRequestDTO.getViceCoordinatorId() != ministry.getViceCoordinator().getId()) {
+            deleteCoordinatorFromMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
+            addCoordinatorToMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
         }
 
         return mapper.entityMinistryToResponse(this.ministryRepository.save(ministry));
@@ -227,7 +227,7 @@ public class MinistryService implements MinistryInterface {
     public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
         Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(() -> new MinistryIllegalArgumentException("Can't find ministry of id %s".formatted(ministryId)));
 
-        if (ministry.getCoordinatorId().getId().equals(userId)) return true;
-        return ministry.getViceCoordinatorId().getId().equals(userId);
+        if (ministry.getCoordinator().getId().equals(userId)) return true;
+        return ministry.getViceCoordinator().getId().equals(userId);
     }
 }
