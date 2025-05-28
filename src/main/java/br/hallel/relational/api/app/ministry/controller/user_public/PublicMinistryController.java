@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
+import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
@@ -61,7 +62,7 @@ public class PublicMinistryController {
     @GetMapping("/ministry-user-participate/{user-id}")
     @Operation(summary = "List all ministry of user",
                description = "Route to list all the ministry that user participate just passing his id")
-    public ResponseEntity<List<MinistryResponse>> listAllMinistryThatUserParticipate(
+    public ResponseEntity<List<MinistryParticipationResponse>> listAllMinistryThatUserParticipate(
             @PathVariable("user-id") UUID userId) {
         return ResponseEntity.ok()
                              .body(memberMinistryService.getMinistryThatUserParticipate(userId));

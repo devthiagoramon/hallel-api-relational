@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
+import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
@@ -50,27 +51,29 @@ public class MemberMinistryService {
         }
 
         List<UUID> userIds = users.stream().map(User::getId).toList();
-        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByUserIds(userIds, ministryId);
+        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByUserIds(
+                userIds, ministryId);
 
         Map<UUID, List<FunctionMinistry>> functionsByUserId = functionMinistryMembers.stream()
-                                                                                     .collect(Collectors.groupingBy(
-                                                                                             fmm -> fmm.getUser()
-                                                                                                       .getId(),
-                                                                                             Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
-                                                                                                                   ));
+                .collect(Collectors.groupingBy(
+                        fmm -> fmm.getUser()
+                                .getId(),
+                        Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
+                                              ));
         List<MemberMinistryResponseWithFunctions> dtos = users.stream()
-                                                              .map(user -> new MemberMinistryResponseWithFunctions(
-                                                                      user,
-                                                                      functionsByUserId.getOrDefault(user.getId(), Collections.emptyList())
-                                                              ))
-                                                              .toList();
+                .map(user -> new MemberMinistryResponseWithFunctions(
+                        user,
+                        functionsByUserId.getOrDefault(user.getId(), Collections.emptyList())
+                ))
+                .toList();
 
         return new PageImpl<>(dtos, pageable, pageUsers.getTotalElements());
     }
 
     public MemberMinistry getMemberMinistryById(UUID ministryId,
                                                 UUID userId) {
-        Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(new MemberMinistryId(userId, ministryId));
+        Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(
+                new MemberMinistryId(userId, ministryId));
         if (memberMinistryId.isEmpty()) {
             throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
         }
@@ -101,10 +104,24 @@ public class MemberMinistryService {
         memberMinistryRepository.delete(memberMinistry);
     }
 
-    public List<MinistryResponse> getMinistryThatUserParticipate(
+    public List<MinistryParticipationResponse> getMinistryThatUserParticipate(
             UUID userId) {
         log.info("Listing ministries that user participate");
-        return mapper.entityMinistriesToResponse(memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId));
+        List<Ministry> ministries = memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId);
+        List<MinistryParticipationResponse> responses = ministries.stream()
+                .map(ministry -> new MinistryParticipationResponse(ministry.getId(), ministry.getTitle(),
+                        ministry.getImage(), getStatusParticipationInMinistryUser(ministry, userId))).toList();
+        return responses;
+    }
+
+    private StatusParticipationMinistry getStatusParticipationInMinistryUser(Ministry ministry, UUID userId) {
+        if (ministry.getCoordinator().getId().equals(userId)) {
+            return StatusParticipationMinistry.COORDINATOR;
+        }
+        if (ministry.getViceCoordinator().getId().equals(userId)) {
+            return StatusParticipationMinistry.VICE_COORDINATOR;
+        }
+        return StatusParticipationMinistry.MEMBER;
     }
 
 }
