@@ -63,15 +63,19 @@ public class UserService implements UserInterface {
         User user = this.getUserById(idUser);
         user.setName(userDto.name());
         user.setEmail(userDto.email());
-        user.setDateBirth(userDto.dateBirth());
+        if (userDto.dateBirth() != null) {
+            user.setDateBirth(userDto.dateBirth());
+        }
         user.setPhoneNumber(userDto.phoneNumber());
         user.setCpf(userDto.cpf());
-        LocalDate birthLocalDate = userDto.dateBirth().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        if (userDto.dateBirth() != null) {
+            LocalDate birthLocalDate = userDto.dateBirth().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
 
-        int age = Period.between(birthLocalDate, LocalDate.now()).getYears();
-        user.setAge(age);
+            int age = Period.between(birthLocalDate, LocalDate.now()).getYears();
+            user.setAge(age);
+        }
 
         User userUpdated = userRepository.save(user);
         log.info("Profile Updated successfully!");
