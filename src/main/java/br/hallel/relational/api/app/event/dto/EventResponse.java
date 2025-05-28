@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,4 +26,5 @@ public class EventResponse {
     private Double local_event_longitude;
     private Double local_event_latitude;
     private Double value;
+    private List<MinistrySimpleResponse> ministriesAssocied;
 }

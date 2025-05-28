@@ -13,7 +13,7 @@ public interface EventInterface {
     EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner
     );
 
-    List<EventResponse> listEventsToHomePage(int page, int size);
+    List<EventResponse> listAllEvents(int page, int size);
 
     EventResponseWithMinistryAssociated getEventById(UUID id);
 
@@ -26,6 +26,7 @@ public interface EventInterface {
 
 
     List<EventResponse> listEventsByTitleAsc(int page, int size);
+    List<EventResponse> listEventsByTitle(String title, int page, int size);
     List<EventResponse> listEventsByDateExp(int page, int size);
 
 }

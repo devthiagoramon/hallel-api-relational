@@ -8,7 +8,6 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
@@ -59,6 +58,7 @@ public class EventService implements EventInterface {
     public EventResponse create(EventDTO eventDTO,
                                 MultipartFile fileImage,
                                 MultipartFile fileBanner) {
+        log.info("Creating event...");
         if (eventDTO.title() == null
                 || eventDTO.description() == null
                 || eventDTO.date() == null) {
@@ -103,32 +103,13 @@ public class EventService implements EventInterface {
             }
         }
 
-//        try {
-//            if (event.getMinistriesAssociated() != null && !event.getMinistriesAssociated()
-//                    .isEmpty()) {
-//
-//                for (Ministry ministry : event.getMinistriesAssociated()) {
-//                    MinistryScale ministryScale = new MinistryScale();
-//                    if (event.getMinistriesScales() == null) {
-//                        List<MinistryScale> ministriesScales = new ArrayList<>();
-//                        ministriesScales.add(ministryScale);
-//                        event.setMinistriesScales(ministriesScales);
-//                    } else {
-//                        event.getMinistriesScales().add(ministryScale);
-//                        event = this.repository.save(event);
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//
-//        }
 
         return mapper.entityToResponse(this.repository.save(event));
     }
 
     @Override
-    public List<EventResponse> listEventsToHomePage(int page,
-                                                    int size) {
+    public List<EventResponse> listAllEvents(int page,
+                                             int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAll(pageable);
@@ -244,6 +225,12 @@ public class EventService implements EventInterface {
         log.info("Listing events Order by title ASC...", listResponse);
         return listResponse;
 
+    }
+
+    @Override
+    public List<EventResponse> listEventsByTitle(String title, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return this.repository.findAllByTitleContainingIgnoreCase(title, pageable);
     }
 
     @Override

@@ -12,6 +12,9 @@ import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,8 +121,9 @@ public class UserService implements UserInterface {
     }
 
     @Override
-    public List<UserProfileResponse> listAllUsers() {
-        List<User> users = this.userRepository.findAll();
+    public List<UserProfileResponse> listAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users = this.userRepository.findAll(pageable);
         List<UserProfileResponse> response = new ArrayList<>();
         for (User user : users) {
             response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),

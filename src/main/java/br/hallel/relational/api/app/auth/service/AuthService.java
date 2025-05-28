@@ -119,7 +119,9 @@ public class AuthService {
             User user = this.userRepository.findByToken(token).orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
             return new TokenAdminResponse(tokenAdmin, code);
+
         }else{
+            log.info("Returning null");
             return null;
         }
     }

@@ -33,7 +33,7 @@ public class AdminMusicController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<List<MusicResponse>> listAllMuiscs() {
+    public ResponseEntity<List<MusicResponse>> listAllMusics() {
         return ResponseEntity.ok(service.listAllMusics());
     }
 

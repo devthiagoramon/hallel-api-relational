@@ -6,16 +6,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/admin/user")
+@RequestMapping("/public/user")
 @RequiredArgsConstructor
 @Tag(name = "User - Admin", description = "Admin part for users managment")
 public class AdminUserController {
@@ -29,8 +26,10 @@ public class AdminUserController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<List<UserProfileResponse>> listAllUsers() {
-        return ResponseEntity.ok(userService.listAllUsers());
+    public ResponseEntity<List<UserProfileResponse>> listAllUsers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.listAllUsers(page, size ));
     }
 
 }

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
@@ -21,6 +22,8 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Page<Event> findAllByOrderByTitleAsc(Pageable pageable);
 
     Page<Event> findAllByOrderByDateAsc(Pageable pageable);
+
+    List<EventResponse> findAllByTitleContainingIgnoreCase(String title, Pageable pageable);
 
     @Query("SELECT e.id AS id, e.title AS title, e.date AS date, e.image_url AS image_url, e.banner_url AS banner_url FROM Event e WHERE e.id = :idEvento")
     Optional<EventShortResponse> findByIdShort(@Param("idEvento") UUID idEvento);

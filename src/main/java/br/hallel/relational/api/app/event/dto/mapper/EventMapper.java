@@ -4,38 +4,56 @@ import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.model.Event;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
+import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
+import org.mapstruct.*;
+
+import java.util.List;
+import java.util.Objects;
 
 @Mapper(
         componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.ERROR
 )
-public interface EventMapper {
+public abstract class EventMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "value", ignore = true)
     @Mapping(target = "banner_url", ignore = true)
     @Mapping(target = "image_url", ignore = true)
+    @Mapping(target = "ministriesAssocied", ignore = true)
+    public abstract EventResponse dtoToResponse(EventDTO eventDTO);
 
-    EventResponse dtoToResponse(EventDTO eventDTO);
+    @Mapping(target = "ministriesAssocied", ignore = true)
+    public abstract EventResponse entityToResponse(Event event);
 
-    EventResponse entityToResponse(Event event);
+    @AfterMapping
+    protected void afterMapping(@MappingTarget EventResponse response, Event event) {
+        if (event.getScales() != null) {
+            List<MinistrySimpleResponse> ministries = event.getScales().stream()
+                    .map(EventScale::getMinistry)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .map(ministry -> new MinistrySimpleResponse(
+                            ministry.getId(),
+                            ministry.getTitle(),
+                            ministry.getImage()))
+                    .toList();
+
+            response.setMinistriesAssocied(ministries);
+        }
+    }
 
     @Mapping(target = "scales", ignore = true)
-
-    Event responseToEntity(EventResponse eventResponse);
+    public abstract Event responseToEntity(EventResponse eventResponse);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "value", ignore = true)
-    @Mapping(target = "banner_url", ignore = true)  // Ignora banner_url
-    @Mapping(target = "image_url", ignore = true)   // Ignora image_url
+    @Mapping(target = "banner_url", ignore = true)
+    @Mapping(target = "image_url", ignore = true)
     @Mapping(target = "scales", ignore = true)
-    Event dtoToEntity(EventDTO event);
+    public abstract Event dtoToEntity(EventDTO event);
 
     @Mapping(target = "ministries", ignore = true)
-
-    EventResponseWithMinistryAssociated eventToResponseWithMinistryAssociated(Event event);
+    public abstract EventResponseWithMinistryAssociated eventToResponseWithMinistryAssociated(Event event);
 }

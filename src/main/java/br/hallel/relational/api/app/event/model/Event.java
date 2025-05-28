@@ -57,11 +57,4 @@ public class Event {
     @ToString.Exclude
     private List<EventScale> scales;
 
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "ministry_association",
-//            joinColumns = @JoinColumn(name = "ministry_id"),
-//            inverseJoinColumns = @JoinColumn(name = "ministry_id"))
-//    private List<Ministry> ministriesAssociated;
-
 }

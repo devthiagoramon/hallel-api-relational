@@ -29,7 +29,7 @@ public class PublicEventController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(this.eventService.listEventsToHomePage(page, size));
+        return ResponseEntity.ok(this.eventService.listAllEvents(page, size));
     }
 
     @GetMapping("/get/{id}")
@@ -41,8 +41,8 @@ public class PublicEventController {
         return ResponseEntity.ok(event);
     }
 
-    @GetMapping("/list-all/title")
-    public ResponseEntity<List<EventResponse>> getAllEventsByTitle(
+    @GetMapping("/list-all/title/asc")
+    public ResponseEntity<List<EventResponse>> getAllEventsByTitleAsc(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
@@ -51,6 +51,14 @@ public class PublicEventController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(events);
+    }
+    @GetMapping("/list-all/by-title/{title}")
+    public ResponseEntity<List<EventResponse>> getAllEventsByTitle(
+            @PathVariable(name = "title") String title,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(this.eventService.listEventsByTitle(title,page ,size ));
     }
 
     @GetMapping("/list-all/date-exp")
