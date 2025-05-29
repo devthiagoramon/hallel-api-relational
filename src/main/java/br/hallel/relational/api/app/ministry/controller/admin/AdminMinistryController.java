@@ -45,7 +45,6 @@ public class AdminMinistryController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Map<String, String>> deleteEvent(@PathVariable(name = "id") UUID id) {
 
-
         Map<String, String> response = new HashMap<>();
         response.put("message", "Evento deletado com sucesso!");
         response.put("Ministry: ", this.service.deleteMinistryById(id).toString());

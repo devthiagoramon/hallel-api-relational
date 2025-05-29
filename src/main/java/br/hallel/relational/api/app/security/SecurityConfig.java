@@ -53,7 +53,7 @@ public class SecurityConfig {
                                     .requestMatchers("/coordinator/**").hasAnyRole("USER", "ADMIN")
                                     .requestMatchers("/admin/event/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/ministry/**").hasRole("ADMIN")
-//                                    .requestMatchers("/admin/event/**").permitAll()
+                                    .requestMatchers("/admin/user/**").hasRole("ADMIN")
                                     .requestMatchers("/user/**").hasRole("USER");
                         }
                 )

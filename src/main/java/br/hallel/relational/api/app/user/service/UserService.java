@@ -137,6 +137,18 @@ public class UserService implements UserInterface {
     }
 
     @Override
+    public List<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<UserProfileResponse> list = this.userRepository.findAllByNameContainingIgnoreCase(name, pageable);
+        if(list.isEmpty()){
+            throw new UserNotFoundException("User not found by name: " + name);
+        }
+
+        return list;
+    }
+
+    @Override
     public UserProfileResponse getUserProfileByToken(String token) {
         log.info("Get User Profile By Token {}...", token);
         User user = this.userRepository.findByToken(token)

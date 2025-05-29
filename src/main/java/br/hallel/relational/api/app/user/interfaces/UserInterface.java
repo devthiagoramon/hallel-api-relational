@@ -17,6 +17,7 @@ public interface UserInterface {
     UserProfileResponse editImageProfile(UUID idUser, MultipartFile fileImageUrl);
     UserProfileResponse getUserProfile(UUID idUser);
     List<UserProfileResponse> listAllUsers(int page, int size);
+    List<UserProfileResponse> listAllUsersByName(String name, int page, int size);
 
     UserProfileResponse getUserProfileByToken(String token);
 }

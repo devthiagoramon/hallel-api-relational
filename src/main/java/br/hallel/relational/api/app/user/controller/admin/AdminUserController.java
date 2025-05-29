@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/public/user")
+@RequestMapping("/admin/user")
 @RequiredArgsConstructor
 @Tag(name = "User - Admin", description = "Admin part for users managment")
 public class AdminUserController {
@@ -32,4 +32,11 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.listAllUsers(page, size ));
     }
 
+    @GetMapping("/list-all/by-name/{name}")
+    public ResponseEntity<List<UserProfileResponse>> listAllUsersByName(
+            @PathVariable(name = "name") String name,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.listAllUsersByName(name,page, size ));
+    }
 }
