@@ -65,8 +65,7 @@ public class EventService implements EventInterface {
 
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
-
-        log.info("Creating evento...");
+        log.info(eventDTO.ministryIds().toString());
         Event eventToSave = mapper.dtoToEntity(eventDTO);
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
@@ -102,7 +101,6 @@ public class EventService implements EventInterface {
                 scaleService.createScale(event, ministryId);
             }
         }
-
 
         return mapper.entityToResponse(this.repository.save(event));
     }

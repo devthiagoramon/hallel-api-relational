@@ -2,6 +2,8 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.Event;
+import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -47,7 +49,7 @@ public interface ScaleInterface {
 //    List<NotConfirmedScaleMinistry> listReasonsAbsenceMemberEventByIdScalesMinistry(
 //            UUID idEscala);
 
-    void deleteSacleWithDeletingEvent(UUID idEvento);
+    void deleteScaleWithDeletingEvent(UUID idEvento);
 
     ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(
             UUID idEscalaMinisterio,
@@ -56,5 +58,6 @@ public interface ScaleInterface {
     EventScaleResponse getEventScaleById(UUID id);
 
     EventByEventScaleResponse getEventByEventScaleId(UUID id);
+    List<MinistrySimpleResponse> listMinistriesByEventId(UUID eventId);
 }
 

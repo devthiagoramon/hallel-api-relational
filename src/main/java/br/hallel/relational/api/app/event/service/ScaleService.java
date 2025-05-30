@@ -7,6 +7,7 @@ import br.hallel.relational.api.app.event.interfaces.ScaleInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
+import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
@@ -163,7 +164,7 @@ public class ScaleService implements ScaleInterface {
 //        return null;
 //    }
     @Override
-    public void deleteSacleWithDeletingEvent(UUID idEvento) {
+    public void deleteScaleWithDeletingEvent(UUID idEvento) {
 
     }
 
@@ -185,6 +186,11 @@ public class ScaleService implements ScaleInterface {
                     "maybe it's wrong ");
         }
         return new EventByEventScaleResponse().toEventByEventScaleResponse(event);
+    }
+
+    @Override
+    public List<MinistrySimpleResponse> listMinistriesByEventId(UUID eventId) {
+        return this.eventScaleRepository.findMinistriesByEventId(eventId);
     }
 
     public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(String idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {

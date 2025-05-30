@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.Event;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

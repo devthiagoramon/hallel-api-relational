@@ -1,7 +1,9 @@
 package br.hallel.relational.api.app.ministry.controller.admin;
 
+import br.hallel.relational.api.app.event.service.ScaleService;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -25,6 +28,8 @@ public class AdminMinistryController {
 
     @Autowired
     private MinistryService service;
+    @Autowired
+    private ScaleService eventScaleService;
 
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     @Operation(summary = "Create a new ministry into system")
@@ -51,4 +56,11 @@ public class AdminMinistryController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/list-all/by-event/{eventId}")
+    public ResponseEntity<List<MinistrySimpleResponse>>
+    listAllMinistriesByEventId(@PathVariable(name = "eventId") UUID eventId) {
+        return ResponseEntity.ok(this.eventScaleService.listMinistriesByEventId(eventId));
+    }
+
 }
