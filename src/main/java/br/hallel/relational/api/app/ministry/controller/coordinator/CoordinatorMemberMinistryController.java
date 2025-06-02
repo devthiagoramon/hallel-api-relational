@@ -9,6 +9,7 @@ import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunct
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberService;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
+import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class CoordinatorMemberMinistryController {
     private final MemberMinistryService memberMinistryService;
     private final FunctionMinistryMemberService functionMinistryMemberService;
     private final MemberEventScaleService memberEventScaleService;
+
     @GetMapping("/list/{ministry-id}")
     @Operation(
             summary = "List all members of ministry",
@@ -43,6 +45,18 @@ public class CoordinatorMemberMinistryController {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok()
                              .body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
+    }
+
+    @GetMapping("/addable/{ministry-id}")
+    @Operation(summary = "List all users addable to ministry",
+               description = "Route to list all users in system that can be addable in ministry passed as ministry-id")
+    public ResponseEntity<Page<UserShortResponse>> listUserAddableToMinistryByMinistryId(
+            @PathVariable(name = "ministry-id") UUID ministryId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20")
+            Integer size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(memberMinistryService.getUsersAddableInMinistry(ministryId, pageRequest));
     }
 
     @PatchMapping("/add")
@@ -92,25 +106,29 @@ public class CoordinatorMemberMinistryController {
     }
 
     @GetMapping("/list-all/members-not-confirmed/{idScale}")
-    public ResponseEntity<List<MemberNotConfirmedResponse>> listAllMembersThatNotConfirmed(@PathVariable(name = "idScale") UUID idScale) {
+    public ResponseEntity<List<MemberNotConfirmedResponse>> listAllMembersThatNotConfirmed(
+            @PathVariable(name = "idScale") UUID idScale) {
         return ResponseEntity.ok(this.memberEventScaleService.listNotConfirmedMembersEventScale(idScale));
     }
 
     @GetMapping("/list-all/members-confirmed/{idScale}")
-    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatConfirmed(@PathVariable(name = "idScale") UUID idScale) {
+    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatConfirmed(
+            @PathVariable(name = "idScale") UUID idScale) {
         return ResponseEntity.ok(this.memberEventScaleService.listConfirmedMembersEventScale(idScale));
     }
 
     @GetMapping("/list-all/members-invited/{idScale}")
-    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatInvited(@PathVariable(name = "idScale") UUID idScale) {
+    public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatInvited(
+            @PathVariable(name = "idScale") UUID idScale) {
         return ResponseEntity.ok(this.memberEventScaleService.listInvitedMembersEventScale(idScale));
     }
+
     @GetMapping("/get/member-not-confirmed/{idScale}/{idUser}")
     public ResponseEntity<MemberNotConfirmedResponse> getMemberThatNotConfirmed(
             @PathVariable(name = "idScale") UUID idScale,
             @PathVariable(name = "idUser") UUID idUser
-    ) {
-        return ResponseEntity.ok(this.memberEventScaleService.getMemberReasonAbscence(idScale,idUser));
+                                                                               ) {
+        return ResponseEntity.ok(this.memberEventScaleService.getMemberReasonAbscence(idScale, idUser));
     }
 
 }

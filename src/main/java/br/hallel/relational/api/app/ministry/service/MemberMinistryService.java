@@ -9,6 +9,7 @@ import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
+import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -124,4 +126,8 @@ public class MemberMinistryService {
         return StatusParticipationMinistry.MEMBER;
     }
 
+    public Page<UserShortResponse> getUsersAddableInMinistry(UUID ministryId, Pageable pageable) {
+        log.info("Listing members to add in ministry...");
+        return this.userRepository.listUsersAddableInMinistry(ministryId, pageable);
+    }
 }
