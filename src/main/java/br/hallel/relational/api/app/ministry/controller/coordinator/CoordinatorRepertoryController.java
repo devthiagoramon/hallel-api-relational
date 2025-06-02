@@ -33,6 +33,13 @@ public class CoordinatorRepertoryController {
         return ResponseEntity.ok(this.service.listAllRepertory());
     }
 
+    @GetMapping("/list-all/ministry-id/{ministryId}")
+    public ResponseEntity<List<RepertoryResponse>> listAllRepertoriesByMinistryId(
+            @PathVariable("ministryId") UUID ministryId
+    ) {
+        return ResponseEntity.ok(this.service.listAllRepertoryByMinistryId(ministryId));
+    }
+
     @GetMapping("/get/{id}")
     public ResponseEntity<RepertoryResponse> getRepertoryById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(this.service.getRepertoryById(id));

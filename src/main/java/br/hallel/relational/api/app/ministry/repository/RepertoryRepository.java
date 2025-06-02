@@ -46,5 +46,6 @@ public interface RepertoryRepository extends JpaRepository<RepertoryMinistry, UU
 """)
     List<PlaylistRepertory> findAllPlaylistsByRepertoryId(@Param("repertoryId") UUID repertoryId);
 
+    List<RepertoryMinistry> findAllByMinistryId(UUID ministryId);
 
 }

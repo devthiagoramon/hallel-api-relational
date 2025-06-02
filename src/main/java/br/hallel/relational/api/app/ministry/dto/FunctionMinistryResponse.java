@@ -16,6 +16,6 @@ public class FunctionMinistryResponse {
     private UUID ministryId;
     private String name;
     private String description;
-    private String color;
     private String icon;
+    private String color;
 }

@@ -13,6 +13,7 @@ public interface RepertoryInterface {
     RepertoryResponse getRepertoryById(UUID id);
 
     List<RepertoryResponse> listAllRepertory();
+    List<RepertoryResponse> listAllRepertoryByMinistryId(UUID ministryId);
 
     RepertoryResponse editRepertory(UUID id, RepertoryRequestDTO requestDTO);
 
