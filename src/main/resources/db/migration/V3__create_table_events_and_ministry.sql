@@ -1,7 +1,8 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE
+EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE events
 (
-    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id                    UUID PRIMARY KEY          DEFAULT gen_random_uuid(),
     title                 VARCHAR(255)     NOT NULL,
     description           TEXT             NOT NULL,
     date                  TIMESTAMP        NOT NULL,
@@ -56,19 +57,21 @@ CREATE TABLE event_scale
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id    UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    date  DATE    ,
+    date        DATE,
     CONSTRAINT fk_event_id FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE audition_ministry
 (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ministry_id UUID         NOT NULL,
-    title       VARCHAR(100) NOT NULL,
-    description TEXT         NOT NULL,
-    date        DATE    NOT NULL,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ministry_id    UUID         NOT NULL,
+    event_scale_id UUID         NOT NULL,
+    title          VARCHAR(100) NOT NULL,
+    description    TEXT         NOT NULL,
+    date           DATE         NOT NULL,
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE ON UPDATE CASCADE
 
 );
 

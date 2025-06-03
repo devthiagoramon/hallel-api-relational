@@ -40,7 +40,6 @@ public class Ministry {
     @JoinColumn(name = "vice_coordinator_id")
     private User viceCoordinator;
 
-
     @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<EventScale> eventScalesList;
 
