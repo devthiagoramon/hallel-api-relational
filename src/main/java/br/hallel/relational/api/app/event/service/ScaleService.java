@@ -175,7 +175,11 @@ public class ScaleService implements ScaleInterface {
 
     @Override
     public EventScaleResponse getEventScaleById(UUID id) {
-        return null;
+        EventScale eventScale =
+                this.eventScaleRepository.findById(id).orElseThrow(() ->
+                        new EventScaleNotFoundException("Not find event scale by id " + id));
+
+        return this.scaleMapper.entityToResponse(eventScale);
     }
 
     @Override

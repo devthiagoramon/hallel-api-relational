@@ -19,7 +19,6 @@ public class AuditionMinistry {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
     @Column
     private String title;
     @Column
@@ -32,6 +31,6 @@ public class AuditionMinistry {
     private Ministry ministry;
 
     @OneToOne
-    @JoinColumn(name = "event_scale")
+    @JoinColumn(name = "event_scale_id")
     private EventScale eventScale;
 }

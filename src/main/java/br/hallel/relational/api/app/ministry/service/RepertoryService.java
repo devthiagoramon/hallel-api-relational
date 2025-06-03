@@ -94,6 +94,11 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
+    public List<RepertoryResponse> listAllRepertoryByMinistryId(UUID ministryId) {
+        return mapper.toListResponseRepertory(this.repository.findAllByMinistryId(ministryId));
+    }
+
+    @Override
     public RepertoryResponse editRepertory(UUID id, RepertoryRequestDTO requestDTO) {
         log.info("Editing repertory ministry " + id + "...");
         RepertoryMinistry oldRepertory = mapper.responseToEntity(this.getRepertoryById(id));
