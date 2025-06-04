@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.event.dto.AuditionNotConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.MemberAuditionStatusResponse;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.AuditionDTO;
@@ -91,6 +92,29 @@ public class CoordinatorAuditionMinistryController {
                 .findMemberAuditionByAuditionAndMemberId(auditionId, memberId);
         log.info("Returning status: {}", new MemberAuditionStatusResponse(status.name()));
         return ResponseEntity.ok(new MemberAuditionStatusResponse(status.name()));
+    }
+
+    @PatchMapping("/confirm-participation/{auditionId}/{memberId}")
+    public ResponseEntity<Boolean> confirmInviteAudition(
+            @PathVariable(name = "auditionId") UUID auditionId,
+            @PathVariable(name = "memberId") UUID memberId
+    ) {
+        log.info("GET /confirm-participation called with auditionId = {}, memberId = {}", auditionId, memberId);
+
+        return ResponseEntity.ok(
+                this.memberAuditionMinistryService.confirmInviteAudition(auditionId, memberId));
+    }
+
+    @PutMapping("/decline-participation/{auditionId}/{memberId}")
+    public ResponseEntity<Boolean> declineInviteAudition(
+            @PathVariable(name = "auditionId") UUID auditionId,
+            @PathVariable(name = "memberId") UUID memberId,
+            @RequestBody AuditionNotConfirmedResponse request
+    ) {
+        log.info("GET /decline-participation called with auditionId = {}, memberId = {}", auditionId, memberId);
+
+        return ResponseEntity.ok(
+                this.memberAuditionMinistryService.declineInviteAudition(request));
     }
 
 

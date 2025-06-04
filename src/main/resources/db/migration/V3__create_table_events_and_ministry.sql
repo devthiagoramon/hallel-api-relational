@@ -190,8 +190,9 @@ CREATE TABLE member_ministry
 CREATE TABLE member_audition_ministry
 (
     id          UUID PRIMARY KEY,
-    audition_ministry_id UUID,
-    user_id     UUID,
+    audition_ministry_id UUID NOT NULL ,
+    user_id     UUID NOT NULL ,
+    reason_abscence     TEXT,
     status      TEXT NOT NULL,
 
     CONSTRAINT fk_audition_ministry FOREIGN KEY (audition_ministry_id)

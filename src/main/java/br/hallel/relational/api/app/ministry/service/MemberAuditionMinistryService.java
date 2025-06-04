@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.dto.AuditionNotConfirmedResponse;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFound;
 import br.hallel.relational.api.app.ministry.model.MemberAuditionMinistry;
@@ -16,14 +17,48 @@ public class MemberAuditionMinistryService {
     @Autowired
     private MemberAuditionMinistryRepository repository;
 
-    public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId,
-                                                                          UUID memberId) {
+    public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberId) {
 
         MemberAuditionMinistry memberAuditionMinistry =
                 this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId).orElseThrow(
                         () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
                 );
-        log.info("Member status: "+memberAuditionMinistry.getStatus().name());
+        log.info("Member status: " + memberAuditionMinistry.getStatus().name());
         return memberAuditionMinistry.getStatus();
     }
+
+    public Boolean confirmInviteAudition(UUID auditionId, UUID memberId) {
+
+        MemberAuditionMinistry memberAuditionMinistry =
+                this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId).orElseThrow(
+                        () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
+                );
+
+        memberAuditionMinistry.setStatus(MemberEventScaleStatus.PARTICIPANDO);
+
+        this.repository.save(memberAuditionMinistry);
+
+        log.info("Member Name {} and Status {}: ", memberAuditionMinistry.getUser().getName(),
+                memberAuditionMinistry.getStatus().name());
+
+        return true;
+    }
+
+    public Boolean declineInviteAudition(AuditionNotConfirmedResponse requestDTO) {
+
+        MemberAuditionMinistry memberAuditionMinistry =
+                this.repository.findStatusByAuditionMinistry_IdAndUser_Id(requestDTO.auditionId(), requestDTO.userId()).orElseThrow(
+                        () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
+                );
+        memberAuditionMinistry.setStatus(MemberEventScaleStatus.RECUSADO);
+        memberAuditionMinistry.setReason_abscence(requestDTO.reason_abscence());
+
+        this.repository.save(memberAuditionMinistry);
+
+        log.info("Member Name {} and Status {}: ", memberAuditionMinistry.getUser().getName(),
+                memberAuditionMinistry.getStatus().name());
+        return true;
+    }
+
+
 }

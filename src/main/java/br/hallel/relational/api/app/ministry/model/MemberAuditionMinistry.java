@@ -31,6 +31,9 @@ public class MemberAuditionMinistry {
     @Column(name = "status", nullable = false)
     private MemberEventScaleStatus status;
 
+    @Column(name = "reason_abscence")
+    private String reason_abscence;
+
     public MemberAuditionMinistry(MemberEventScaleStatus status, User user, AuditionMinistry auditionMinistry) {
         this.status = status;
         this.user = user;
