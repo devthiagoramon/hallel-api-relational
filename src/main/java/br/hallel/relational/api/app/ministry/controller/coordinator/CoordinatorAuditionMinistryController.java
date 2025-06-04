@@ -1,9 +1,12 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.event.dto.MemberAuditionStatusResponse;
+import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.AuditionDTO;
 import br.hallel.relational.api.app.ministry.dto.AuditionResponse;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.service.AuditionService;
+import br.hallel.relational.api.app.ministry.service.MemberAuditionMinistryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +27,13 @@ import java.util.UUID;
 public class CoordinatorAuditionMinistryController {
     @Autowired
     private AuditionService service;
+    @Autowired
+    private MemberAuditionMinistryService memberAuditionMinistryService;
 
     @PostMapping("/create")
-    public ResponseEntity<AuditionResponse> createAudition(@RequestBody AuditionDTO request) {
-        return ResponseEntity.ok(this.service.createAudition(request));
+    public ResponseEntity<AuditionResponse> createAudition(@RequestBody AuditionDTO request,
+                                                           @RequestParam(required = false, name = "member_id") UUID memberAuditionId) {
+        return ResponseEntity.ok(this.service.createAudition(request, memberAuditionId));
     }
 
     @PutMapping("/edit/{auditionId}")
@@ -63,15 +69,29 @@ public class CoordinatorAuditionMinistryController {
 
     @GetMapping("/get/{id}")
     public ResponseEntity<AuditionResponse> getAuditionById(
-            @org.springframework.web.bind.annotation.PathVariable(name = "id") UUID id) {
+            @PathVariable(name = "id") UUID id) {
         return ResponseEntity.ok(this.service.getAuditionById(id));
     }
 
     @DeleteMapping("/delete/{auditionId}")
     public ResponseEntity<?> deleteAuditionById(
-            @org.springframework.web.bind.annotation.PathVariable(name = "id") UUID id) {
+            @PathVariable(name = "auditionId") UUID id) {
         this.service.deleteAuditionById(id);
         return ResponseEntity.ok().build();
     }
+
+
+    @GetMapping("/get-status/{auditionId}/{memberId}")
+    public ResponseEntity<MemberAuditionStatusResponse> findMemberAuditionMinistryByAuditionId(
+            @PathVariable(name = "auditionId") UUID auditionId,
+            @PathVariable(name = "memberId") UUID memberId
+    ) {
+        log.info("GET /get-status called with auditionId = {}, memberId = {}", auditionId, memberId);
+        MemberEventScaleStatus status = this.memberAuditionMinistryService
+                .findMemberAuditionByAuditionAndMemberId(auditionId, memberId);
+        log.info("Returning status: {}", new MemberAuditionStatusResponse(status.name()));
+        return ResponseEntity.ok(new MemberAuditionStatusResponse(status.name()));
+    }
+
 
 }

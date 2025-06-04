@@ -185,4 +185,20 @@ CREATE TABLE member_ministry
     PRIMARY KEY (user_id, ministry_id),
     CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
-)
+);
+
+CREATE TABLE member_audition_ministry
+(
+    id          UUID PRIMARY KEY,
+    audition_ministry_id UUID,
+    user_id     UUID,
+    status      TEXT NOT NULL,
+
+    CONSTRAINT fk_audition_ministry FOREIGN KEY (audition_ministry_id)
+        REFERENCES "audition_ministry" (id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id)
+        REFERENCES "user" (id)
+        ON DELETE SET NULL
+);

@@ -71,6 +71,23 @@ public class ScaleService implements ScaleInterface {
         return scaleMapper.entityToResponse(scaleUpdated);
     }
 
+    @Override
+    public EventScaleWithInfos getEventScaleWithInfos(UUID id) {
+        EventScale eventScale = this.eventScaleRepository.findById(id).orElseThrow(
+                () -> new EventScaleNotFoundException(
+                        "Can't find escala with id " + id
+                )
+        );
+        EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
+        eventScaleWithInfos.setId(eventScale.getId());
+        eventScaleWithInfos.setAuditionMinistryId(eventScale.getMinistry().getId());
+        eventScaleWithInfos.setEventId(eventScale.getEvent().getId());
+        eventScaleWithInfos.setMinistryId(eventScale.getMinistry().getId());
+        eventScaleWithInfos.setDate(eventScale.getDate());
+        log.info("Get Event Scale");
+        return eventScaleWithInfos;
+    }
+
     public EventScaleResponse editDateScale(EventScale eventScale, Date date) {
         log.info("Editing escala date " + eventScale.getId() + "...");
         eventScale.setDate(date);

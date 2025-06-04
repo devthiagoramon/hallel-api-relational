@@ -82,6 +82,16 @@ public class MemberMinistryService {
         return memberMinistryId.get();
     }
 
+    public MemberMinistry getStatusMemberByMemberMinistryId(UUID ministryId,
+                                                UUID userId) {
+        Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(
+                new MemberMinistryId(userId, ministryId));
+        if (memberMinistryId.isEmpty()) {
+            throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
+        }
+        return memberMinistryId.get();
+    }
+
     public MemberMinistry addMemberIntoMinistry(UUID ministryId,
                                                 UUID userId) {
         log.info("Adding member {} into ministry {}", userId, ministryId);

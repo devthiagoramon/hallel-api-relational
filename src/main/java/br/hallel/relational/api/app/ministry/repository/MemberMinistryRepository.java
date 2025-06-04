@@ -41,4 +41,6 @@ public interface MemberMinistryRepository
     )
     List<Ministry> listMinistryThatUserParticipateByUserId(
             @Param("user_id") UUID userId);
+
+    MemberMinistry findMemberMinistryById(MemberMinistryId ministryId);
 }

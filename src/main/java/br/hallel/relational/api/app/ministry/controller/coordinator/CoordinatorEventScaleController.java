@@ -70,6 +70,13 @@ public class CoordinatorEventScaleController {
     public ResponseEntity<MemberEventScaleResponseUserInfos> acceptOrDeclineMemberScale(
             @PathVariable(name = "idMember") UUID idMember,
             @RequestBody AcceptOrDeclineMemberInScale isAccept) {
-        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember,isAccept));
+        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember, isAccept));
+    }
+
+    @GetMapping("/get-scale/{id}")
+    public ResponseEntity<EventScaleWithInfos> getScaleById(
+            @PathVariable(name = "id") UUID id) {
+
+        return ResponseEntity.ok(this.service.getEventScaleWithInfos(id));
     }
 }

@@ -48,5 +48,10 @@ public class MinistryExcpetionHandler {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler(value = MemberAuditionMinistryNotFound.class)
+    public ResponseEntity<ExceptionResponse> memberAuditionMinistryNotFound(MemberAuditionMinistryNotFound exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+    }
 
 }
