@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MusicInterface {
-    MusicResponse createMuisc(MusicAddEditDTO musicDTO);
+    MusicResponse createMusic(MusicAddEditDTO musicDTO);
 
     List<MusicResponse> listAllMusics();
 
-    MusicResponse getMuiscById(UUID id);
+    MusicResponse getMusicById(UUID id);
 
-    void deleteMuiscById(UUID id);
+    void deleteMusicById(UUID id);
 }

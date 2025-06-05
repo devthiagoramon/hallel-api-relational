@@ -1,8 +1,8 @@
-package br.hallel.relational.api.app.ministry.controller.admin;
+package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.ministry.dto.MusicAddEditDTO;
 import br.hallel.relational.api.app.ministry.dto.MusicResponse;
-import br.hallel.relational.api.app.ministry.service.MuiscService;
+import br.hallel.relational.api.app.ministry.service.MusicService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,21 +15,21 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/ministry/music")
+@RequestMapping("/coordinator/ministry/music")
 @RequiredArgsConstructor
-@Tag(name = "Admin Music Ministry", description = "Admin part for Music ministry managment")
-public class AdminMusicController {
+@Tag(name = "Coordinator Music Ministry", description = "Coordinator part for music ministry managment")
+public class CoordinatorMusicMinistryController {
     @Autowired
-    private MuiscService service;
+    private MusicService service;
 
     @PostMapping("/create")
     public ResponseEntity<MusicResponse> createMusic(@RequestBody MusicAddEditDTO music) {
-        return ResponseEntity.ok(service.createMuisc(music));
+        return ResponseEntity.ok(service.createMusic(music));
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<MusicResponse> getMusicById(@PathVariable(name = "id") UUID id) {
-        return ResponseEntity.ok(service.getMuiscById(id));
+        return ResponseEntity.ok(service.getMusicById(id));
     }
 
     @GetMapping("/list-all")
@@ -39,7 +39,7 @@ public class AdminMusicController {
 
     @DeleteMapping("/delete/{idMusic}")
     public ResponseEntity<?> deleteMusicById(@PathVariable(name = "idMusic") UUID id) {
-        this.service.deleteMuiscById(id);
+        this.service.deleteMusicById(id);
         return ResponseEntity.ok().build();
     }
 }

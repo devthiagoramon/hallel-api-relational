@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.ministry.dto.MusicAddEditDTO;
 import br.hallel.relational.api.app.ministry.dto.MusicResponse;
+import br.hallel.relational.api.app.ministry.dto.MusicWithoutMinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
@@ -11,6 +12,8 @@ import br.hallel.relational.api.app.ministry.model.MusicMinistry;
 import br.hallel.relational.api.app.ministry.repository.MusicRespository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +22,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class MuiscService implements MusicInterface {
+public class MusicService implements MusicInterface {
 
     @Autowired
     private MinistryService ministryService;
@@ -28,13 +31,13 @@ public class MuiscService implements MusicInterface {
     private final MinistryMapper mapper;
     private final RepertoryMapper repertoryMapper;
 
-    public MuiscService(MinistryMapper ministryMapper, RepertoryMapper repertoryMapper) {
+    public MusicService(MinistryMapper ministryMapper, RepertoryMapper repertoryMapper) {
         this.mapper = ministryMapper;
         this.repertoryMapper = repertoryMapper;
     }
 
     @Override
-    public MusicResponse createMuisc(MusicAddEditDTO musicDTO) {
+    public MusicResponse createMusic(MusicAddEditDTO musicDTO) {
         MusicMinistry musicModel = new MusicMinistry();
 
         Ministry ministry = mapper.responseToEntity(this.ministryService.getMinistryById(
@@ -51,7 +54,7 @@ public class MuiscService implements MusicInterface {
     }
 
     @Override
-    public MusicResponse getMuiscById(UUID id) {
+    public MusicResponse getMusicById(UUID id) {
         Optional<MusicMinistry> musicOptional = this.respository.findById(id);
         if (musicOptional.isPresent()) {
             throw new RepertoryNotFoundException("Music Id: " + id + " not found");
@@ -60,9 +63,9 @@ public class MuiscService implements MusicInterface {
     }
 
     @Override
-    public void deleteMuiscById(UUID id) {
+    public void deleteMusicById(UUID id) {
         log.info("Deleting music... {}", id);
-        MusicMinistry muiscById = repertoryMapper.musicResponseToEntity(this.getMuiscById(id));
+        MusicMinistry muiscById = repertoryMapper.musicResponseToEntity(this.getMusicById(id));
         log.info("Music {} deleted!", id);
         this.respository.delete(muiscById);
     }
@@ -70,5 +73,10 @@ public class MuiscService implements MusicInterface {
     @Override
     public List<MusicResponse> listAllMusics() {
         return this.repertoryMapper.toListMusicResponse(this.respository.findAll());
+    }
+
+    public Page<MusicWithoutMinistryResponse> listMusicMinistryByMinistryId(UUID ministryId, Pageable pageable) {
+        log.info("Listing music ministry of ministry id {}", ministryId);
+        return this.respository.listByMinistryId(ministryId, pageable);
     }
 }
