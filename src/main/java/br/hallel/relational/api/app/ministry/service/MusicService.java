@@ -56,7 +56,7 @@ public class MusicService implements MusicInterface {
     @Override
     public MusicResponse getMusicById(UUID id) {
         Optional<MusicMinistry> musicOptional = this.respository.findById(id);
-        if (musicOptional.isPresent()) {
+        if (musicOptional.isEmpty()) {
             throw new RepertoryNotFoundException("Music Id: " + id + " not found");
         }
         return repertoryMapper.musicEntityToResponse(musicOptional.get());
@@ -73,6 +73,24 @@ public class MusicService implements MusicInterface {
     @Override
     public List<MusicResponse> listAllMusics() {
         return this.repertoryMapper.toListMusicResponse(this.respository.findAll());
+    }
+
+    public MusicResponse editMusic(UUID musicMinistryId, MusicAddEditDTO musicDTO) {
+        log.info("Editing music ... {}", musicMinistryId);
+        Optional<MusicMinistry> musicOptional = this.respository.findById(musicMinistryId);
+        if (musicOptional.isEmpty()) {
+            throw new RepertoryNotFoundException("Music Id: " + musicMinistryId + " not found");
+        }
+
+        MusicMinistry music = musicOptional.get();
+        music.setName(musicDTO.getName());
+        music.setDescription(musicDTO.getDescription());
+        music.setLink(musicDTO.getLink());
+        music.setLetter(musicDTO.getLetter());
+
+        return repertoryMapper.musicEntityToResponse(this.respository.save(music));
+
+
     }
 
     public Page<MusicWithoutMinistryResponse> listMusicMinistryByMinistryId(UUID ministryId, Pageable pageable) {
