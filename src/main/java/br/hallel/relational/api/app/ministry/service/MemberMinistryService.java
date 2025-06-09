@@ -82,8 +82,7 @@ public class MemberMinistryService {
         return memberMinistryId.get();
     }
 
-    public MemberMinistry getStatusMemberByMemberMinistryId(UUID ministryId,
-                                                UUID userId) {
+    public MemberMinistry getStatusMemberByMemberMinistryId(UUID ministryId, UUID userId) {
         Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(
                 new MemberMinistryId(userId, ministryId));
         if (memberMinistryId.isEmpty()) {

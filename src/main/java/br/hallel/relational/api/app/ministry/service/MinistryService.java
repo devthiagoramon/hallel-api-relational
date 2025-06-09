@@ -3,8 +3,10 @@ package br.hallel.relational.api.app.ministry.service;
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
 import br.hallel.relational.api.app.event.exception.EventScaleIllegalArgumentException;
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
@@ -30,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -215,13 +218,19 @@ public class MinistryService implements MinistryInterface {
     }
 
     @Override
-    public List<EventScaleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<EventScaleSimpleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate) {
+
         if (startDate.isAfter(endDate)) {
             throw new EventScaleIllegalArgumentException("Data inicial não pode ser maior que a data final.");
         }
-        return this.eventScaleMapper.listEntityToResponse(
-                this.ministryRepository.findAllEventScalesByMinistryIdAndDateRange(ministryId, startDate, endDate)
-        );
+        List<EventScaleSimpleResponse> responses = new ArrayList<>();
+        List<EventScale> eventScales = this.ministryRepository.findAllEventScalesByMinistryIdAndDateRange(ministryId, startDate, endDate);
+        for (EventScale eventScale : eventScales) {
+            responses.add(new EventScaleSimpleResponse(eventScale.getId(),
+                    eventScale.getDate()));
+        }
+        log.info("List of eventScales: " + responses);
+        return responses;
     }
 
     public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {

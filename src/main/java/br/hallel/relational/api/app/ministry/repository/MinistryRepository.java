@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.ministry.repository;
 
-import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import org.springframework.data.jpa.repository.JpaRepository;

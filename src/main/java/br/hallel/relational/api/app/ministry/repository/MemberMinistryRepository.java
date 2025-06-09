@@ -43,4 +43,6 @@ public interface MemberMinistryRepository
             @Param("user_id") UUID userId);
 
     MemberMinistry findMemberMinistryById(MemberMinistryId ministryId);
+
+
 }

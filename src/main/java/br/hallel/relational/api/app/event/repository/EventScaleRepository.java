@@ -1,12 +1,10 @@
 package br.hallel.relational.api.app.event.repository;
 
-import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
-import br.hallel.relational.api.app.event.dto.SimpleScaleResponse;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +19,20 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
 
     List<EventScale> findByEventId(UUID id);
 
+
+    @Query("""
+                SELECT es
+                FROM MemberEventScale mes
+                JOIN mes.eventScale es
+                WHERE mes.user.id = :memberId
+                  AND mes.status = :status
+                  AND es.date BETWEEN :start AND :end
+            """)
+    List<EventScale> findEscalaMinisterioIdsByMembroIdParticipate(
+            @Param("memberId") UUID memberId,
+            @Param("status") MemberEventScaleStatus status,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     @Query("select new br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse(m.id, m.title, m.image) " +
             "from Ministry m join m.eventScalesList es " +

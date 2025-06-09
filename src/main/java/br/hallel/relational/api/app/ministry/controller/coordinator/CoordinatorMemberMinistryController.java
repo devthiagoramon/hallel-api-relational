@@ -1,11 +1,12 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
+import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
-import br.hallel.relational.api.app.ministry.dto.AddRemoveFunctionMinistryToMemberMinistryDTO;
-import br.hallel.relational.api.app.ministry.dto.FunctionMinistryMemberResponse;
-import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
+import br.hallel.relational.api.app.event.service.EventScaleService;
+import br.hallel.relational.api.app.ministry.dto.*;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberService;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
@@ -18,19 +19,22 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/coordinator/ministry/member-ministry")
 @Tag(name = "Member Ministry - Coordinator",
-     description = "Coordinator part for member ministry managment")
+        description = "Coordinator part for member ministry managment")
 @RequiredArgsConstructor
 public class CoordinatorMemberMinistryController {
 
     private final MemberMinistryService memberMinistryService;
     private final FunctionMinistryMemberService functionMinistryMemberService;
     private final MemberEventScaleService memberEventScaleService;
+    private final EventScaleService eventScaleService;
+    private final EventService eventService;
 
     @GetMapping("/list/{ministry-id}")
     @Operation(
@@ -44,12 +48,12 @@ public class CoordinatorMemberMinistryController {
             int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok()
-                             .body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
+                .body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
     }
 
     @GetMapping("/addable/{ministry-id}")
     @Operation(summary = "List all users addable to ministry",
-               description = "Route to list all users in system that can be addable in ministry passed as ministry-id")
+            description = "Route to list all users in system that can be addable in ministry passed as ministry-id")
     public ResponseEntity<Page<UserShortResponse>> listUserAddableToMinistryByMinistryId(
             @PathVariable(name = "ministry-id") UUID ministryId,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -68,7 +72,7 @@ public class CoordinatorMemberMinistryController {
             @RequestParam(name = "ministry-id") UUID ministryId,
             @RequestParam(name = "user-id") UUID userId) {
         return ResponseEntity.ok()
-                             .body(memberMinistryService.addMemberIntoMinistry(ministryId, userId));
+                .body(memberMinistryService.addMemberIntoMinistry(ministryId, userId));
     }
 
     @DeleteMapping("/remove")
@@ -91,7 +95,7 @@ public class CoordinatorMemberMinistryController {
             @RequestBody
             AddRemoveFunctionMinistryToMemberMinistryDTO dto) {
         return ResponseEntity.ok()
-                             .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getUserId()));
+                .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getUserId()));
     }
 
     @DeleteMapping("/remove/function")
@@ -127,8 +131,25 @@ public class CoordinatorMemberMinistryController {
     public ResponseEntity<MemberNotConfirmedResponse> getMemberThatNotConfirmed(
             @PathVariable(name = "idScale") UUID idScale,
             @PathVariable(name = "idUser") UUID idUser
-                                                                               ) {
+    ) {
         return ResponseEntity.ok(this.memberEventScaleService.getMemberReasonAbscence(idScale, idUser));
+    }
+
+    @GetMapping("/list-all/by-status/confirmed/{idMemberMinistry}")
+    public ResponseEntity<List<EventScaleSimpleResponse>>
+    listEventsScalesByUserIdParticipate(
+            @PathVariable(name = "idMemberMinistry") UUID idMemberMinistry,
+            @RequestParam("dateStart") LocalDateTime dateStart,
+            @RequestParam("dateEnd") LocalDateTime dateEnd) {
+        return ResponseEntity.ok(this.eventScaleService.
+                listEventsScalesByUserIdParticipate(idMemberMinistry, dateStart, dateEnd));
+    }
+    @GetMapping("/scale/event/{eventId}")
+    public ResponseEntity<EventShortResponse>
+    listEventInScaleInfo(
+            @PathVariable(name = "eventId") UUID eventId) {
+        return ResponseEntity.ok(this.eventService.
+                listEventInScaleInfo(eventId));
     }
 
 }

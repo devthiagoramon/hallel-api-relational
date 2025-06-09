@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.ministry.interfaces;
 
 
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,5 +26,5 @@ public interface MinistryInterface {
 
     List<EventScaleResponse> listAllEventScalesByMinistryId(UUID ministryId);
 
-    List<EventScaleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate);
+    List<EventScaleSimpleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate);
 }

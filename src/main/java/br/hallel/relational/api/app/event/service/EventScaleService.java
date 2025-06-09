@@ -6,7 +6,9 @@ import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.interfaces.ScaleInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
@@ -21,7 +23,7 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class ScaleService implements ScaleInterface {
+public class EventScaleService implements ScaleInterface {
     @Autowired
     private MemberMinistryRepository memberMinistryRepository;
     @Autowired
@@ -35,7 +37,7 @@ public class ScaleService implements ScaleInterface {
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
 
-    public ScaleService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
+    public EventScaleService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
         this.ministryMapper = ministryMapper;
         this.scaleMapper = eventScaleMapper;
     }
@@ -218,4 +220,19 @@ public class ScaleService implements ScaleInterface {
         return null;
     }
 
+    public List<EventScaleSimpleResponse> listEventsScalesByUserIdParticipate(
+            UUID idMemberMinistry, LocalDateTime start, LocalDateTime end) {
+        List<EventScaleSimpleResponse> response = new ArrayList<>();
+        List<EventScale> eventScales = this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdParticipate(idMemberMinistry,
+                MemberEventScaleStatus.PARTICIPANDO,
+                start,end
+                );
+        eventScales.forEach(event -> {
+            response.add(new EventScaleSimpleResponse(
+                    event.getId(), event.getDate()
+            ));
+        });
+        log.info("Listing all the event Scale that Member Participate...");
+        return response;
+    }
 }

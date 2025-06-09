@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
-import br.hallel.relational.api.app.event.service.ScaleService;
+import br.hallel.relational.api.app.event.service.EventScaleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public class CoordinatorEventScaleController {
 
     @Autowired
-    private ScaleService service;
+    private EventScaleService service;
     @Autowired
     private MemberEventScaleService memberEventScaleService;
 

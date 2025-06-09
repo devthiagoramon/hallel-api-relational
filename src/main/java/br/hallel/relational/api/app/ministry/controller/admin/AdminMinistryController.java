@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.admin;
 
-import br.hallel.relational.api.app.event.service.ScaleService;
+import br.hallel.relational.api.app.event.service.EventScaleService;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
@@ -29,7 +29,7 @@ public class AdminMinistryController {
     @Autowired
     private MinistryService service;
     @Autowired
-    private ScaleService eventScaleService;
+    private EventScaleService eventScaleService;
 
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     @Operation(summary = "Create a new ministry into system")

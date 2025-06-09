@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.ministry.service;
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
-import br.hallel.relational.api.app.event.service.ScaleService;
+import br.hallel.relational.api.app.event.service.EventScaleService;
 import br.hallel.relational.api.app.ministry.dto.AuditionDTO;
 import br.hallel.relational.api.app.ministry.dto.AuditionResponse;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
@@ -33,7 +33,7 @@ public class AuditionService {
     @Autowired
     private AuditionRepository repository;
     @Autowired
-    private ScaleService scaleService;
+    private EventScaleService eventScaleService;
     @Autowired
     private MinistryService ministryService;
 
@@ -57,7 +57,7 @@ public class AuditionService {
         auditionMinistry.setDate(auditionDTO.getDate());
         auditionMinistry.setEventScale(
                 eventScaleMapper.responseToEntity(
-                        this.scaleService.getEventScaleById(auditionDTO.getEventScale()))
+                        this.eventScaleService.getEventScaleById(auditionDTO.getEventScale()))
         );
         auditionMinistry.setMinistry(
                 this.ministryMapper.responseToEntity(
@@ -97,7 +97,7 @@ public class AuditionService {
         audition.setTitle(auditionDTO.getTitle());
         audition.setDescription(auditionDTO.getDescription());
         audition.setDate(auditionDTO.getDate());
-        EventScaleResponse eventScale = this.scaleService.getEventScaleById(auditionDTO.getEventScale());
+        EventScaleResponse eventScale = this.eventScaleService.getEventScaleById(auditionDTO.getEventScale());
         MinistryResponse ministryResponse = this.ministryService.getMinistryById(auditionDTO.getMinistry());
         audition.setEventScale(this.eventScaleMapper.responseToEntity(eventScale));
         audition.setMinistry(this.ministryMapper.responseToEntity(ministryResponse));

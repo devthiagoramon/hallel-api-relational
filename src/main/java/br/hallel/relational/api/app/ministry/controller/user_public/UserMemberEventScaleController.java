@@ -1,12 +1,12 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 
-import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.dto.MemberEventScaleResponseUserInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.global.utils.DateUtils;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.ReasonAbscenceUserDTO;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,7 +62,7 @@ public class UserMemberEventScaleController {
 
 
     @GetMapping("/scales-range-date/{idMinistry}")
-    public ResponseEntity<List<EventScaleResponse>> listAllScalesByMinistryIdAndRangeDate(
+    public ResponseEntity<List<EventScaleSimpleResponse>> listAllScalesByMinistryIdAndRangeDate(
             @PathVariable(name = "idMinistry") UUID idMinistry,
             @RequestParam(name = "start") LocalDateTime start,
             @RequestParam(name = "end") LocalDateTime end) {
@@ -80,6 +80,16 @@ public class UserMemberEventScaleController {
         return ResponseEntity.ok(
                 this.memberEventScaleService.listAllScaleOfUserInMinistryInRangeOfDateStatus(userId, ministryId,
                         DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
+    }
+
+  @GetMapping("/get-status/{eventScaleId}/{userId}")
+    public ResponseEntity<String> getMemberStatus(
+            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "eventScaleId") UUID eventScaleId
+  ) {
+        return ResponseEntity.ok(this.memberEventScaleService.getMemberStatus(
+                userId, eventScaleId
+        ));
     }
 
 }

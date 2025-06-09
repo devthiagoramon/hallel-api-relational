@@ -19,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -132,8 +129,7 @@ public class MemberEventScaleService {
 
     public MemberEventScaleResponseUserInfos acceptOrDeclineMember(
             UUID idMemberScale,
-            AcceptOrDeclineMemberInScale memberInScale
-                                                                  ) {
+            AcceptOrDeclineMemberInScale memberInScale) {
         MemberEventScale member = this.memberEventScaleRepository.findById(idMemberScale).orElseThrow(
                 () -> new MemberMinistryRegisterNotFoundException("Member with id" + idMemberScale + " not found!")
                                                                                                      );
@@ -163,11 +159,18 @@ public class MemberEventScaleService {
                 ministryId, initialDate, finalDate);
     }
 
-    public List<EventScaleWithStatusInfos> listAllScaleOfUserInMinistryInRangeOfDateStatus(UUID userId, UUID ministryId,
-                                                                                           Date initialDate,
-                                                                                           Date finalDate) {
+    public List<EventScaleWithStatusInfos> listAllScaleOfUserInMinistryInRangeOfDateStatus(UUID userId, UUID ministryId, Date initialDate, Date finalDate) {
         log.info("Listing all scales of user {} with status", userId);
         return this.memberEventScaleRepository.listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(userId,
                 ministryId, initialDate, finalDate);
+    }
+
+    public String getMemberStatus(UUID idmemberministry, UUID idEventScale) {
+        Optional<MemberEventScale> member = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idmemberministry, idEventScale);
+        if (member.isEmpty()) {
+            throw new MemberEventScaleNotFoundException("Member with id" + idmemberministry + " not found!");
+        }
+
+        return member.get().getStatus().name();
     }
 }

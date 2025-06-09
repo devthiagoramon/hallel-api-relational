@@ -43,7 +43,7 @@ public class EventService implements EventInterface {
     @Autowired
     private MinistryRepository ministryRepository;
     @Autowired
-    private ScaleService scaleService;
+    private EventScaleService eventScaleService;
 
 
     private final EventMapper mapper;
@@ -98,7 +98,7 @@ public class EventService implements EventInterface {
         if (eventDTO.ministryIds() != null) {
             for (UUID ministryId : eventDTO.ministryIds()) {
                 log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
-                scaleService.createScale(event, ministryId);
+                eventScaleService.createScale(event, ministryId);
             }
         }
 
@@ -143,7 +143,7 @@ public class EventService implements EventInterface {
                                      orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
         if (!eventDTO.date().equals(event.getDate())){
-            this.scaleService.editEventDate(event.getId(), eventDTO.date());
+            this.eventScaleService.editEventDate(event.getId(), eventDTO.date());
         }
         event.setId(id);
         event.setTitle(eventDTO.title());
