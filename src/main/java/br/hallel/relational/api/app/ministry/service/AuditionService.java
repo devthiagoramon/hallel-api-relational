@@ -121,6 +121,14 @@ public class AuditionService {
         return this.auditionMapper.toListResponse(allByMinistryId);
     }
 
+    public AuditionResponse getAuditionByMinistryId(UUID ministryId) {
+        AuditionMinistry ministryRes = this.repository.findByMinistry_Id(ministryId);
+        if (ministryRes == null) {
+            throw new MinistryIllegalArgumentException("Auditions in Ministry id is empty");
+        }
+        return this.auditionMapper.entityToResponse(ministryRes);
+    }
+
     public List<EventScaleSimpleResponse> listScalesThatCanAssociateIntoEventScale(
             UUID idMinisterio,
             LocalDateTime from) {

@@ -83,7 +83,7 @@ public class MemberEventScaleService {
     public MemberNotConfirmedResponse getMemberReasonAbscence(UUID eventScaleId, UUID userId) {
         MemberEventScale memberStatus = this.memberEventScaleRepository.findByStatusAndEventScale_IdAndUser_Id(
                 MemberEventScaleStatus.RECUSADO, eventScaleId, userId
-                                                                                                              );
+        );
         if (memberStatus == null) {
             throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! " + userId);
         }
@@ -132,7 +132,7 @@ public class MemberEventScaleService {
             AcceptOrDeclineMemberInScale memberInScale) {
         MemberEventScale member = this.memberEventScaleRepository.findById(idMemberScale).orElseThrow(
                 () -> new MemberMinistryRegisterNotFoundException("Member with id" + idMemberScale + " not found!")
-                                                                                                     );
+        );
 
         if ((member.getStatus() == MemberEventScaleStatus.RECUSADO && !memberInScale.isAccept())
                 || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())) {
@@ -165,12 +165,13 @@ public class MemberEventScaleService {
                 ministryId, initialDate, finalDate);
     }
 
-    public String getMemberStatus(UUID idmemberministry, UUID idEventScale) {
+    public MemberAuditionStatusResponse getMemberStatus(UUID idmemberministry, UUID idEventScale) {
         Optional<MemberEventScale> member = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idmemberministry, idEventScale);
+
         if (member.isEmpty()) {
-            throw new MemberEventScaleNotFoundException("Member with id" + idmemberministry + " not found!");
+            throw new MemberEventScaleNotFoundException("Member with id " + idmemberministry + " not found in scale id: " + idEventScale + " !");
         }
 
-        return member.get().getStatus().name();
+        return new MemberAuditionStatusResponse(member.get().getStatus().name());
     }
 }

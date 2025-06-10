@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface AuditionRepository extends JpaRepository<AuditionMinistry, UUID>{
     List<AuditionMinistry> findAllByMinistry_Id(UUID ministryId);
-
+    AuditionMinistry findByMinistry_Id(UUID ministryId);
     @Query("SELECT new br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse(e.id, e.date)  AS date " +
             "FROM EventScale e " +
             "WHERE e.ministry.id = :ministryId AND e.date >= :from " +

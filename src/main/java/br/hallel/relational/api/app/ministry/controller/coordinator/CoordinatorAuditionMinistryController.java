@@ -55,6 +55,12 @@ public class CoordinatorAuditionMinistryController {
     ) {
         return ResponseEntity.ok(this.service.listAllAuditionsByMinistryId(id));
     }
+    @GetMapping("/get/by-ministry-id/{ministryId}")
+    public ResponseEntity<AuditionResponse> getAuditionByMinistryId(
+            @PathVariable(name = "ministryId") UUID id
+    ) {
+        return ResponseEntity.ok(this.service.getAuditionByMinistryId(id));
+    }
 
 
     @GetMapping("/can-associate-scale")

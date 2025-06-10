@@ -223,10 +223,7 @@ public class EventScaleService implements ScaleInterface {
     public List<EventScaleSimpleResponse> listEventsScalesByUserIdParticipate(
             UUID idMemberMinistry, LocalDateTime start, LocalDateTime end) {
         List<EventScaleSimpleResponse> response = new ArrayList<>();
-        List<EventScale> eventScales = this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdParticipate(idMemberMinistry,
-                MemberEventScaleStatus.PARTICIPANDO,
-                start,end
-                );
+        List<EventScale> eventScales = this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdParticipate(idMemberMinistry,MemberEventScaleStatus.PARTICIPANDO, start,end);
         eventScales.forEach(event -> {
             response.add(new EventScaleSimpleResponse(
                     event.getId(), event.getDate()

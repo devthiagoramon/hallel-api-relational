@@ -97,7 +97,6 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok()
                 .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getUserId()));
     }
-
     @DeleteMapping("/remove/function")
     @Operation(
             summary = "Remove a function ministry of a member ministry",
@@ -146,10 +145,8 @@ public class CoordinatorMemberMinistryController {
     }
     @GetMapping("/scale/event/{eventId}")
     public ResponseEntity<EventShortResponse>
-    listEventInScaleInfo(
-            @PathVariable(name = "eventId") UUID eventId) {
-        return ResponseEntity.ok(this.eventService.
-                listEventInScaleInfo(eventId));
+    listEventInScaleInfo(@PathVariable(name = "eventId") UUID eventId) {
+        return ResponseEntity.ok(this.eventService.listEventInScaleInfo(eventId));
     }
 
 }

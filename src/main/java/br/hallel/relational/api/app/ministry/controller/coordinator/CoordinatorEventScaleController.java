@@ -76,7 +76,6 @@ public class CoordinatorEventScaleController {
     @GetMapping("/get-scale/{id}")
     public ResponseEntity<EventScaleWithInfos> getScaleById(
             @PathVariable(name = "id") UUID id) {
-
         return ResponseEntity.ok(this.service.getEventScaleWithInfos(id));
     }
 }

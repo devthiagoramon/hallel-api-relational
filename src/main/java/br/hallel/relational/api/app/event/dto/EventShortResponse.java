@@ -17,3 +17,4 @@ public class EventShortResponse {
     private String fileImageUrl;
     private String banner;
 }
+

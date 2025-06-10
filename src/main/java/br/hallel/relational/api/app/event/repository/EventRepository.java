@@ -25,7 +25,13 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     List<EventResponse> findAllByTitleContainingIgnoreCase(String title, Pageable pageable);
 
-    @Query("SELECT e.id AS id, e.title AS title, e.date AS date, e.image_url AS image_url, e.banner_url AS banner_url FROM Event e WHERE e.id = :idEvento")
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.EventShortResponse(
+                    e.id, e.title, e.date, e.image_url, e.banner_url
+                )
+                FROM Event e
+                WHERE e.id = :idEvento
+            """)
     Optional<EventShortResponse> findByIdShort(@Param("idEvento") UUID idEvento);
 
 

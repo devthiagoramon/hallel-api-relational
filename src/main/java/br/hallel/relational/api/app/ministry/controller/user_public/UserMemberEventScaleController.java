@@ -2,7 +2,9 @@ package br.hallel.relational.api.app.ministry.controller.user_public;
 
 
 import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
+import br.hallel.relational.api.app.event.dto.MemberAuditionStatusResponse;
 import br.hallel.relational.api.app.event.dto.MemberEventScaleResponseUserInfos;
+import br.hallel.relational.api.app.event.dto.MemberEventScaleStatusResponse;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.global.utils.DateUtils;
@@ -12,6 +14,7 @@ import br.hallel.relational.api.app.ministry.service.MinistryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RequestMapping("/user/ministry/member-event-scale")
 @RestController
 @RequiredArgsConstructor
@@ -82,14 +86,17 @@ public class UserMemberEventScaleController {
                         DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
     }
 
-  @GetMapping("/get-status/{eventScaleId}/{userId}")
-    public ResponseEntity<String> getMemberStatus(
+    @GetMapping("/get-status/{eventScaleId}/{userId}")
+    public ResponseEntity<MemberAuditionStatusResponse> getMemberStatus(
             @PathVariable(name = "userId") UUID userId,
             @PathVariable(name = "eventScaleId") UUID eventScaleId
-  ) {
-        return ResponseEntity.ok(this.memberEventScaleService.getMemberStatus(
+    ) {
+
+        MemberAuditionStatusResponse status = this.memberEventScaleService.getMemberStatus(
                 userId, eventScaleId
-        ));
+        );
+        log.info(status.getAuditionStatus());
+        return ResponseEntity.ok(status);
     }
 
 }
