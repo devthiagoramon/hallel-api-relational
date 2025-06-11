@@ -19,7 +19,6 @@ public class MemberMinistry {
     @EmbeddedId
     private MemberMinistryId id;
 
-
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

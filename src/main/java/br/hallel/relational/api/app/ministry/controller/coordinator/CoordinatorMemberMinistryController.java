@@ -1,8 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
-import br.hallel.relational.api.app.event.dto.EventShortResponse;
-import br.hallel.relational.api.app.event.dto.MemberInvitedAndConfirmedResponse;
-import br.hallel.relational.api.app.event.dto.MemberNotConfirmedResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.EventScaleService;
@@ -14,6 +12,7 @@ import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/coordinator/ministry/member-ministry")
 @Tag(name = "Member Ministry - Coordinator",
@@ -44,8 +44,7 @@ public class CoordinatorMemberMinistryController {
     public ResponseEntity<Page<MemberMinistryResponseWithFunctions>> listAllMembersMinistryByMinistryId(
             @PathVariable("ministry-id") UUID ministryId,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10")
-            int size) {
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok()
                 .body(memberMinistryService.getAllMemberOfMinistry(ministryId, pageRequest));
@@ -97,6 +96,7 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok()
                 .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getUserId()));
     }
+
     @DeleteMapping("/remove/function")
     @Operation(
             summary = "Remove a function ministry of a member ministry",
@@ -123,6 +123,7 @@ public class CoordinatorMemberMinistryController {
     @GetMapping("/list-all/members-invited/{idScale}")
     public ResponseEntity<List<MemberInvitedAndConfirmedResponse>> listAllMembersThatInvited(
             @PathVariable(name = "idScale") UUID idScale) {
+
         return ResponseEntity.ok(this.memberEventScaleService.listInvitedMembersEventScale(idScale));
     }
 
@@ -143,10 +144,32 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok(this.eventScaleService.
                 listEventsScalesByUserIdParticipate(idMemberMinistry, dateStart, dateEnd));
     }
+
     @GetMapping("/scale/event/{eventId}")
     public ResponseEntity<EventShortResponse>
     listEventInScaleInfo(@PathVariable(name = "eventId") UUID eventId) {
         return ResponseEntity.ok(this.eventService.listEventInScaleInfo(eventId));
     }
 
+    @GetMapping("/get-scale/{id}")
+    public ResponseEntity<EventScaleWithInfos> getScaleById(
+            @PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(this.eventScaleService.getEventScaleWithInfos(id));
+    }
+
+    @GetMapping("/list-all/guests-invited/{id}")
+    public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInvitedEventScale(
+            @PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));
+    }
+
+    @GetMapping("/scale/list/members-can-participate/{scaleId}")
+    public ResponseEntity<List<String>> listEventsMemberCanParticipate(
+            @PathVariable(name = "scaleId") UUID scaleId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+            ) {
+        log.info("listEventsMemberCanParticipate {}",scaleId);
+        return ResponseEntity.ok(this.eventScaleService.listMembroMinisterioCanInviteToEscala(scaleId,page, size));
+    }
 }

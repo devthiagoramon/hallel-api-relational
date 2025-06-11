@@ -7,9 +7,11 @@ import br.hallel.relational.api.app.event.exception.MemberEventScaleIllegalArgum
 import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
 import br.hallel.relational.api.app.event.exception.MemberScaleAlreadyHasThatStatus;
 import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.event.model.GuestInvitedEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
+import br.hallel.relational.api.app.event.repository.GuestInvitedEventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
@@ -30,6 +32,7 @@ public class MemberEventScaleService {
     private final UserRepository userRepository;
     private final EventScaleRepository eventScaleRepository;
     private final MemberEventScaleMapper memberEventScaleMapper;
+    private final GuestInvitedEventScaleRepository guestRepository;
 
     public MemberEventScaleResponseUserInfos inviteUserIntoScale(
             UUID eventScaleId, UUID userId) {
@@ -52,7 +55,7 @@ public class MemberEventScaleService {
 
         List<MemberNotConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
-            responseList.add(new MemberNotConfirmedResponse(member.getId(), member.getUser().getName(),
+            responseList.add(new MemberNotConfirmedResponse(member.getId(), member.getUser(), member.getEventScale().getId(),
                     member.getReason_absence()));
         }
         return responseList;
@@ -64,7 +67,9 @@ public class MemberEventScaleService {
 
         List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
-            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName()));
+
+            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName(), member.getUser().getEmail(),
+                    member.getEventScale().getId()));
         }
         return responseList;
     }
@@ -75,7 +80,13 @@ public class MemberEventScaleService {
 
         List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
-            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName()));
+
+            responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName(), member.getUser().getEmail(),
+                    member.getEventScale().getId()));
+        }
+        log.info("Getting members {} into scale {}", memberStatusList.size(), eventScaleId);
+        for (MemberInvitedAndConfirmedResponse m : responseList) {
+            System.out.println("Names: " + m.getName());
         }
         return responseList;
     }
@@ -87,7 +98,7 @@ public class MemberEventScaleService {
         if (memberStatus == null) {
             throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! " + userId);
         }
-        return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser().getName(),
+        return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getUser(), memberStatus.getEventScale().getId(),
                 memberStatus.getReason_absence());
     }
 
@@ -173,5 +184,27 @@ public class MemberEventScaleService {
         }
 
         return new MemberAuditionStatusResponse(member.get().getStatus().name());
+    }
+
+    public List<GuestInvitedEventScaleResponse> listAllGuestsInvitedsByEventScaleId(UUID eventScaleId) {
+        List<GuestInvitedEventScale> allGuests = this.guestRepository.findAllByEventScale_Id(eventScaleId);
+        List<GuestInvitedEventScaleResponse> response = new ArrayList<>();
+        for (GuestInvitedEventScale guest : allGuests) {
+            response.add(new GuestInvitedEventScaleResponse(
+                    guest.getId(), guest.getName(), guest.getEmail(), guest.getPhone(), guest.getEventScale().getId(),
+                    guest.getInviteEventScale().getId()
+            ));
+        }
+        return response;
+    }
+
+    public List<GuestInvitedEventScaleResponse> listAllGuestsInScaleByID_UserInfo(UUID eventScaleId) {
+        List<GuestInvitedEventScale> allGuests = this.guestRepository.findAllByEventScale_Id(eventScaleId);
+        List<GuestInvitedEventScaleResponse> response = new ArrayList<>();
+        for (GuestInvitedEventScale guest : allGuests) {
+            response.add(new GuestInvitedEventScaleResponse(
+                    guest.getId(), guest.getName(), guest.getEmail() ));
+        }
+        return response;
     }
 }

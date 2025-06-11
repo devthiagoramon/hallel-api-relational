@@ -29,7 +29,7 @@ public class MemberEventScale {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "event_scale_id")
     private EventScale eventScale;
 

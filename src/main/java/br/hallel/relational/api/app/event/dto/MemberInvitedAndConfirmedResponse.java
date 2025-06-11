@@ -10,4 +10,6 @@ import java.util.UUID;
 public class MemberInvitedAndConfirmedResponse {
     private UUID id;
     private String name;
+    private String email;
+    private UUID eventScaleId;
 }

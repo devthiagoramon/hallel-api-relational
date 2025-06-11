@@ -229,7 +229,7 @@ public class MinistryService implements MinistryInterface {
             responses.add(new EventScaleSimpleResponse(eventScale.getId(),
                     eventScale.getDate()));
         }
-        log.info("List of eventScales: " + responses);
+        log.info("Getting events Scales By MInistry!");
         return responses;
     }
 

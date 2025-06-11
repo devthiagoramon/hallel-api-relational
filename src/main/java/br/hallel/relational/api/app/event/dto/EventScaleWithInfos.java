@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,5 +19,8 @@ public class EventScaleWithInfos {
     private UUID ministryId;
     private UUID auditionMinistryId;
     private Date date;
-
+    private List<UUID> membersInvited;
+    private List<UUID> membersConfirmed;
+    private List<UUID> membersDecline;
+    private List<UUID> repertoryIds;
 }

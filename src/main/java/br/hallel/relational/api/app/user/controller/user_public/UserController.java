@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.user.controller.user_public;
 
+import br.hallel.relational.api.app.event.dto.GuestInvitedEventScaleResponse;
+import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.service.UserService;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -23,7 +26,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
+    private final MemberEventScaleService memberEventScaleService;
     @PutMapping("/edit-profile/{idUser}")
     public ResponseEntity<UserProfileResponse> editProfile(
             @PathVariable(name = "idUser") UUID idUser,
@@ -50,5 +53,12 @@ public class UserController {
     public ResponseEntity<UserProfileResponse> getUserProfileByToken(@PathVariable(name = "accessToken") String token) {
         return ResponseEntity.ok(userService.getUserProfileByToken(token));
     }
+
+    @GetMapping("/list-all/guests-scale/{id}")
+    public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInScaleByID_UserInfo(
+            @PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));
+    }
+
 
 }

@@ -28,7 +28,7 @@ public class EventScale {
     @ToString.Exclude
     private Event event;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     @ToString.Exclude
     private Ministry ministry;
