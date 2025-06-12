@@ -1,4 +1,4 @@
-package br.hallel.relational.api.app.ministry.controller.admin;
+package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.ministry.dto.DanceAddEditDTO;
 import br.hallel.relational.api.app.ministry.dto.DanceResponse;
@@ -15,10 +15,10 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/ministry/dance")
+@RequestMapping("/coordinator/ministry/dance")
 @RequiredArgsConstructor
-@Tag(name = "Admin Dance Ministry", description = "Admin part for Dance ministry managment")
-public class AdminDanceController {
+@Tag(name = "Coordinator Dance Ministry", description = "Coordinator part for Dance ministry managment")
+public class CoordinatorDanceController {
     @Autowired
     private DanceService service;
 

@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.ministry.dto.DanceAddEditDTO;
 import br.hallel.relational.api.app.ministry.dto.DanceResponse;
+import br.hallel.relational.api.app.ministry.dto.DanceResponseShort;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
@@ -11,6 +12,8 @@ import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.DanceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -69,5 +72,10 @@ public class DanceService implements DanceInterface {
     @Override
     public List<DanceResponse> listAllDances() {
         return mapper.toListDanceResponse(this.repository.findAll());
+    }
+
+    public Page<DanceResponseShort> listDancesOfMinistry(UUID ministryId, Pageable pageable){
+        log.info("Listing dances of ministry of {}", ministryId);
+        return this.repository.listAllDanceOfMinistry(ministryId, pageable);
     }
 }
