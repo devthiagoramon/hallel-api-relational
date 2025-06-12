@@ -25,4 +25,12 @@ public class GuestInvitedEventScale {
     private EventScale eventScale;
     @ManyToOne(fetch = FetchType.LAZY)
     private InviteEventScale inviteEventScale;
+
+    public GuestInvitedEventScale(String name, String email, String phone, EventScale eventScale, InviteEventScale inviteEventScale) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.eventScale = eventScale;
+        this.inviteEventScale = inviteEventScale;
+    }
 }

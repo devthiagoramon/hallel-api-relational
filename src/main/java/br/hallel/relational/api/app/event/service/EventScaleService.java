@@ -16,7 +16,6 @@ import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
-import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +62,10 @@ public class EventScaleService implements ScaleInterface {
         eventScale.setDate(event.getDate());
         EventScale eventScaleSaved = this.eventScaleRepository.save(eventScale);
         log.info("Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
-        memberEventScaleService.inviteUserIntoScale(eventScaleSaved.getId(), ministry.getCoordinator().getId());
-        memberEventScaleService.inviteUserIntoScale(eventScaleSaved.getId(), ministry.getViceCoordinator().getId());
+        List<UUID> memberIds = new ArrayList<>();
+        memberIds.add(ministry.getCoordinator().getId());
+        memberIds.add(ministry.getViceCoordinator().getId());
+        memberEventScaleService.inviteUserIntoScale(eventScaleSaved.getId(), memberIds);
 
         return scaleMapper.entityToResponse(eventScaleSaved);
     }

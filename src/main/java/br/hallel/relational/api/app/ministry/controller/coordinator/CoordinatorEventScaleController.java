@@ -58,11 +58,12 @@ public class CoordinatorEventScaleController {
         return ResponseEntity.ok(this.memberEventScaleService.listAllMemberEventScaleStatus(idScale));
     }
 
-    @PostMapping("/accept-decline/member/{idMember}")
+    @PatchMapping("/accept-decline/member")
     public ResponseEntity<MemberEventScaleResponseUserInfos> acceptOrDeclineMemberScale(
-            @PathVariable(name = "idMember") UUID idMember,
+            @RequestParam(name = "idMember") UUID idMember,
+            @RequestParam(name = "eventScaleId") UUID eventScaleId,
             @RequestBody AcceptOrDeclineMemberInScale isAccept) {
-        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember, isAccept));
+        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember,eventScaleId, isAccept));
     }
 
 

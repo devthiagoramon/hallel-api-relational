@@ -29,10 +29,15 @@ VALUES ('4a0fbead-3c28-4eaa-b487-cb093d897f72',
         true,
         'Convite para participar da escala do próximo culto.',
         '2025-06-11 10:00:00',
+        '2025-06-11 11:00:00'),
+       ('8e56f29a-5b72-4d47-b95f-d52e8652d44c',
+        true,
+        'Convite para participar da escala do próximo culto.',
+        '2025-06-11 10:00:00',
         '2025-06-11 11:00:00');
 
-INSERT INTO guest_invited_event_scale (id, name, email,phone, event_scale_id, invite_event_scale_id)
+INSERT INTO guest_invited_event_scale (id, name, email, phone, event_scale_id, invite_event_scale_id)
 VALUES ('f8b278c0-cb98-4b37-bfbd-1935e5934cb7', 'João Silva', 'joao@email.com',
-        '21988888888','09b2415e-ec84-4df3-973b-7ea6cfc32a17', '4a0fbead-3c28-4eaa-b487-cb093d897f72'),
+        '21988888888', '09b2415e-ec84-4df3-973b-7ea6cfc32a17', '4a0fbead-3c28-4eaa-b487-cb093d897f72'),
        ('e0c76f3b-7a92-4d03-8b37-b4e42df88f5e', 'Maria Souza', 'maria@email.com',
-        '11999999999','09b2415e-ec84-4df3-973b-7ea6cfc32a17', '4a0fbead-3c28-4eaa-b487-cb093d897f72');
+        '11999999999', '09b2415e-ec84-4df3-973b-7ea6cfc32a17', '8e56f29a-5b72-4d47-b95f-d52e8652d44c');

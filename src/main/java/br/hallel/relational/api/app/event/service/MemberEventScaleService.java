@@ -2,21 +2,20 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.MemberEventScaleMapper;
-import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
-import br.hallel.relational.api.app.event.exception.MemberEventScaleIllegalArgumentException;
-import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
-import br.hallel.relational.api.app.event.exception.MemberScaleAlreadyHasThatStatus;
-import br.hallel.relational.api.app.event.model.EventScale;
-import br.hallel.relational.api.app.event.model.GuestInvitedEventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.exception.*;
+import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.GuestInvitedEventScaleRepository;
+import br.hallel.relational.api.app.event.repository.InviteEventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,20 +32,42 @@ public class MemberEventScaleService {
     private final EventScaleRepository eventScaleRepository;
     private final MemberEventScaleMapper memberEventScaleMapper;
     private final GuestInvitedEventScaleRepository guestRepository;
+    private final InviteEventScaleRepository inviteRepository;
+    private final MemberMinistryRepository memberMinistryRepository;
 
-    public MemberEventScaleResponseUserInfos inviteUserIntoScale(
-            UUID eventScaleId, UUID userId) {
-        log.info("Inviting user {} into scale {}", userId, eventScaleId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(userId)));
-        EventScale eventScale = eventScaleRepository.findById(eventScaleId)
-                .orElseThrow(() -> new EventScaleNotFoundException(
-                        "Event scale with id %s not found".formatted(eventScaleId)));
+    public EventScaleSimpleResponse inviteUserIntoScale(
+            UUID eventScaleId, List<UUID> userIds) {
+        log.info("Inviting user {} into scale {}", userIds, eventScaleId);
+        var ref = new Object() {
+            Date date = null;
+        };
+        userIds.forEach(id -> {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(id)));
 
-        MemberEventScale memberEventScale = memberEventScaleRepository.save(
-                new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
+            EventScale eventScale = eventScaleRepository.findById(eventScaleId)
+                    .orElseThrow(() -> new EventScaleNotFoundException(
+                            "Event scale with id %s not found".formatted(eventScaleId)));
 
-        return memberEventScaleMapper.modelToResponseWithUserInfos(memberEventScale);
+            MemberEventScale memberEventScale = memberEventScaleRepository.save(
+                    new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
+            ref.date = eventScale.getDate();
+        });
+
+        return new EventScaleSimpleResponse(eventScaleId, ref.date);
+    }
+
+    @Transactional
+    public EventScaleSimpleResponse withdrawInvitation(
+            UUID eventScaleId, List<UUID> userId) {
+        Date date = null;
+        for (UUID id : userId) {
+            date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
+            this.memberEventScaleRepository.deleteMemberEventScaleByEventScale_IdAndUser_Id(eventScaleId, id);
+        }
+        log.info("Withdraw Invitation user {} into scale {}", userId, eventScaleId);
+
+        return new EventScaleSimpleResponse(eventScaleId, date);
     }
 
     public List<MemberNotConfirmedResponse> listNotConfirmedMembersEventScale(UUID eventScaleId) {
@@ -139,11 +160,11 @@ public class MemberEventScaleService {
     }
 
     public MemberEventScaleResponseUserInfos acceptOrDeclineMember(
-            UUID idMemberScale,
-            AcceptOrDeclineMemberInScale memberInScale) {
-        MemberEventScale member = this.memberEventScaleRepository.findById(idMemberScale).orElseThrow(
+            UUID idMemberScale, UUID eventScaleId, AcceptOrDeclineMemberInScale memberInScale) {
+        MemberEventScale member = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idMemberScale, eventScaleId).orElseThrow(
                 () -> new MemberMinistryRegisterNotFoundException("Member with id" + idMemberScale + " not found!")
         );
+
 
         if ((member.getStatus() == MemberEventScaleStatus.RECUSADO && !memberInScale.isAccept())
                 || (member.getStatus() == MemberEventScaleStatus.PARTICIPANDO && memberInScale.isAccept())) {
@@ -186,6 +207,45 @@ public class MemberEventScaleService {
         return new MemberAuditionStatusResponse(member.get().getStatus().name());
     }
 
+    //----- GUESTS SERVICES -----
+
+    public GuestInvitedEventScaleResponse createGuestInvitedEventScale(GuestInvitedEventScaleDTO dto) {
+
+
+        EventScale eventScale = this.eventScaleRepository.findById(dto.eventScaleId()).orElseThrow(
+                () -> new EventScaleNotFoundException("Event scale with id " + dto.eventScaleId() + " not found!")
+        );
+        InviteEventScale invite = null;
+        if (dto.inviteEventScaleId() != null) {
+            invite = this.inviteRepository.findById(dto.inviteEventScaleId()).get();
+        } else {
+            invite = this.inviteRepository.save(
+                    new InviteEventScale(true, dto.message(), new Date(), null)
+            );
+        }
+
+        //        boolean responseSendMessage = telegramService.sendMessageWithEventToContact(dto.getTelefone(), dto.getMensagem(), eventoEscala);
+
+        GuestInvitedEventScale save = this.guestRepository.save(
+                new GuestInvitedEventScale(
+                        dto.name(), dto.email(), dto.phone(), eventScale, invite
+                )
+        );
+        return new GuestInvitedEventScaleResponse(
+                save.getId(), save.getName(), save.getEmail(), save.getPhone(), save.getEventScale().getId(),
+                save.getInviteEventScale().getId()
+        );
+    }
+
+
+    public GuestInvitedEventScaleResponse getGuestInvitedEventScale(UUID guestId) {
+        GuestInvitedEventScale guest = this.guestRepository.findById(guestId).orElseThrow(() -> new InviteEventScaleException("Guest with id " + guestId + " not found!"));
+        return new GuestInvitedEventScaleResponse(
+                guestId, guest.getName(), guest.getEmail(), guest.getPhone(), guest.getEventScale().getId(),
+                guest.getInviteEventScale().getId()
+        );
+    }
+
     public List<GuestInvitedEventScaleResponse> listAllGuestsInvitedsByEventScaleId(UUID eventScaleId) {
         List<GuestInvitedEventScale> allGuests = this.guestRepository.findAllByEventScale_Id(eventScaleId);
         List<GuestInvitedEventScaleResponse> response = new ArrayList<>();
@@ -198,12 +258,76 @@ public class MemberEventScaleService {
         return response;
     }
 
+    public GuestInvitedEventScaleResponse editGuestInvited(UUID guestId, GuestInvitedEventScaleDTO dto) {
+        GuestInvitedEventScale guest = this.guestRepository.findById(guestId).orElseThrow(() -> new InviteEventScaleException("Guest with id " + guestId + " not found!"));
+        guest.setName(dto.name());
+        guest.setEmail(dto.email());
+        guest.setPhone(dto.phone());
+
+        this.guestRepository.save(guest);
+        return new GuestInvitedEventScaleResponse(guest.getId(), guest.getName(), guest.getEmail(), guest.getPhone(), guest.getEventScale().getId(), guest.getInviteEventScale().getId());
+    }
+
+    public Boolean removeGuestFromEventScaleById(UUID guestId) {
+        Optional<GuestInvitedEventScale> optional = this.guestRepository.findById(guestId);
+        if (optional.isEmpty()) {
+            log.info("Guest with id " + guestId + " not found in scale id: " + guestId);
+            return false;
+        }
+
+        GuestInvitedEventScale guest = optional.get();
+
+        if (guest.getInviteEventScale() != null) {
+            UUID inviteId = guest.getInviteEventScale().getId();
+            log.info("Removing invite ID: " + inviteId + " related to guest: " + guestId);
+            this.inviteRepository.deleteById(inviteId);
+        } else {
+            log.warn("Guest " + guestId + " does not have an associated invite.");
+            return false;
+        }
+
+        this.guestRepository.deleteById(guestId);
+
+        log.info("Guest with id " + guestId + " removed from scale.");
+        return true;
+    }
+
+    public InviteEventScaleResponse getInvitesInEventScaleId(UUID inviteId) {
+        InviteEventScale response = this.inviteRepository.findById(inviteId).orElseThrow(
+                () -> new InviteEventScaleException("Invite with id " + inviteId + " not found in scale id: " + inviteId)
+        );
+
+        return new InviteEventScaleResponse(
+                response.getId(), response.isSent(), response.getMessage(), response.getDateSend(), response.getDateEdit()
+        );
+    }
+
+    public InviteEventScaleResponse
+    editInvitesInEventScaleId(UUID inviteId, UUID guestId, String message) {
+        InviteEventScale invite = this.inviteRepository.findById(inviteId).orElseThrow(
+                () -> new InviteEventScaleException("Invite with id " + inviteId + " not found in scale id: " + inviteId)
+        );
+        GuestInvitedEventScale guest =
+                this.guestRepository.findById(guestId).orElseThrow(() -> new InviteEventScaleException("Guest with id " + guestId + " not found in scale"));
+        invite.setMessage(message);
+        invite.setDateEdit(new Date());
+        guest.setInviteEventScale(invite);
+//        boolean messageSended = telegramService.sendMessageToContact(convidadoEscalaMinisterio.getTelefone(), conviteEscalaOld.getMensagem());
+
+        this.inviteRepository.save(invite);
+        this.guestRepository.save(guest);
+
+        return new InviteEventScaleResponse(
+                invite.getId(), invite.isSent(), invite.getMessage(), invite.getDateSend(), invite.getDateEdit()
+        );
+    }
+
     public List<GuestInvitedEventScaleResponse> listAllGuestsInScaleByID_UserInfo(UUID eventScaleId) {
         List<GuestInvitedEventScale> allGuests = this.guestRepository.findAllByEventScale_Id(eventScaleId);
         List<GuestInvitedEventScaleResponse> response = new ArrayList<>();
         for (GuestInvitedEventScale guest : allGuests) {
             response.add(new GuestInvitedEventScaleResponse(
-                    guest.getId(), guest.getName(), guest.getEmail() ));
+                    guest.getId(), guest.getName(), guest.getEmail()));
         }
         return response;
     }

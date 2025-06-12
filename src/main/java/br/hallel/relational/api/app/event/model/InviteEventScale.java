@@ -24,4 +24,10 @@ public class InviteEventScale {
     @Column(name = "date_edit")
     private Date dateEdit;
 
+    public InviteEventScale(boolean isSent, String message, Date dateSend, Date dateEdit) {
+        this.isSent = isSent;
+        this.message = message;
+        this.dateSend = dateSend;
+        this.dateEdit = dateEdit;
+    }
 }

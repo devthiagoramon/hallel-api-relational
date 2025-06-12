@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.exception.MemberEventScaleNotFoundException;
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.EventScaleService;
@@ -10,6 +11,9 @@ import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberServi
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
 import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -157,19 +161,94 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok(this.eventScaleService.getEventScaleWithInfos(id));
     }
 
-    @GetMapping("/list-all/guests-invited/{id}")
-    public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInvitedEventScale(
-            @PathVariable(name = "id") UUID id) {
-        return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));
-    }
-
     @GetMapping("/scale/list/members-can-participate/{scaleId}")
     public ResponseEntity<List<String>> listEventsMemberCanParticipate(
             @PathVariable(name = "scaleId") UUID scaleId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
-            ) {
-        log.info("listEventsMemberCanParticipate {}",scaleId);
-        return ResponseEntity.ok(this.eventScaleService.listMembroMinisterioCanInviteToEscala(scaleId,page, size));
+    ) {
+        log.info("listEventsMemberCanParticipate {}", scaleId);
+        return ResponseEntity.ok(this.eventScaleService.listMembroMinisterioCanInviteToEscala(scaleId, page, size));
+    }
+
+    @PatchMapping("/scale/invite-members/{scaleId}")
+    @Operation(
+            summary = "Invite members to scale by their ids")
+    public ResponseEntity<EventScaleSimpleResponse> inviteMembersToEventScale(
+            @PathVariable("scaleId") UUID idEscala,
+            @RequestBody List<UUID> membersIds) {
+        return ResponseEntity.ok()
+                .body(this.memberEventScaleService.inviteUserIntoScale(idEscala, membersIds));
+    }
+
+    @PatchMapping("/scale/withdraw-invitation/{scaleId}")
+    @Operation(
+            summary = "Withdraw invitation member to scale by your id")
+    public ResponseEntity<EventScaleSimpleResponse> withdrawInvitationMembersToEventScale(
+            @PathVariable("scaleId") UUID idEscala,
+            @RequestBody List<UUID> membersIds) {
+        return ResponseEntity.ok()
+                .body(this.memberEventScaleService.withdrawInvitation(idEscala, membersIds));
+    }
+
+    @GetMapping("/guest/list-all/guests-invited/{id}")
+    public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInvitedEventScale(
+            @PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));
+    }
+
+    @DeleteMapping("/guest/remove/guests-invited/{id}")
+    @Operation(summary = "Remove Guest invited in event scale",
+            description = "Remove Guest invited in event scale by your id and send menssage to registred number",
+            responses = {@ApiResponse(responseCode = "200",
+                    description = "Guest Removed",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = Boolean.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Guest not found",
+                            content = @Content(
+                                    schema = @Schema(
+                                            implementation = MemberEventScaleNotFoundException.class)))})
+    public ResponseEntity<Boolean> removeGuestInvitedInEventScale(
+            @PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(this.memberEventScaleService.removeGuestFromEventScaleById(id));
+    }
+
+    @PostMapping("/guest/create-invite")
+    public ResponseEntity<GuestInvitedEventScaleResponse> createInviteInEventScaleId(
+            @RequestBody GuestInvitedEventScaleDTO dto) {
+        return ResponseEntity.ok(this.memberEventScaleService.createGuestInvitedEventScale(dto));
+    }
+
+
+    @GetMapping("/guest/get-invite/{inviteId}")
+    public ResponseEntity<InviteEventScaleResponse> getInvitesInEventScaleId(
+            @PathVariable(name = "inviteId") UUID inviteId) {
+        return ResponseEntity.ok(this.memberEventScaleService.getInvitesInEventScaleId(inviteId));
+    }
+
+    @PutMapping("/guest/edit-invite")
+    public ResponseEntity<InviteEventScaleResponse> editInvitesInEventScaleId(
+            @RequestParam(name = "inviteId") UUID inviteId,
+            @RequestParam(name = "guestId") UUID guestId,
+            @RequestBody InviteEventScaleDTO dto) {
+        return ResponseEntity.ok(this.memberEventScaleService.editInvitesInEventScaleId(inviteId,
+                guestId, dto.message()));
+    }
+
+    @GetMapping("/guest/get-guest/{guestId}")
+    @Operation(summary = "Get guest in event scale by your id")
+    public ResponseEntity<GuestInvitedEventScaleResponse> getGuestInEventScaleId(
+            @PathVariable(name = "guestId") UUID guestId) {
+        return ResponseEntity.ok(this.memberEventScaleService.getGuestInvitedEventScale(guestId));
+    }
+
+    @PutMapping("/guest/edit-guest-infos/{guestId}")
+    public ResponseEntity<GuestInvitedEventScaleResponse> editGuestInEventScaleId(
+            @PathVariable(name = "guestId") UUID guestId,
+            @RequestBody GuestInvitedEventScaleDTO dto) {
+        return ResponseEntity.ok(this.memberEventScaleService.editGuestInvited(
+                guestId, dto));
     }
 }

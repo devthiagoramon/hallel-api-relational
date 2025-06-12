@@ -56,4 +56,8 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                                                                                               UUID ministryId,
                                                                                               @Param("initial") Date initialDate,
                                                                                               @Param("final") Date finalDate);
+
+    void deleteMemberEventScaleByEventScale_IdAndUser_Id(UUID eventScaleId, UUID userId);
+
+    UUID id(UUID id);
 }

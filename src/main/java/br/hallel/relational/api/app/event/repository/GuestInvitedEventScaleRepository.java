@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface GuestInvitedEventScaleRepository extends
         JpaRepository<GuestInvitedEventScale, UUID> {
     List<GuestInvitedEventScale> findAllByEventScale_Id(UUID eventScaleId);
+
+    UUID id(UUID id);
 }

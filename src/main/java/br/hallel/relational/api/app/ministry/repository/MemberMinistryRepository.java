@@ -47,4 +47,5 @@ public interface MemberMinistryRepository
 
     Page<MemberMinistry> findMemberMinistriesByMinistry_Id(UUID ministryId, Pageable pageable);
 
+    MemberMinistryId id(MemberMinistryId id);
 }
