@@ -29,7 +29,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             SELECT new br.hallel.relational.api.app.user.dto.UserShortResponse(u.id, u.name, u.email)
             from User u
             where u.id not in (
-                select mm.user.id from member_ministry mm where mm.ministry.id = :ministryId
+                select mm.user.id from MemberMinistry mm where mm.ministry.id = :ministryId
             ) and not exists (
                 select r from u.roles r where r.description = 'ADMIN'
             )

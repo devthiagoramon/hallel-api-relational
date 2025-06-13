@@ -11,7 +11,7 @@ public interface RepertoryInterface {
     List<RepertoryResponse> listRepertoryByMinistryId(UUID id);
 
     RepertoryResponse getRepertoryById(UUID id);
-
+    RepertoryShortResponse getRepertoryShortById(UUID id);
     List<RepertoryResponse> listAllRepertory();
     List<RepertoryResponse> listAllRepertoryByMinistryId(UUID ministryId);
 

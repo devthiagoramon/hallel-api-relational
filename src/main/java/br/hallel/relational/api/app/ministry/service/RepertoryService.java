@@ -74,11 +74,25 @@ public class RepertoryService implements RepertoryInterface {
     @Override
     public RepertoryResponse getRepertoryById(UUID id) {
         Optional<RepertoryMinistry> repertoryOptional = this.repository.findById(id);
+
         if (repertoryOptional.isEmpty()) {
             throw new RepertoryNotFoundException("Repertory Id: " + id + " not found!");
         }
 
         return mapper.entityToResponse(repertoryOptional.get());
+    }
+
+    @Override
+    public RepertoryShortResponse getRepertoryShortById(UUID id) {
+        Optional<RepertoryMinistry> repertoryOptional = this.repository.findById(id);
+
+        if (repertoryOptional.isEmpty()) {
+            throw new RepertoryNotFoundException("Repertory Id: " + id + " not found!");
+        }
+        RepertoryMinistry response = repertoryOptional.get();
+        return new RepertoryShortResponse(
+                response.getId(),response.getName(), response.getDescription(), response.getMinistry().getId()
+        );
     }
 
     @Override

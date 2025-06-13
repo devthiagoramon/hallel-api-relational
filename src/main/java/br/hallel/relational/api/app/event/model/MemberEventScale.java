@@ -22,6 +22,7 @@ public class MemberEventScale {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private MemberEventScaleStatus status;
+
     @Column(name = "reason_absence")
     private String reason_absence;
 

@@ -21,6 +21,8 @@ import java.util.UUID;
 public interface MemberMinistryRepository
         extends JpaRepository<MemberMinistry, MemberMinistryId> {
 
+
+
     @Query(
             value = """
                     SELECT u.* from "user" u

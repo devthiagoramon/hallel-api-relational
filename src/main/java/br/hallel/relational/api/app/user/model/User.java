@@ -17,7 +17,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
-@Entity
+@Entity(name = "User")
 @Table(name = "\"user\"")
 @NoArgsConstructor
 @AllArgsConstructor

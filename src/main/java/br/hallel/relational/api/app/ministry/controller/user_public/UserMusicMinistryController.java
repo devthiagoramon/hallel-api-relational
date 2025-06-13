@@ -21,7 +21,6 @@ public class UserMusicMinistryController {
 
     private final MusicService musicService;
 
-
     @GetMapping("/{ministry-id}")
     @Operation(summary = "List all music of ministry", description = "Route for listing the music of some ministry by passing id of ministry")
     public ResponseEntity<Page<MusicWithoutMinistryResponse>> listAllMusicOfSomeMinistry(@PathVariable("ministry-id")

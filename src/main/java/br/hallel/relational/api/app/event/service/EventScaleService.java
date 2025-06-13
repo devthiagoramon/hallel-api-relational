@@ -17,6 +17,7 @@ import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ public class EventScaleService implements ScaleInterface {
     private MemberEventScaleService memberEventScaleService;
     @Autowired
     private MemberEventScaleRepository memberEventScaleRepository;
+    @Autowired
+    private RepertoryRepository repertoryRepository;
 
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
@@ -109,6 +112,10 @@ public class EventScaleService implements ScaleInterface {
                 .map(member -> member.getUser().getId())
                 .collect(Collectors.toList());
 
+        List<UUID> repertoryIds = this.repertoryRepository.findAllByMinistry_Id(eventScale.getMinistry().getId()).stream().map(
+                repertory -> repertory.getId()
+        ).collect(Collectors.toList());
+
         EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
         eventScaleWithInfos.setId(eventScale.getId());
         eventScaleWithInfos.setAuditionMinistryId(eventScale.getMinistry().getId());
@@ -118,6 +125,8 @@ public class EventScaleService implements ScaleInterface {
         eventScaleWithInfos.setMembersInvited(invitedIds);
         eventScaleWithInfos.setMembersConfirmed(confirmedIds);
         eventScaleWithInfos.setMembersDecline(declinedIds);
+        eventScaleWithInfos.setRepertoryIds(repertoryIds);
+
         log.info("Get Event Scale With Infos");
         return eventScaleWithInfos;
     }

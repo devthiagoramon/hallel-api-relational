@@ -38,23 +38,11 @@ public class MemberEventScaleService {
     public EventScaleSimpleResponse inviteUserIntoScale(
             UUID eventScaleId, List<UUID> userIds) {
         log.info("Inviting user {} into scale {}", userIds, eventScaleId);
-        var ref = new Object() {
-            Date date = null;
-        };
-        userIds.forEach(id -> {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new UserNotFoundException("User with id %s not found".formatted(id)));
 
-            EventScale eventScale = eventScaleRepository.findById(eventScaleId)
-                    .orElseThrow(() -> new EventScaleNotFoundException(
-                            "Event scale with id %s not found".formatted(eventScaleId)));
 
-            MemberEventScale memberEventScale = memberEventScaleRepository.save(
-                    new MemberEventScale(MemberEventScaleStatus.CONVIDADO, null, user, eventScale));
-            ref.date = eventScale.getDate();
-        });
+        Date date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
 
-        return new EventScaleSimpleResponse(eventScaleId, ref.date);
+        return new EventScaleSimpleResponse(eventScaleId, date);
     }
 
     @Transactional
