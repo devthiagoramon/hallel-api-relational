@@ -78,4 +78,15 @@ public class DanceService implements DanceInterface {
         log.info("Listing dances of ministry of {}", ministryId);
         return this.repository.listAllDanceOfMinistry(ministryId, pageable);
     }
+
+    public DanceResponseShort editDance(UUID danceId, DanceAddEditDTO dance) {
+        log.info("Updating dance... {}", danceId);
+        DanceMinistry danceModel = this.repository.findById(danceId).orElseThrow(() -> new RepertoryNotFoundException("Dance Id: " + danceId + " not found!"));
+        log.info("Updating dance ministry id... {}", danceModel.getMinistry().getId());
+        danceModel.setName(dance.getName());
+        danceModel.setDescription(dance.getDescription());
+        danceModel.setLink(dance.getLink());
+        this.repository.save(danceModel);
+        return new DanceResponseShort(danceModel.getId(), dance.getName(), dance.getDescription(), dance.getLink());
+    }
 }

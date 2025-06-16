@@ -18,7 +18,7 @@ import java.util.UUID;
 @Tag(name = "Member Dance Ministry", description = "Member part for dance ministry infos")
 public class UserDanceMinistryController {
 
-    private DanceService danceService;
+    private final DanceService danceService;
 
     @GetMapping("/{ministry-id}")
     @Operation(summary = "Listing dances of ministry", description = "Route to list all the dances of ministry by ministry id")
