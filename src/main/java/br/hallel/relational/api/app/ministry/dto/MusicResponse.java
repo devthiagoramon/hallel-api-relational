@@ -1,7 +1,6 @@
 package br.hallel.relational.api.app.ministry.dto;
 
 
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,5 +19,5 @@ public class MusicResponse {
     private String letter;
     private String link;
 
-    private Ministry ministry;
+    private MinistryDTO_MusicResponse ministry;
 }

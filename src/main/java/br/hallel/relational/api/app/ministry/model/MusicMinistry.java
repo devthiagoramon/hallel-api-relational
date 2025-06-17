@@ -28,7 +28,7 @@ public class MusicMinistry {
     @Column
     private String link;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
 }

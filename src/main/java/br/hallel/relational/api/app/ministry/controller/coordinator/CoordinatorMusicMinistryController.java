@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/coordinator/ministry/music")
+@RequestMapping("/user/ministry/music")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Music Ministry", description = "Coordinator part for music ministry managment")
 public class CoordinatorMusicMinistryController {
