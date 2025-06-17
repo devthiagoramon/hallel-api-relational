@@ -19,5 +19,5 @@ public class MusicResponse {
     private String letter;
     private String link;
 
-    private MinistryDTO_MusicResponse ministry;
+    private MinistryDTOResponse ministry;
 }

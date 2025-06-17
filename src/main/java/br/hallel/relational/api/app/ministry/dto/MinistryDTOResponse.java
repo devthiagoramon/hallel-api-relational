@@ -10,18 +10,10 @@ import java.util.UUID;
 
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
-public class MinistryDTO_MusicResponse {
+public class MinistryDTOResponse {
     private UUID id;
     private String title;
     private String image;
     private UUID coordinatorId;
     private UUID viceCoordinatorId;
-
-    public MinistryDTO_MusicResponse(Ministry ministry) {
-        this.id = ministry.getId();
-        this.title = ministry.getTitle();
-        this.image = ministry.getImage();
-        this.coordinatorId = ministry.getCoordinator().getId();
-        this.viceCoordinatorId = ministry.getViceCoordinator().getId();
-    }
 }

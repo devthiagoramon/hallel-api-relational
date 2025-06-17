@@ -28,13 +28,11 @@ public interface RepertoryMapper {
 
     List<RepertoryResponse> toListResponseRepertory(List<RepertoryMinistry> repertories);
 
-
-
     DanceResponse danceEntityToResponse(DanceMinistry dance);
+
+    @Mapping(target = "ministry", source = "ministry")
     DanceMinistry danceResponseToEntity(DanceResponse danceResponse);
-    @Mapping(target = "coordinatorId", source = "coordinator.id")
-    @Mapping(target = "viceCoordinatorId", source = "viceCoordinator.id")
-    MinistryDTO_MusicResponse ministryToDto(Ministry ministry);
+
 
     @Mapping(target = "ministry", source = "ministry")
     MusicResponse musicEntityToResponse(MusicMinistry music);
@@ -43,6 +41,22 @@ public interface RepertoryMapper {
     MusicMinistry musicResponseToEntity(MusicResponse musicResponse);
 
     List<MusicResponse> toListMusicResponse(List<MusicMinistry> musicList);
+
     List<DanceResponse> toListDanceResponse(List<DanceMinistry> reponseList);
+
     List<PlaylistResponse> toListPlaylistResponse(List<PlaylistRepertory> reponseList);
+
+    @Mapping(target = "coordinator.id", source = "coordinatorId")
+    @Mapping(target = "viceCoordinator.id", source = "viceCoordinatorId")
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "hasRepertoire", ignore = true)
+    @Mapping(target = "ministryType", ignore = true)
+    @Mapping(target = "eventScalesList", ignore = true)
+    @Mapping(target = "membersMinistry", ignore = true)
+    Ministry ministryDtoToEntity(MinistryDTOResponse dto);
+
+    @Mapping(target = "coordinatorId", source = "coordinator.id")
+    @Mapping(target = "viceCoordinatorId", source = "viceCoordinator.id")
+    MinistryDTOResponse ministryToDto(Ministry ministry);
+
 }
