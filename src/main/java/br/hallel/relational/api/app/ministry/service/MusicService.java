@@ -74,6 +74,10 @@ public class MusicService implements MusicInterface {
     public List<MusicResponse> listAllMusics() {
         return this.repertoryMapper.toListMusicResponse(this.respository.findAll());
     }
+    public List<MusicResponse> listAllMusicsByMinistryId(UUID ministryId) {
+        log.info("Listing all musics by ministryId {}", ministryId);
+        return this.repertoryMapper.toListMusicResponse(this.respository.findAllByMinistry_Id(ministryId));
+    }
 
     public MusicResponse editMusic(UUID musicMinistryId, MusicAddEditDTO musicDTO) {
         log.info("Editing music ... {}", musicMinistryId);

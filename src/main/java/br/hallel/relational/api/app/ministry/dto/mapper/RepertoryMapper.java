@@ -15,26 +15,22 @@ import java.util.List;
 )
 public interface RepertoryMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "ministry", ignore = true)
-    RepertoryResponse requestToResponse(RepertoryRequestDTO repertoryRequestDTO);
 
-    @Mapping(target = "ministry", ignore = true)
-    RepertoryRequestDTO responseToRequest(RepertoryResponse repertoryResponse);
-
+    @Mapping(source = "ministry.id", target = "ministryId")
     RepertoryResponse entityToResponse(RepertoryMinistry repertory);
 
+    @Mapping(source = "ministryId", target = "ministry.id")
     RepertoryMinistry responseToEntity(RepertoryResponse repertoryResponse);
 
     List<RepertoryResponse> toListResponseRepertory(List<RepertoryMinistry> repertories);
-
+    @Mapping(target = "ministryId", source = "ministry.id")
     DanceResponse danceEntityToResponse(DanceMinistry dance);
 
-    @Mapping(target = "ministry", source = "ministry")
+    @Mapping(target = "ministry.id", source = "ministryId")
     DanceMinistry danceResponseToEntity(DanceResponse danceResponse);
 
 
-    @Mapping(target = "ministry", source = "ministry")
+    @Mapping(target = "ministryId", source = "ministry.id")
     MusicResponse musicEntityToResponse(MusicMinistry music);
 
     @Mapping(target = "ministry", ignore = true)

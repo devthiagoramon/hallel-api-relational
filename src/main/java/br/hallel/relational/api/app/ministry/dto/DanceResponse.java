@@ -14,5 +14,5 @@ public class DanceResponse {
     private String name;
     private String description;
     private String link;
-    private MinistryDTOResponse ministry;
+    private UUID ministryId;
 }

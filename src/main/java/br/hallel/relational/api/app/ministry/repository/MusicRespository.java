@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -25,4 +26,6 @@ public interface MusicRespository extends JpaRepository<MusicMinistry, UUID> {
             where mum.ministry.id = :ministryId
             """)
     Page<MusicWithoutMinistryResponse> listByMinistryId(@Param("ministryId") UUID ministryId, Pageable pageable);
+
+    List<MusicMinistry> findAllByMinistry_Id(UUID ministryId);
 }

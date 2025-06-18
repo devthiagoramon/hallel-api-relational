@@ -36,6 +36,7 @@ public class RepertoryMinistry {
             name = "repertory_playlist",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "playlist_ministry_id")
+
     )
     private List<PlaylistRepertory> playlistRepertoryList;
 
@@ -47,7 +48,7 @@ public class RepertoryMinistry {
     )
     private List<VideoMinistry> videoMinistryList;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "repertory_music",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
@@ -55,14 +56,13 @@ public class RepertoryMinistry {
     )
     private List<MusicMinistry> musicMinistryList;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "repertory_dance",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "dance_ministry_id")
     )
     private List<DanceMinistry> danceMinistryList;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

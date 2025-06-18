@@ -18,6 +18,5 @@ public class MusicResponse {
     private String description;
     private String letter;
     private String link;
-
-    private MinistryDTOResponse ministry;
+    private UUID ministryId;
 }

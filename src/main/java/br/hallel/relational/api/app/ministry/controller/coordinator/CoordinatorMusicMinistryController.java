@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/user/ministry/music")
+@RequestMapping("/coordinator/ministry/music")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Music Ministry", description = "Coordinator part for music ministry managment")
 public class CoordinatorMusicMinistryController {
@@ -44,6 +44,10 @@ public class CoordinatorMusicMinistryController {
     @GetMapping("/list-all")
     public ResponseEntity<List<MusicResponse>> listAllMusics() {
         return ResponseEntity.ok(service.listAllMusics());
+    }
+    @GetMapping("/list-all/ministry-id/{ministryId}")
+    public ResponseEntity<List<MusicResponse>> listAllMusics(@PathVariable(name = "ministryId") UUID ministryId) {
+        return ResponseEntity.ok(service.listAllMusicsByMinistryId(ministryId));
     }
 
     @DeleteMapping("/delete/{idMusic}")

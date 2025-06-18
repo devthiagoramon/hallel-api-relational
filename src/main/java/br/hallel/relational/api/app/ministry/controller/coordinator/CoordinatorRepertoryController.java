@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/coordinator/repertory")
+@RequestMapping("/coordinator/ministry/repertory")
 @RequiredArgsConstructor
 @Tag(name = "Coordinator Repertory Ministry", description = "Coordinator part for repertory ministry managment")
 public class CoordinatorRepertoryController {
@@ -34,7 +34,7 @@ public class CoordinatorRepertoryController {
     }
 
     @GetMapping("/list-all/ministry-id/{ministryId}")
-    public ResponseEntity<List<RepertoryResponse>> listAllRepertoriesByMinistryId(
+    public ResponseEntity<List<RepertoryShortResponse>> listAllRepertoriesByMinistryId(
             @PathVariable("ministryId") UUID ministryId
     ) {
         return ResponseEntity.ok(this.service.listAllRepertoryByMinistryId(ministryId));

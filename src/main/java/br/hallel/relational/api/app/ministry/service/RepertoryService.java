@@ -6,13 +6,11 @@ import br.hallel.relational.api.app.ministry.dto.*;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.ListRepertoryEmptyException;
+import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
 import br.hallel.relational.api.app.ministry.interfaces.RepertoryInterface;
 import br.hallel.relational.api.app.ministry.model.*;
-import br.hallel.relational.api.app.ministry.repository.DanceRepository;
-import br.hallel.relational.api.app.ministry.repository.MusicRespository;
-import br.hallel.relational.api.app.ministry.repository.PlaylistRepository;
-import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
+import br.hallel.relational.api.app.ministry.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +35,9 @@ public class RepertoryService implements RepertoryInterface {
     @Autowired
     private PlaylistRepository playlistRepertoryRepository;
 
+    @Autowired
+    private MinistryRepository ministryRepository;
+
     private final RepertoryMapper mapper;
     private final MinistryMapper ministryMapper;
 
@@ -46,19 +47,27 @@ public class RepertoryService implements RepertoryInterface {
     }
 
     @Override
-    public RepertoryResponse createRepertory(RepertoryRequestDTO requestDTO) {
+    public RepertoryResponse createRepertory(RepertoryRequestDTO dto) {
         log.info("Creating repertorio in ministerio...");
+
         RepertoryMinistry repertorioModel = new RepertoryMinistry();
 
-        System.out.println("REQUEST DTO: " + requestDTO.getMinistryType());
-        Ministry ministry = ministryMapper.responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
+        Ministry ministry = ministryRepository.findById(dto.getMinistryId())
+                .orElseThrow(() -> new MinistryIllegalArgumentException("Ministry not found"));
+
 
         repertorioModel.setMinistry(ministry);
-        repertorioModel.setName(requestDTO.getName());
-        repertorioModel.setDescription(requestDTO.getDescription());
-        repertorioModel.setMinistryType(requestDTO.getMinistryType());
-        repertorioModel.setPlaylistRepertoryList(requestDTO.getPlaylistRepertoryList());
-        repertorioModel.setVideoMinistryList(requestDTO.getVideoMinistryList());
+        repertorioModel.setName(dto.getName());
+        repertorioModel.setDescription(dto.getDescription());
+        repertorioModel.setMinistryType(ministry.getMinistryType());
+        if (dto.getMusicMinistryIds() != null) {
+            List<MusicMinistry> musics = this.musicRespository.findAllById(dto.getMusicMinistryIds());
+            repertorioModel.setMusicMinistryList(musics);
+        }
+        if (dto.getDanceMinistryIds() != null) {
+            List<DanceMinistry> dances = this.danceRepository.findAllById(dto.getDanceMinistryIds());
+            repertorioModel.setDanceMinistryList(dances);
+        }
 
         RepertoryMinistry repertorio = this.repository.save(repertorioModel);
         log.info("Repertory " + repertorio.getId() + " created");
@@ -91,7 +100,7 @@ public class RepertoryService implements RepertoryInterface {
         }
         RepertoryMinistry response = repertoryOptional.get();
         return new RepertoryShortResponse(
-                response.getId(),response.getName(), response.getDescription(), response.getMinistry().getId()
+                response.getId(), response.getName(), response.getDescription(), response.getMinistry().getId()
         );
     }
 
@@ -103,27 +112,43 @@ public class RepertoryService implements RepertoryInterface {
         if (repertoryList.isEmpty()) {
             throw new ListRepertoryEmptyException("No repertories found! Maybe you need to create one!");
         }
-
-        return mapper.toListResponseRepertory(repertoryList);
+        List<RepertoryResponse> response = new ArrayList<>();
+        for (RepertoryMinistry item : repertoryList) {
+            response.add(
+                    mapper.entityToResponse(item)
+            );
+        }
+        return response;
     }
 
     @Override
-    public List<RepertoryResponse> listAllRepertoryByMinistryId(UUID ministryId) {
-        return mapper.toListResponseRepertory(this.repository.findAllByMinistryId(ministryId));
+    public List<RepertoryShortResponse> listAllRepertoryByMinistryId(UUID ministryId) {
+        List<RepertoryMinistry> allByMinistryId = this.repository.findAllByMinistry_Id(ministryId);
+        if (allByMinistryId.isEmpty()) {
+            throw new ListRepertoryEmptyException("No repertories found! Maybe you need to create one!");
+        }
+        List<RepertoryShortResponse> response = new ArrayList<>();
+        for (RepertoryMinistry item : allByMinistryId) {
+            response.add(
+                    new RepertoryShortResponse(item.getId(), item.getName(), item.getDescription(),
+                            item.getMinistry().getId())
+            );
+        }
+        return response;
     }
 
     @Override
     public RepertoryResponse editRepertory(UUID id, RepertoryRequestDTO requestDTO) {
         log.info("Editing repertory ministry " + id + "...");
         RepertoryMinistry oldRepertory = mapper.responseToEntity(this.getRepertoryById(id));
-        Ministry ministry = ministryMapper.responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistry()));
+        Ministry ministry = ministryMapper.responseToEntity(this.ministryService.getMinistryById(requestDTO.getMinistryId()));
 
         oldRepertory.setName(requestDTO.getName());
         oldRepertory.setDescription(requestDTO.getDescription());
-        oldRepertory.setDanceMinistryList(requestDTO.getDanceMinistryList());
-        oldRepertory.setMusicMinistryList(requestDTO.getMusicMinistryList());
-        oldRepertory.setVideoMinistryList(requestDTO.getVideoMinistryList());
-        oldRepertory.setPlaylistRepertoryList(requestDTO.getPlaylistRepertoryList());
+//        oldRepertory.setDanceMinistryList(requestDTO.getDanceMinistryList());
+//        oldRepertory.setMusicMinistryList(requestDTO.getMusicMinistryList());
+//        oldRepertory.setVideoMinistryList(requestDTO.getVideoMinistryList());
+//        oldRepertory.setPlaylistRepertoryList(requestDTO.getPlaylistRepertoryList());
         oldRepertory.setMinistry(ministry);
 
         RepertoryMinistry repertoryEdited = this.repository.save(oldRepertory);

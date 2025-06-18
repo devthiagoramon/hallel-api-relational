@@ -19,10 +19,10 @@ public class RepertoryResponse {
     private String name;
     private String description;
     private MinistryType ministryType;
-    private Ministry ministry;
-    private List<PlaylistRepertory> playlistRepertoryList;
+    private UUID ministryId;
+    private List<PlaylistResponse> playlistRepertoryList;
     private List<VideoMinistry> videoMinistryList;
-    private List<MusicMinistry> musicMinistryList;
-    private List<DanceMinistry> danceMinistryList;
+    private List<MusicResponse> musicMinistryList;
+    private List<DanceResponse> danceMinistryList;
 
 }
