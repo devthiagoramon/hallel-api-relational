@@ -22,8 +22,10 @@ public class UserDanceMinistryController {
 
     @GetMapping("/{ministry-id}")
     @Operation(summary = "Listing dances of ministry", description = "Route to list all the dances of ministry by ministry id")
-    public ResponseEntity<Page<DanceResponseShort>> listAllDancesOfMinistry(@PathVariable(name = "ministry-id")
-                                                                            UUID ministryId, @RequestParam(name = "page") int page, @RequestParam(name = "size") int size){
+    public ResponseEntity<Page<DanceResponseShort>> listAllDancesOfMinistry(
+            @PathVariable(name = "ministry-id") UUID ministryId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size){
         return ResponseEntity.ok().body(this.danceService.listDancesOfMinistry(ministryId, PageRequest.of(page, size)));
     }
 

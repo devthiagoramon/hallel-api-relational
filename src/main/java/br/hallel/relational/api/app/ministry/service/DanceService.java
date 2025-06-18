@@ -71,7 +71,6 @@ public class DanceService implements DanceInterface {
 
     @Override
     public List<DanceResponse> listAllDances() {
-
         return mapper.toListDanceResponse(this.repository.findAll());
     }
 

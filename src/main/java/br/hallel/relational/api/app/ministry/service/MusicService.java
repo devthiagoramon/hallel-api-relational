@@ -93,8 +93,6 @@ public class MusicService implements MusicInterface {
         music.setLetter(musicDTO.getLetter());
 
         return repertoryMapper.musicEntityToResponse(this.respository.save(music));
-
-
     }
 
     public Page<MusicWithoutMinistryResponse> listMusicMinistryByMinistryId(UUID ministryId, Pageable pageable) {

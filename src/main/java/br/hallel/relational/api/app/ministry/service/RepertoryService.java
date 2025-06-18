@@ -87,7 +87,6 @@ public class RepertoryService implements RepertoryInterface {
         if (repertoryOptional.isEmpty()) {
             throw new RepertoryNotFoundException("Repertory Id: " + id + " not found!");
         }
-
         return mapper.entityToResponse(repertoryOptional.get());
     }
 

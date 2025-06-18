@@ -10,6 +10,7 @@ import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.AuditionMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
+import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFound;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberAuditionMinistry;
@@ -18,6 +19,7 @@ import br.hallel.relational.api.app.ministry.repository.MemberAuditionMinistryRe
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,8 +89,13 @@ public class AuditionService {
         return this.auditionMapper.entityToResponse(this.repository.findById(id).orElseThrow());
     }
 
+    @Transactional
     public void deleteAuditionById(UUID id) {
-        this.repository.deleteById(id);
+        AuditionMinistry entity = repository.findById(id)
+                .orElseThrow(() -> new MemberAuditionMinistryNotFound("Audition not found"));
+
+        this.memberAuditionMinistryRepository.deleteAllByAuditionMinistryId(id);
+        this.repository.delete(entity);
     }
 
     public AuditionResponse updateAuditionById(UUID id, AuditionDTO auditionDTO) {

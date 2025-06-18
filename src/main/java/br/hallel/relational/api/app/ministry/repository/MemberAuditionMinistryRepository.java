@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface MemberAuditionMinistryRepository extends JpaRepository<MemberAuditionMinistry, UUID> {
     Optional<MemberAuditionMinistry> findStatusByAuditionMinistry_IdAndUser_Id(UUID auditionId
     , UUID userId);
+
+    void deleteAllByAuditionMinistryId(UUID auditionMinistryId);
 }
