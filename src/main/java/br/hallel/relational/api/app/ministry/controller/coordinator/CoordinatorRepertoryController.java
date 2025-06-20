@@ -60,11 +60,6 @@ public class CoordinatorRepertoryController {
         return ResponseEntity.ok(this.service.addOrRemoveMusicsRepertory(idMinistry, request));
     }
 
-    @PostMapping("/add-remove/playlist/{id}")
-    public ResponseEntity<RepertoryResponse> addOrRemovePlaylistToRepertory(@PathVariable("id") UUID idMinistry, @RequestBody PlaylistAddRemoveDTO request) {
-        return ResponseEntity.ok(this.service.addOrRemovePlaylistRepertory(idMinistry, request));
-    }
-
     @PostMapping("/add-remove/dance/{id}")
     public ResponseEntity<RepertoryResponse> addOrRemoveDanceToRepertory(@PathVariable("id") UUID idMinistry, @RequestBody DanceRepertoryAddRemoveDTO request) {
         return ResponseEntity.ok(this.service.addOrRemoveDanceRepertory(idMinistry, request));
@@ -80,32 +75,11 @@ public class CoordinatorRepertoryController {
         return ResponseEntity.ok(this.service.listMusicsByRepertoryId(idRepertory));
     }
 
-    @GetMapping("/list/playlists/{id}")
-    public ResponseEntity<List<PlaylistResponse>> listPlaylistByRepertoryId(@PathVariable("id") UUID idRepertory) {
-        return ResponseEntity.ok(this.service.listPlaylistsByRepertoryId(idRepertory));
-    }
 
-    @GetMapping(value = "/list/musics-dances/{idRepertory}")
-    public ResponseEntity<RepertoryMusicAndDanceResponse> listMusicAndDancesByRepertoryId(@PathVariable("idRepertory") UUID idRepertory) {
-        return ResponseEntity.ok(this.service.listMusicAndDanceByRepertoryId(idRepertory));
-    }
 
     @GetMapping("/list/dances/{idRepertory}")
     public ResponseEntity<List<DanceResponse>> listDancesByRepertoryId(@PathVariable("idRepertory") UUID idRepertory) {
         return ResponseEntity.ok(this.service.listDancesByRepertoryId(idRepertory));
     }
 
-    @PutMapping("/edit/dance/{idRepertory}/{idDance}")
-    public ResponseEntity<DanceResponse> editDanceInRepertoryByIdRepertory(
-            @PathVariable("idRepertory") UUID idRepertory,
-            @PathVariable("iDance") UUID idDance, @RequestBody DanceAddEditDTO requestDTO) {
-        return ResponseEntity.ok(this.service.editDanceRepertory(idRepertory, idDance, requestDTO));
-    }
-
-    @PutMapping("/edit/music/{idRepertory}/{idMusic}")
-    public ResponseEntity<MusicResponse> editMusicInRepertoryByIdRepertory(
-            @PathVariable("idRepertory") UUID idRepertory,
-            @PathVariable("idMusic") UUID idMusic, @RequestBody MusicAddEditDTO requestDTO) {
-        return ResponseEntity.ok(this.service.editMusicRepertory(idRepertory, idMusic, requestDTO));
-    }
 }

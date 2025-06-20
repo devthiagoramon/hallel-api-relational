@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.ministry.repository;
 
 import br.hallel.relational.api.app.ministry.model.DanceMinistry;
 import br.hallel.relational.api.app.ministry.model.MusicMinistry;
-import br.hallel.relational.api.app.ministry.model.PlaylistRepertory;
 import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,12 +38,7 @@ public interface RepertoryRepository extends JpaRepository<RepertoryMinistry, UU
 """)
     List<DanceMinistry> findAllDancesByRepertoryId(@Param("repertoryId") UUID repertoryId);
 
-    @Query("""
-    SELECT d FROM RepertoryMinistry r
-    JOIN r.playlistRepertoryList d
-    WHERE r.id = :repertoryId
-""")
-    List<PlaylistRepertory> findAllPlaylistsByRepertoryId(@Param("repertoryId") UUID repertoryId);
+
 
     List<RepertoryMinistry> findAllByMinistryId(UUID ministryId);
 

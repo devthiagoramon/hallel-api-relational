@@ -23,21 +23,10 @@ public interface RepertoryInterface {
 
     RepertoryResponse addOrRemoveDanceRepertory(UUID idRepertory, DanceRepertoryAddRemoveDTO danceDTO);
 
-    RepertoryResponse addOrRemovePlaylistRepertory(UUID idRepertory, PlaylistAddRemoveDTO playlistDTO)
-            ;
-
     RepertoryResponse listRepertoryWithDancesAndMusic(UUID idRepertorio);
 
     List<MusicResponse> listMusicsByRepertoryId(UUID ministryId);
 
     List<DanceResponse> listDancesByRepertoryId(UUID ministryId);
-
-    List<PlaylistResponse> listPlaylistsByRepertoryId(UUID ministryId);
-
-    RepertoryMusicAndDanceResponse listMusicAndDanceByRepertoryId(UUID ministryId);
-
-    MusicResponse editMusicRepertory(UUID idRepertory, UUID idMusic, MusicAddEditDTO musicRepertoryAddRemoveDTO);
-
-    DanceResponse editDanceRepertory(UUID idRepertory, UUID idDance, DanceAddEditDTO danceRepertoryAddRemoveDTO);
 
 }

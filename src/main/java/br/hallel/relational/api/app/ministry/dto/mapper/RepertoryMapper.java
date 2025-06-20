@@ -40,7 +40,7 @@ public interface RepertoryMapper {
 
     List<DanceResponse> toListDanceResponse(List<DanceMinistry> reponseList);
 
-    List<PlaylistResponse> toListPlaylistResponse(List<PlaylistRepertory> reponseList);
+
 
     @Mapping(target = "coordinator.id", source = "coordinatorId")
     @Mapping(target = "viceCoordinator.id", source = "viceCoordinatorId")

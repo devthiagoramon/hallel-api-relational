@@ -17,9 +17,8 @@ public class RepertoryRequestDTO {
     private String description;
     private MinistryType ministryType;
     private UUID ministryId;
-    private List<UUID> playlistRepertoryIds;
-    private List<UUID> videoMinistryIds;
+    private String linkPlaylist;
     private List<UUID> musicMinistryIds;
     private List<UUID> danceMinistryIds;
-
+    private List<UUID> videoMinistryIds;
 }

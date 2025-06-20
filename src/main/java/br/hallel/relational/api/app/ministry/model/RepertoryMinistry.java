@@ -18,31 +18,26 @@ public class RepertoryMinistry {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column
+    @Column(nullable = false)
     private String name;
-    @Column
+    @Column(nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ministry_type")
+    @Column(name = "ministry_type", nullable = false)
     private MinistryType ministryType;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "repertory_playlist",
-            joinColumns = @JoinColumn(name = "repertory_ministry_id"),
-            inverseJoinColumns = @JoinColumn(name = "playlist_ministry_id")
+    @Column(name = "link_playlist")
+    private String linkPlaylist;
 
-    )
-    private List<PlaylistRepertory> playlistRepertoryList;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "repertory_video",
+            name = "repertory_video_ministry",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "video_ministry_id")
     )
@@ -50,7 +45,7 @@ public class RepertoryMinistry {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "repertory_music",
+            name = "repertory_music_ministry",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "music_ministry_id")
     )
@@ -58,7 +53,7 @@ public class RepertoryMinistry {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "repertory_dance",
+            name = "repertory_dance_ministry",
             joinColumns = @JoinColumn(name = "repertory_ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "dance_ministry_id")
     )
