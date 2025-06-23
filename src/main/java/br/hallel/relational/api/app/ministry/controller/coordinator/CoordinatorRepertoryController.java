@@ -33,11 +33,9 @@ public class CoordinatorRepertoryController {
         return ResponseEntity.ok(this.service.listAllRepertory());
     }
 
-    @GetMapping("/list-all/ministry-id/{ministryId}")
-    public ResponseEntity<List<RepertoryShortResponse>> listAllRepertoriesByMinistryId(
-            @PathVariable("ministryId") UUID ministryId
-    ) {
-        return ResponseEntity.ok(this.service.listAllRepertoryByMinistryId(ministryId));
+    @PutMapping("/{idRepertory}")
+    public ResponseEntity<RepertoryResponse> updateRepertory(@PathVariable(name = "idRepertory") UUID idRepertory, @RequestBody RepertoryRequestDTO request) {
+        return ResponseEntity.ok(this.service.editRepertory(idRepertory, request));
     }
 
     @GetMapping("/get/{id}")
