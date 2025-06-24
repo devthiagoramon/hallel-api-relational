@@ -82,6 +82,7 @@ CREATE TABLE repertory_ministry
     name          VARCHAR(100) NOT NULL,
     description   TEXT         NOT NULL,
     ministry_type VARCHAR(50)  NOT NULL,
+    link_playlist TEXT,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 
 );
@@ -119,7 +120,7 @@ CREATE TABLE video_ministry
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 );
 
-CREATE TABLE repertory_music
+CREATE TABLE repertory_music_ministry
 (
     repertory_ministry_id UUID,
     music_ministry_id     UUID,
@@ -128,7 +129,7 @@ CREATE TABLE repertory_music
     FOREIGN KEY (music_ministry_id) REFERENCES music_ministry (id)
 );
 
-CREATE TABLE repertory_dance
+CREATE TABLE repertory_dance_ministry
 (
     repertory_ministry_id UUID,
     dance_ministry_id     UUID,
@@ -137,7 +138,7 @@ CREATE TABLE repertory_dance
     FOREIGN KEY (dance_ministry_id) REFERENCES dance_ministry (id)
 );
 
-CREATE TABLE repertory_video
+CREATE TABLE repertory_video_ministry
 (
     repertory_ministry_id UUID NOT NULL,
     video_ministry_id     UUID NOT NULL,
@@ -146,33 +147,13 @@ CREATE TABLE repertory_video
     FOREIGN KEY (video_ministry_id) REFERENCES video_ministry (id) ON DELETE CASCADE
 );
 
-CREATE TABLE playlist_repertory
-(
-    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    music_ministry_id UUID,
-    dance_ministry_id UUID,
-    ministry_type     VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_music_ministry_id FOREIGN KEY (music_ministry_id) REFERENCES "music_ministry" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_dance_ministry_id FOREIGN KEY (dance_ministry_id) REFERENCES "dance_ministry" (id) ON DELETE CASCADE
-
-);
-
-CREATE TABLE repertory_playlist
-(
-    repertory_ministry_id UUID NOT NULL,
-    playlist_ministry_id  UUID NOT NULL,
-    PRIMARY KEY (repertory_ministry_id, playlist_ministry_id),
-    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) ON DELETE CASCADE,
-    FOREIGN KEY (playlist_ministry_id) REFERENCES playlist_repertory (id) ON DELETE CASCADE
-);
-
-
 CREATE TABLE member_event_scale
 (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_scale_id UUID    NOT NULL,
     user_id        UUID    NOT NULL,
     status         VARCHAR NOT NULL,
+    date_view TIMESTAMP,
     reason_absence TEXT,
     CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE

@@ -65,6 +65,7 @@ public class EventScaleService implements ScaleInterface {
         eventScale.setDate(event.getDate());
         EventScale eventScaleSaved = this.eventScaleRepository.save(eventScale);
         log.info("Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
+
         List<UUID> memberIds = new ArrayList<>();
         memberIds.add(ministry.getCoordinator().getId());
         memberIds.add(ministry.getViceCoordinator().getId());
@@ -88,7 +89,7 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public EventScaleWithInfos getEventScaleWithInfos(UUID eventScaleId) {
+    public EventScaleWithInfos getEventScaleWithInfos(UUID eventScaleId, UUID userId) {
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
                 () -> new EventScaleNotFoundException(
                         "Can't find escala with id " + eventScaleId
@@ -115,6 +116,8 @@ public class EventScaleService implements ScaleInterface {
         List<UUID> repertoryIds = this.repertoryRepository.findAllByMinistry_Id(eventScale.getMinistry().getId()).stream().map(
                 repertory -> repertory.getId()
         ).collect(Collectors.toList());
+
+        this.memberEventScaleService.viewInvite(eventScaleId , userId);
 
         EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
         eventScaleWithInfos.setId(eventScale.getId());

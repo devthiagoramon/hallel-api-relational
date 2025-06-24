@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.event.interfaces;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 
 import java.time.LocalDateTime;
@@ -15,7 +14,7 @@ public interface ScaleInterface {
 
     EventScaleResponse editDateScale(UUID id, Date date);
 
-    EventScaleWithInfos getEventScaleWithInfos(UUID id);
+    EventScaleWithInfos getEventScaleWithInfos(UUID id, UUID userId);
 
     List<String> listMemberMinisteryCanInviteToScale(
             UUID id, int page, int size

@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -60,4 +61,6 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
     void deleteMemberEventScaleByEventScale_IdAndUser_Id(UUID eventScaleId, UUID userId);
 
     UUID id(UUID id);
+
+    UUID user(User user);
 }

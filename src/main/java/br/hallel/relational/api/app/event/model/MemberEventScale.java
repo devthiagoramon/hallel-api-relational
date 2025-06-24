@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -25,6 +26,9 @@ public class MemberEventScale {
 
     @Column(name = "reason_absence")
     private String reason_absence;
+
+    @Column(name = "date_view")
+    private Date date_view;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")

@@ -37,12 +37,44 @@ public class MemberEventScaleService {
 
     public EventScaleSimpleResponse inviteUserIntoScale(
             UUID eventScaleId, List<UUID> userIds) {
-        log.info("Inviting user {} into scale {}", userIds, eventScaleId);
 
+        log.info("Inviting users {} into scale {}", userIds, eventScaleId);
 
-        Date date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
+        EventScale eventScale = eventScaleRepository.findById(eventScaleId)
+                .orElseThrow(() -> new EventScaleNotFoundException(
+                        "Event scale with id %s not found".formatted(eventScaleId)));
 
-        return new EventScaleSimpleResponse(eventScaleId, date);
+        List<User> users = userRepository.findAllById(userIds);
+
+        if (users.size() != userIds.size()) {
+            throw new UserNotFoundException("Um ou mais usuários não foram encontrados.");
+        }
+
+        List<MemberEventScale> invitedMembers = new ArrayList<>();
+        for (User user : users) {
+            MemberEventScale member = new MemberEventScale(
+                    MemberEventScaleStatus.CONVIDADO,
+                    null, user, eventScale
+            );
+            invitedMembers.add(member);
+        }
+        memberEventScaleRepository.saveAll(invitedMembers);
+
+        return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
+    }
+
+    public EventScaleSimpleResponse viewInvite(UUID eventScaleId, UUID userId) {
+        EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
+                () -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId))
+        );
+        log.info("Inviting user {} into scale {}", userId, eventScaleId);
+        MemberEventScale member = memberEventScaleRepository.findByUser_IdAndEventScale_Id(userId, eventScaleId).orElseThrow(
+                () -> new MemberMinistryRegisterNotFoundException("Member Ministry register with id %s not found".formatted(eventScaleId))
+        );
+        member.setDate_view(new Date());
+        this.memberEventScaleRepository.save(member);
+
+        return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
     }
 
     @Transactional
@@ -198,7 +230,6 @@ public class MemberEventScaleService {
     //----- GUESTS SERVICES -----
 
     public GuestInvitedEventScaleResponse createGuestInvitedEventScale(GuestInvitedEventScaleDTO dto) {
-
 
         EventScale eventScale = this.eventScaleRepository.findById(dto.eventScaleId()).orElseThrow(
                 () -> new EventScaleNotFoundException("Event scale with id " + dto.eventScaleId() + " not found!")
