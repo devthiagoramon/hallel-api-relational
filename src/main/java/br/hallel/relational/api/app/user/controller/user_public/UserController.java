@@ -44,9 +44,11 @@ public class UserController {
 
     @GetMapping("/profile/{idUser}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
-            @PathVariable(name = "idUser") UUID idUser) {
-        return ResponseEntity.ok(userService.getUserProfile(idUser));
+            @PathVariable(name = "idUser") UUID idUser,
+            @RequestParam(name = "idEventScale", required = false) UUID idEventScale) {
+        return ResponseEntity.ok(userService.getUserProfile(idUser, idEventScale));
     }
+
 
     @GetMapping("/profile/token/{accessToken}")
     @Operation(summary = "Get profile infos by token", description = "Get the infos of user with token related with user")

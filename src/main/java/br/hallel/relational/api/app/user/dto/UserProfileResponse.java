@@ -10,7 +10,8 @@ public record UserProfileResponse(
         String phoneNumber,
         Date dateBirth,
         String fileImageUrl,
-        String cpf
+        String cpf,
+        Date date_view
 ) {
 
 }

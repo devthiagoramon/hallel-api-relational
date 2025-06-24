@@ -21,8 +21,9 @@ public class AdminUserController {
 
     @GetMapping("/get/{idUser}")
     public ResponseEntity<UserProfileResponse> getUserById(
-            @PathVariable(name = "idUser") UUID idUser) {
-        return ResponseEntity.ok(userService.getUserProfile(idUser));
+            @PathVariable(name = "idUser") UUID idUser,
+            @RequestParam(name = "idEventScale", required = false) UUID idEventScale) {
+        return ResponseEntity.ok(userService.getUserProfile(idUser, idEventScale));
     }
 
     @GetMapping("/list-all")

@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.user.service;
 
+import br.hallel.relational.api.app.event.model.MemberEventScale;
+import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
@@ -23,9 +25,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -39,6 +39,9 @@ public class UserService implements UserInterface {
 
     @Autowired
     private GoogleBucketService bucketService;
+
+    @Autowired
+    private MemberEventScaleRepository memberEventScaleRepository;
 
     private final UserMapper userMapper;
 
@@ -100,12 +103,12 @@ public class UserService implements UserInterface {
             if (user.getFileImageUrl() != null) {
                 imageUrl = this.bucketService.updateImageOfBucket(fileImageUrl,
                         GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                                                                 );
+                );
             } else {
                 imageUrl = this.bucketService.sendImageToBucket(
                         fileImageUrl,
                         GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                                                               );
+                );
             }
             user.setFileImageUrl(imageUrl);
             this.userRepository.save(user);
@@ -117,11 +120,26 @@ public class UserService implements UserInterface {
     }
 
     @Override
-    public UserProfileResponse getUserProfile(UUID idUser) {
+    public UserProfileResponse getUserProfile(UUID idUser, UUID eventScaleId) {
         log.info("Get User Profile by id: {}...", idUser);
+        Date date_view_invite = null;
+
+        if (eventScaleId != null) {
+            System.out.println("EventScaleId: " + eventScaleId);
+            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idUser, eventScaleId);
+            if (optional.isPresent()) {
+                MemberEventScale member = optional.get();
+                date_view_invite = member.getDate_view();
+                System.out.println(date_view_invite);
+            }
+        }
+
         User userById = this.getUserById(idUser);
-        return new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
-                userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf());
+
+        UserProfileResponse user = new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
+                userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(), date_view_invite);
+        System.out.println(user);
+        return user;
     }
 
     @Override
@@ -131,7 +149,7 @@ public class UserService implements UserInterface {
         List<UserProfileResponse> response = new ArrayList<>();
         for (User user : users) {
             response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf()));
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null));
         }
         return response;
     }
@@ -141,7 +159,7 @@ public class UserService implements UserInterface {
         Pageable pageable = PageRequest.of(page, size);
 
         List<UserProfileResponse> list = this.userRepository.findAllByNameContainingIgnoreCase(name, pageable);
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             throw new UserNotFoundException("User not found by name: " + name);
         }
 
@@ -154,6 +172,6 @@ public class UserService implements UserInterface {
         User user = this.userRepository.findByToken(token)
                 .orElseThrow(() -> new UserNotFoundException("User not find by token: " + token));
         return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                user.getDateBirth(), user.getFileImageUrl(), user.getCpf());
+                user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null);
     }
 }

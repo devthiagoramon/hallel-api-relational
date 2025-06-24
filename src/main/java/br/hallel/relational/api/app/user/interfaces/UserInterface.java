@@ -15,7 +15,7 @@ public interface UserInterface {
     UserProfileResponse editProfile(UUID idUser, UserEditProfileDTO user);
     User getUserById(UUID idUser);
     UserProfileResponse editImageProfile(UUID idUser, MultipartFile fileImageUrl);
-    UserProfileResponse getUserProfile(UUID idUser);
+    UserProfileResponse getUserProfile(UUID idUser, UUID idEventScale);
     List<UserProfileResponse> listAllUsers(int page, int size);
     List<UserProfileResponse> listAllUsersByName(String name, int page, int size);
 
