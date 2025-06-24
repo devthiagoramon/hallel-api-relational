@@ -98,6 +98,7 @@ public class EventScaleService implements ScaleInterface {
 
         List<MemberEventScale> membersInviteds =
                 this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO, eventScaleId);
+
         List<MemberEventScale> membersConfirmed =
                 this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO, eventScaleId);
         List<MemberEventScale> membersDecline =
@@ -117,8 +118,6 @@ public class EventScaleService implements ScaleInterface {
                 repertory -> repertory.getId()
         ).collect(Collectors.toList());
 
-        this.memberEventScaleService.viewInvite(eventScaleId , userId);
-
         EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
         eventScaleWithInfos.setId(eventScale.getId());
         eventScaleWithInfos.setAuditionMinistryId(eventScale.getMinistry().getId());
@@ -131,6 +130,8 @@ public class EventScaleService implements ScaleInterface {
         eventScaleWithInfos.setRepertoryIds(repertoryIds);
 
         log.info("Get Event Scale With Infos");
+
+        System.out.println(invitedIds);
         return eventScaleWithInfos;
     }
 
@@ -272,38 +273,18 @@ public class EventScaleService implements ScaleInterface {
     }
 
     public List<String> listMembroMinisterioCanInviteToEscala(
-            UUID eventScaleId, int page, int size) {
+            UUID eventScaleId
+//            int page, int size
+    ) {
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId)
                 .orElseThrow(() -> new EventScaleNotFoundException("Not find event scale by id " + eventScaleId));
-        Pageable pageable = PageRequest.of(page, size);
-        Page<MemberMinistry> memberMinistryResponse =
-                this.memberMinistryRepository.findMemberMinistriesByMinistry_Id(eventScale.getMinistry().getId(), pageable);
 
-        List<UUID> convidados = this.memberEventScaleRepository
-                .findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO, eventScaleId)
-                .stream()
-                .map(m -> m.getUser().getId())
-                .toList();
+        UUID ministryId = eventScale.getMinistry().getId();
 
-        List<UUID> participando = this.memberEventScaleRepository
-                .findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO, eventScaleId)
-                .stream()
-                .map(m -> m.getUser().getId())
-                .toList();
+        List<MemberMinistry> availableMembers = memberMinistryRepository.findAvailableMembersToInvite(ministryId, eventScaleId);
 
-        List<UUID> naoConfirmados = this.memberEventScaleRepository
-                .findAllByStatusAndEventScale_Id(MemberEventScaleStatus.RECUSADO, eventScaleId)
-                .stream()
-                .map(m -> m.getUser().getId())
-                .toList();
-
-        return memberMinistryResponse.stream()
-                .filter(m -> {
-                    MemberMinistryId id = m.getId();
-                    return !convidados.contains(id)
-                            && !participando.contains(id)
-                            && !naoConfirmados.contains(id);
-                })
+        return availableMembers.stream()
+                .filter(m -> m.getUser() != null)
                 .map(m -> m.getUser().getId().toString())
                 .toList();
     }

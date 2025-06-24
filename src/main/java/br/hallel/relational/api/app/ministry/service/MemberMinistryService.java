@@ -62,6 +62,7 @@ public class MemberMinistryService {
                                 .getId(),
                         Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
                                               ));
+
         List<MemberMinistryResponseWithFunctions> dtos = users.stream()
                 .map(user -> new MemberMinistryResponseWithFunctions(
                         user,

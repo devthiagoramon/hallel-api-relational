@@ -157,20 +157,24 @@ public class CoordinatorMemberMinistryController {
 
     @GetMapping("/get-scale/{id}/{userId}")
     public ResponseEntity<EventScaleWithInfos> getScaleById(
-            @PathVariable(name = "id") UUID id,
-            @PathVariable(name = "userId") UUID userId)
-    {
-        return ResponseEntity.ok(this.eventScaleService.getEventScaleWithInfos(id, userId));
+            @PathVariable(name = "id") UUID eventScaleId,
+            @PathVariable(name = "userId") UUID userId) {
+
+        memberEventScaleService.viewInvite(eventScaleId, userId);
+        EventScaleWithInfos response = eventScaleService.getEventScaleWithInfos(eventScaleId, userId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/scale/list/members-can-participate/{scaleId}")
     public ResponseEntity<List<String>> listEventsMemberCanParticipate(
-            @PathVariable(name = "scaleId") UUID scaleId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @PathVariable(name = "scaleId") UUID scaleId
+//            @RequestParam(name = "page", defaultValue = "0") int page,
+//            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         log.info("listEventsMemberCanParticipate {}", scaleId);
-        return ResponseEntity.ok(this.eventScaleService.listMembroMinisterioCanInviteToEscala(scaleId, page, size));
+        return ResponseEntity.ok(this.eventScaleService.listMembroMinisterioCanInviteToEscala(scaleId
+//                , page, size
+        ));
     }
 
     @PatchMapping("/scale/invite-members/{scaleId}")
@@ -189,6 +193,7 @@ public class CoordinatorMemberMinistryController {
     public ResponseEntity<EventScaleSimpleResponse> withdrawInvitationMembersToEventScale(
             @PathVariable("scaleId") UUID idEscala,
             @RequestBody List<UUID> membersIds) {
+
         return ResponseEntity.ok()
                 .body(this.memberEventScaleService.withdrawInvitation(idEscala, membersIds));
     }

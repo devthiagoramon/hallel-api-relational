@@ -51,6 +51,7 @@ public class MemberEventScaleService {
         }
 
         List<MemberEventScale> invitedMembers = new ArrayList<>();
+
         for (User user : users) {
             MemberEventScale member = new MemberEventScale(
                     MemberEventScaleStatus.CONVIDADO,
@@ -58,35 +59,43 @@ public class MemberEventScaleService {
             );
             invitedMembers.add(member);
         }
+
         memberEventScaleRepository.saveAll(invitedMembers);
 
         return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
     }
 
-    public EventScaleSimpleResponse viewInvite(UUID eventScaleId, UUID userId) {
+    public void viewInvite(UUID eventScaleId, UUID userId) {
+
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
                 () -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId))
         );
-        log.info("Inviting user {} into scale {}", userId, eventScaleId);
-        MemberEventScale member = memberEventScaleRepository.findByUser_IdAndEventScale_Id(userId, eventScaleId).orElseThrow(
-                () -> new MemberMinistryRegisterNotFoundException("Member Ministry register with id %s not found".formatted(eventScaleId))
-        );
+
+        log.info("Viewing invite user {} into scale {}", userId, eventScaleId);
+        Optional<MemberEventScale> optional = memberEventScaleRepository.findByUser_IdAndEventScale_Id(userId,
+                eventScaleId);
+
+        if (optional.isEmpty() || optional.get().getDate_view() != null) {
+            return;
+        }
+
+        MemberEventScale member = optional.get();
         member.setDate_view(new Date());
         this.memberEventScaleRepository.save(member);
-
-        return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
     }
 
     @Transactional
     public EventScaleSimpleResponse withdrawInvitation(
             UUID eventScaleId, List<UUID> userId) {
         Date date = null;
+
         for (UUID id : userId) {
+            System.out.println("User id: "+id);
             date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
             this.memberEventScaleRepository.deleteMemberEventScaleByEventScale_IdAndUser_Id(eventScaleId, id);
         }
-        log.info("Withdraw Invitation user {} into scale {}", userId, eventScaleId);
 
+        log.info("Withdraw Invitation user {} into scale {}", userId, eventScaleId);
         return new EventScaleSimpleResponse(eventScaleId, date);
     }
 
@@ -121,7 +130,6 @@ public class MemberEventScaleService {
 
         List<MemberInvitedAndConfirmedResponse> responseList = new ArrayList<>();
         for (MemberEventScale member : memberStatusList) {
-
             responseList.add(new MemberInvitedAndConfirmedResponse(member.getId(), member.getUser().getName(), member.getUser().getEmail(),
                     member.getEventScale().getId()));
         }

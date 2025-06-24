@@ -22,7 +22,6 @@ public interface MemberMinistryRepository
         extends JpaRepository<MemberMinistry, MemberMinistryId> {
 
 
-
     @Query(
             value = """
                     SELECT u.* from "user" u
@@ -47,7 +46,21 @@ public interface MemberMinistryRepository
     MemberMinistry findMemberMinistryById(MemberMinistryId ministryId);
 
 
-    Page<MemberMinistry> findMemberMinistriesByMinistry_Id(UUID ministryId, Pageable pageable);
+    List<MemberMinistry> findMemberMinistriesByMinistry_Id(UUID ministryId
+//            , Pageable pageable
+    );
 
     MemberMinistryId id(MemberMinistryId id);
+
+    @Query("""
+    SELECT m FROM MemberMinistry m
+    WHERE m.ministry.id = :ministryId
+    AND NOT EXISTS (
+        SELECT mes FROM MemberEventScale mes
+        WHERE mes.user.id = m.user.id
+        AND mes.eventScale.id = :eventScaleId
+    )
+""")
+    List<MemberMinistry> findAvailableMembersToInvite(UUID ministryId, UUID eventScaleId);
+
 }

@@ -21,12 +21,12 @@ public class MemberMinistry {
     private MemberMinistryId id;
 
     @MapsId("userId")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 
     @MapsId("ministryId")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
 }
