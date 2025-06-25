@@ -246,7 +246,9 @@ public class EventScaleService implements ScaleInterface {
                 optionalEventScaleRepertory.ifPresent(eventScaleRepertoryToRemove -> eventScaleRepertoryRepository.delete(eventScaleRepertoryToRemove));
             });
         }
-        return this.eventScaleRepository.findByIdWithRepertories(eventScaleId);
+
+        EventScale eventScaleUpdated = this.eventScaleRepository.findById(eventScaleId).orElseThrow(() -> new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found"));
+        return new EventScaleWithRepertoriesResponse(eventScaleUpdated.getId(), eventScaleUpdated.getMinistry().getId(), eventScaleUpdated.getRepertories());
     }
 
     @Override

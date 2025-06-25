@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.EventScaleService;
 import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;

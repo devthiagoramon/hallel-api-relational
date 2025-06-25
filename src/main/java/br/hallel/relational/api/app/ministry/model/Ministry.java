@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.ministry.model;
 
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.user.model.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,7 +41,8 @@ public class Ministry {
     @JoinColumn(name = "vice_coordinator_id")
     private User viceCoordinator;
 
-    @OneToMany(mappedBy = "ministry", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "ministry", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonBackReference
     private List<EventScale> eventScalesList;
 
     @ManyToMany(fetch = FetchType.EAGER)

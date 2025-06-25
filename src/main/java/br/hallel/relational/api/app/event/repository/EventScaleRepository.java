@@ -213,12 +213,4 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             """)
     List<RepertoryMinistry> findRepertoriesOfEventScale(@Param("eventScaleId") UUID eventScaleId);
 
-    @Query("""
-            SELECT NEW br.hallel.relational.api.app.event.dto.EventScaleWithRepertoriesResponse(es.id, es.ministry.id, es.repertories)
-            from EventScale es
-            JOIN FETCH es.repertories
-            where es.id = :eventScaleId
-            """)
-
-    EventScaleWithRepertoriesResponse findByIdWithRepertories(@Param("eventScaleId") UUID eventScaleId);
 }

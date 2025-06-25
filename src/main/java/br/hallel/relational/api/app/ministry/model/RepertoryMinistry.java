@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.ministry.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +31,7 @@ public class RepertoryMinistry {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
+    @JsonManagedReference
     private Ministry ministry;
 
     @Column(name = "link_playlist")

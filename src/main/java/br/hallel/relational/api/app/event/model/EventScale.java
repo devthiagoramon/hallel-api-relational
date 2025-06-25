@@ -2,12 +2,13 @@ package br.hallel.relational.api.app.event.model;
 
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.Date;
 import java.util.List;
@@ -28,12 +29,10 @@ public class EventScale {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "event_id")
-    @ToString.Exclude
     private Event event;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
-    @ToString.Exclude
     private Ministry ministry;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -44,8 +43,5 @@ public class EventScale {
     )
     private List<RepertoryMinistry> repertories;
 
-    public EventScale(Event event, Ministry ministry) {
-        this.event = event;
-        this.ministry = ministry;
-    }
+
 }
