@@ -99,9 +99,7 @@ public class UserMemberEventScaleController {
             @PathVariable(name = "eventScaleId") UUID eventScaleId
     ) {
 
-        MemberAuditionStatusResponse status = this.memberEventScaleService.getMemberStatus(
-                userId, eventScaleId
-        );
+        MemberAuditionStatusResponse status = this.memberEventScaleService.getMemberStatus(userId, eventScaleId);
         log.info(status.getAuditionStatus());
         return ResponseEntity.ok(status);
     }
@@ -111,6 +109,17 @@ public class UserMemberEventScaleController {
     @Operation(summary = "Listing repertories of some event scale", description = "Route for listing the repertories of some event scale just passing the event scale id")
     public ResponseEntity<List<RepertoryResponse>> listRepertoryByEventScaleId(@PathVariable(name = "event-scale-id") UUID eventScaleId) {
         return ResponseEntity.ok(this.memberEventScaleService.listAllRepertoryOfEventScale(eventScaleId));
+    }
+
+    @GetMapping("/scale/view-invite")
+    @Operation(
+            summary = "the system records whether or not the member viewed the invitation"
+    )
+    public ResponseEntity<Boolean> viewInviteByEventScaleId(
+            @RequestParam(name = "idEventScale") UUID eventScaleId,
+            @RequestParam(name = "idUser") UUID userId
+    ) {
+        return ResponseEntity.ok(this.memberEventScaleService.viewInvite(eventScaleId, userId));
     }
 
 }

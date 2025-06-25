@@ -107,7 +107,9 @@ public class MemberMinistryService {
         MemberMinistryId id = new MemberMinistryId(userId, ministryId);
 
         MemberMinistry memberMinistry = new MemberMinistry(id, user, ministry);
-
+        System.out.println(memberMinistry.getId());
+        System.out.println("MINISTRY: "+memberMinistry.getMinistry().getId());
+        System.out.println("USER: " +memberMinistry.getUser().getId());
         return memberMinistryRepository.save(memberMinistry);
     }
 

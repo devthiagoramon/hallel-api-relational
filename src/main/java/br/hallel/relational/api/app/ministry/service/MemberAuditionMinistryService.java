@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -19,12 +20,12 @@ public class MemberAuditionMinistryService {
 
     public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberId) {
 
-        MemberAuditionMinistry memberAuditionMinistry =
-                this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId).orElseThrow(
-                        () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
-                );
-        log.info("Member status: " + memberAuditionMinistry.getStatus().name());
-        return memberAuditionMinistry.getStatus();
+        Optional<MemberAuditionMinistry> optional = this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId);
+        if (optional.isEmpty()) {
+            return MemberEventScaleStatus.NAO_CONVIDADO;
+        }
+        log.info("Member status: " + optional.get().getStatus().name());
+        return optional.get().getStatus();
     }
 
     public Boolean confirmInviteAudition(UUID auditionId, UUID memberId) {

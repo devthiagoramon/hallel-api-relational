@@ -69,9 +69,9 @@ public class MemberEventScaleService {
         return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
     }
 
-    public void viewInvite(UUID eventScaleId, UUID userId) {
+    public boolean viewInvite(UUID eventScaleId, UUID userId) {
 
-        EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
+        this.eventScaleRepository.findById(eventScaleId).orElseThrow(
                 () -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId))
         );
 
@@ -80,12 +80,14 @@ public class MemberEventScaleService {
                 eventScaleId);
 
         if (optional.isEmpty() || optional.get().getDate_view() != null) {
-            return;
+            log.info("Member already view the invite or member not invited to event Scale");
+            return false;
         }
 
         MemberEventScale member = optional.get();
         member.setDate_view(new Date());
         this.memberEventScaleRepository.save(member);
+        return true;
     }
 
     @Transactional
@@ -94,7 +96,7 @@ public class MemberEventScaleService {
         Date date = null;
 
         for (UUID id : userId) {
-            System.out.println("User id: "+id);
+            System.out.println("User id: " + id);
             date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
             this.memberEventScaleRepository.deleteMemberEventScaleByEventScale_IdAndUser_Id(eventScaleId, id);
         }

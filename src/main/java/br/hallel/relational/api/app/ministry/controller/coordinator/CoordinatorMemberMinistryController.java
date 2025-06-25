@@ -160,7 +160,6 @@ public class CoordinatorMemberMinistryController {
             @PathVariable(name = "id") UUID eventScaleId,
             @PathVariable(name = "userId") UUID userId) {
 
-        memberEventScaleService.viewInvite(eventScaleId, userId);
         EventScaleWithInfos response = eventScaleService.getEventScaleWithInfos(eventScaleId, userId);
         return ResponseEntity.ok(response);
     }
