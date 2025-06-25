@@ -20,6 +20,7 @@ public interface EventScaleMapper {
 //    @Mapping(target = "repertories", ignore = true)
     @Mappings({
             @Mapping(target = "ministry", ignore = true),
+            @Mapping(target = "event", ignore = true),
     })
     EventScale responseToEntity(EventScaleResponse eventScaleResponse);
 

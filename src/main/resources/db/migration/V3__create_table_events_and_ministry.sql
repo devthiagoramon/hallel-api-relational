@@ -178,9 +178,9 @@ CREATE TABLE member_audition_ministry
 
     CONSTRAINT fk_audition_ministry FOREIGN KEY (audition_ministry_id)
         REFERENCES "audition_ministry" (id)
-        ON DELETE SET NULL,
+        ON DELETE CASCADE ,
 
     CONSTRAINT fk_user FOREIGN KEY (user_id)
         REFERENCES "user" (id)
-        ON DELETE SET NULL
+        ON DELETE CASCADE
 );

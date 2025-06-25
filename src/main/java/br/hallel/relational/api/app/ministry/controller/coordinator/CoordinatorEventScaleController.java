@@ -3,6 +3,8 @@ package br.hallel.relational.api.app.ministry.controller.coordinator;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.EventScaleService;
+import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +42,8 @@ public class CoordinatorEventScaleController {
     }
 
     @PostMapping("/add-remove/repertory/{idScale}")
-    public ResponseEntity<ScaleEventResponseWithInfos> addAndRemoveRepertoryInScala(
+    @Operation(summary = "Adding and remove repertories of some scale", description = "Route to add or remove some repertories of some scale passing the id of scale, repertories to add and remove")
+    public ResponseEntity<EventScaleWithRepertoriesResponse> addAndRemoveRepertoryInScala(
             @PathVariable(name = "idScale") UUID idScale,
             @RequestBody ScaleRepertoryDTO dto) {
         return ResponseEntity.ok(this.service.addAndRemoveRepertoryInScale(idScale, dto));
@@ -63,8 +66,9 @@ public class CoordinatorEventScaleController {
             @RequestParam(name = "idMember") UUID idMember,
             @RequestParam(name = "eventScaleId") UUID eventScaleId,
             @RequestBody AcceptOrDeclineMemberInScale isAccept) {
-        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember,eventScaleId, isAccept));
+        return ResponseEntity.ok(this.memberEventScaleService.acceptOrDeclineMember(idMember, eventScaleId, isAccept));
     }
+
 
 
 }

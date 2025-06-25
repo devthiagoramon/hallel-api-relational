@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
+import br.hallel.relational.api.app.ministry.repository.EventScaleRepertoryRepository;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
@@ -40,6 +41,7 @@ public class MemberMinistryService {
     private UserRepository userRepository;
     @Autowired
     private MinistryRepository ministryRepository;
+
 
     public Page<MemberMinistryResponseWithFunctions> getAllMemberOfMinistry(
             UUID ministryId, Pageable pageable) {

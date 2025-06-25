@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.event.dto;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +20,5 @@ public class EventScaleResponse {
 
     private UUID id;
     private Date date;
-    private Event event;
+    private List<RepertoryMinistry> repertories;
 }

@@ -13,17 +13,16 @@ import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
+import br.hallel.relational.api.app.ministry.model.EventScaleRepertory;
+import br.hallel.relational.api.app.ministry.model.EventScaleRepertoryId;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.repository.EventScaleRepertoryRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -45,6 +44,8 @@ public class EventScaleService implements ScaleInterface {
     private MemberEventScaleRepository memberEventScaleRepository;
     @Autowired
     private RepertoryRepository repertoryRepository;
+    @Autowired
+    private EventScaleRepertoryRepository eventScaleRepertoryRepository;
 
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
@@ -227,8 +228,25 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(UUID idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {
-        return null;
+    public EventScaleWithRepertoriesResponse addAndRemoveRepertoryInScale(UUID eventScaleId, ScaleRepertoryDTO escalaRepertorioDTO) {
+        log.info("Adding or removing repertory of scale {}...", eventScaleId);
+
+        Optional<EventScale> optionalEventScale = this.eventScaleRepository.findById(eventScaleId);
+        if (optionalEventScale.isEmpty()) {
+            throw new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found");
+        }
+        if (escalaRepertorioDTO.getRepertoryIdsAdd() != null) {
+            escalaRepertorioDTO.getRepertoryIdsAdd().forEach(repertoryId -> {
+                eventScaleRepertoryRepository.save(new EventScaleRepertory(new EventScaleRepertoryId(eventScaleId, repertoryId)));
+            });
+        }
+        if (escalaRepertorioDTO.getRepertoryIdsRemove() != null) {
+            escalaRepertorioDTO.getRepertoryIdsRemove().forEach(repertoryId -> {
+                Optional<EventScaleRepertory> optionalEventScaleRepertory = eventScaleRepertoryRepository.findById(new EventScaleRepertoryId(eventScaleId, repertoryId));
+                optionalEventScaleRepertory.ifPresent(eventScaleRepertoryToRemove -> eventScaleRepertoryRepository.delete(eventScaleRepertoryToRemove));
+            });
+        }
+        return this.eventScaleRepository.findByIdWithRepertories(eventScaleId);
     }
 
     @Override

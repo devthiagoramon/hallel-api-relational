@@ -10,6 +10,7 @@ import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.global.utils.DateUtils;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.ReasonAbscenceUserDTO;
+import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -97,6 +98,13 @@ public class UserMemberEventScaleController {
         );
         log.info(status.getAuditionStatus());
         return ResponseEntity.ok(status);
+    }
+
+
+    @GetMapping("/list-repertory/{event-scale-id}")
+    @Operation(summary = "Listing repertories of some event scale", description = "Route for listing the repertories of some event scale just passing the event scale id")
+    public ResponseEntity<List<RepertoryResponse>> listRepertoryByEventScaleId(@PathVariable(name = "event-scale-id") UUID eventScaleId) {
+        return ResponseEntity.ok(this.memberEventScaleService.listAllRepertoryOfEventScale(eventScaleId));
     }
 
 }

@@ -9,6 +9,8 @@ import br.hallel.relational.api.app.event.repository.GuestInvitedEventScaleRepos
 import br.hallel.relational.api.app.event.repository.InviteEventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
+import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;
+import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
@@ -34,6 +36,8 @@ public class MemberEventScaleService {
     private final GuestInvitedEventScaleRepository guestRepository;
     private final InviteEventScaleRepository inviteRepository;
     private final MemberMinistryRepository memberMinistryRepository;
+
+    private final RepertoryMapper repertoryMapper;
 
     public EventScaleSimpleResponse inviteUserIntoScale(
             UUID eventScaleId, List<UUID> userIds) {
@@ -357,5 +361,9 @@ public class MemberEventScaleService {
                     guest.getId(), guest.getName(), guest.getEmail()));
         }
         return response;
+    }
+
+    public List<RepertoryResponse> listAllRepertoryOfEventScale(UUID eventScaleId) {
+        return this.repertoryMapper.toListResponseRepertory(this.eventScaleRepository.findRepertoriesOfEventScale(eventScaleId));
     }
 }

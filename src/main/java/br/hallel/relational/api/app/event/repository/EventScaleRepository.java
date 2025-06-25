@@ -1,10 +1,12 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventScaleWithRepertoriesResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
+import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -204,4 +207,18 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             """)
     ScaleEventWithEventInfoResponse findScaleByIdWithInfos(@Param("idEscalaMinisterio") UUID idEscalaMinisterio);
 
+
+    @Query("""
+                select es.repertories from EventScale es where es.id = :eventScaleId
+            """)
+    List<RepertoryMinistry> findRepertoriesOfEventScale(@Param("eventScaleId") UUID eventScaleId);
+
+    @Query("""
+            SELECT NEW br.hallel.relational.api.app.event.dto.EventScaleWithRepertoriesResponse(es.id, es.ministry.id, es.repertories)
+            from EventScale es
+            JOIN FETCH es.repertories
+            where es.id = :eventScaleId
+            """)
+
+    EventScaleWithRepertoriesResponse findByIdWithRepertories(@Param("eventScaleId") UUID eventScaleId);
 }

@@ -52,7 +52,7 @@ public interface ScaleInterface {
 
     void deleteScaleWithDeletingEvent(UUID idEvento);
 
-    ScaleEventResponseWithInfos addAndRemoveRepertoryInScale(
+    EventScaleWithRepertoriesResponse addAndRemoveRepertoryInScale(
             UUID idEscalaMinisterio,
             ScaleRepertoryDTO escalaRepertorioDTO);
 
