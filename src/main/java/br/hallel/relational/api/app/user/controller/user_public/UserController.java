@@ -27,7 +27,11 @@ public class UserController {
     @Autowired
     private UserService userService;
     private final MemberEventScaleService memberEventScaleService;
+
     @PutMapping("/edit-profile/{idUser}")
+    @Operation(
+            summary = "Edit Infos User Profile by User ID"
+    )
     public ResponseEntity<UserProfileResponse> editProfile(
             @PathVariable(name = "idUser") UUID idUser,
             @RequestBody UserEditProfileDTO userDto) {
@@ -36,6 +40,9 @@ public class UserController {
     }
 
     @PatchMapping("/edit-profile/image/{idUser}")
+    @Operation(
+            summary = "Edit Image In User Profile by User Id"
+    )
     public ResponseEntity<UserProfileResponse> editImageProfile(
             @PathVariable(name = "idUser") UUID idUser,
             @RequestPart(name = "file") MultipartFile fileImage) {
@@ -43,6 +50,9 @@ public class UserController {
     }
 
     @GetMapping("/profile/{idUser}")
+    @Operation(
+            summary = "Get User Infos to Profile"
+    )
     public ResponseEntity<UserProfileResponse> getUserProfile(
             @PathVariable(name = "idUser") UUID idUser,
             @RequestParam(name = "idEventScale", required = false) UUID idEventScale) {
@@ -57,6 +67,9 @@ public class UserController {
     }
 
     @GetMapping("/list-all/guests-scale/{id}")
+    @Operation(
+            summary = "Listing all Guests in Event Scale"
+    )
     public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInScaleByID_UserInfo(
             @PathVariable(name = "id") UUID id) {
         return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));

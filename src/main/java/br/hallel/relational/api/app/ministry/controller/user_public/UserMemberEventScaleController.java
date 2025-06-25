@@ -67,6 +67,9 @@ public class UserMemberEventScaleController {
 
 
     @GetMapping("/scales-range-date/{idMinistry}")
+    @Operation(
+            summary = "Listing all Events Scales By Ministry ID and Range Date (start date, end date)"
+    )
     public ResponseEntity<List<EventScaleSimpleResponse>> listAllScalesByMinistryIdAndRangeDate(
             @PathVariable(name = "idMinistry") UUID idMinistry,
             @RequestParam(name = "start") LocalDateTime start,
@@ -88,6 +91,9 @@ public class UserMemberEventScaleController {
     }
 
     @GetMapping("/get-status/{eventScaleId}/{userId}")
+    @Operation(
+            summary = "Getting Member Status in Event Scale by your Id"
+    )
     public ResponseEntity<MemberAuditionStatusResponse> getMemberStatus(
             @PathVariable(name = "userId") UUID userId,
             @PathVariable(name = "eventScaleId") UUID eventScaleId

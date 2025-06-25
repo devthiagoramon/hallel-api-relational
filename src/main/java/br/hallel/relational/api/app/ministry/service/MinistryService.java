@@ -12,6 +12,7 @@ import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
+import br.hallel.relational.api.app.ministry.exception.MinistryListEmptyException;
 import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
@@ -115,7 +116,10 @@ public class MinistryService implements MinistryInterface {
                 ministryPagination.stream().map(ministry ->
                                 mapper.entityMinistryToResponse(ministry))
                         .collect(Collectors.toList());
-
+        if (responseList.isEmpty()) {
+            throw new MinistryListEmptyException(
+                    "The ministry list is empty. You should create One");
+        }
         log.info("Listing ministries...", responseList);
         return responseList;
     }

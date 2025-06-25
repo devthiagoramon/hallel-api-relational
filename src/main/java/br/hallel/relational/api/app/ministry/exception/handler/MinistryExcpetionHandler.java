@@ -40,18 +40,23 @@ public class MinistryExcpetionHandler {
     @ExceptionHandler(value = ListRepertoryEmptyException.class)
     public ResponseEntity<ExceptionResponse> listRepertoryEmptyException(ListRepertoryEmptyException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
-        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NO_CONTENT);
     }
 
     @ExceptionHandler(value = CoordinatorNotFoundException.class)
     public ResponseEntity<ExceptionResponse> coordinatorNotFoundException(CoordinatorNotFoundException exception, WebRequest request){
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
-        return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
     @ExceptionHandler(value = MemberAuditionMinistryNotFound.class)
     public ResponseEntity<ExceptionResponse> memberAuditionMinistryNotFound(MemberAuditionMinistryNotFound exception, WebRequest request){
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
-        return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+@ExceptionHandler(value = MinistryListEmptyException.class)
+    public ResponseEntity<ExceptionResponse> ministryListEmptyException(MinistryListEmptyException exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NO_CONTENT);
     }
 
 }

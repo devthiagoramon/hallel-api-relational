@@ -36,8 +36,7 @@ public class RepertoryMinistry {
 
     @Column(name = "link_playlist")
     private String linkPlaylist;
-
-
+    
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "repertory_video_ministry",
