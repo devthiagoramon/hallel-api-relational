@@ -58,6 +58,19 @@ public class User implements Serializable, UserDetails {
 
     private Integer age;
 
+    @JsonIgnore
+    @Column(name = "push_notification")
+    private Boolean pushNotification;
+
+    @JsonIgnore
+    @Column(name = "lgpd_consent")
+    private Boolean lgpdConsent;
+
+    @JsonIgnore
+    @Column(name = "lgpd_consent_date")
+    private Date lgpdConsentDate;
+
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
