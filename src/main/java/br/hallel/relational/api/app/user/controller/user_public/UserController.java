@@ -1,79 +1,44 @@
 package br.hallel.relational.api.app.user.controller.user_public;
 
-import br.hallel.relational.api.app.event.dto.GuestInvitedEventScaleResponse;
-import br.hallel.relational.api.app.event.service.MemberEventScaleService;
-import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
+import br.hallel.relational.api.app.user.dto.UserPreferencesDTO;
+import br.hallel.relational.api.app.user.dto.UserProfilePreferencesResponse;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/public/user")
+@RequestMapping("/user")
 @RequiredArgsConstructor
-@Tag(name = "User - Public", description = "User part for some functions that can do ")
+@Tag(name = "User", description = "User part for some functions that can do with user authorization")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
-    private final MemberEventScaleService memberEventScaleService;
+    private final UserService userService;
 
-    @PutMapping("/edit-profile/{idUser}")
+    @GetMapping("/preferences/{idUser}")
     @Operation(
-            summary = "Edit Infos User Profile by User ID"
+            summary = "Get user preferences ",
+            description = "Route to list preferences of user like notification"
     )
-    public ResponseEntity<UserProfileResponse> editProfile(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestBody UserEditProfileDTO userDto) {
-        System.out.println("DATA:" + userDto.dateBirth());
-        return ResponseEntity.ok(userService.editProfile(idUser, userDto));
+    public ResponseEntity<UserProfilePreferencesResponse> getUserPreferences(
+            @PathVariable(name = "idUser") UUID idUser) {
+        return ResponseEntity.ok(userService.getUserPreferences(idUser));
     }
 
-    @PatchMapping("/edit-profile/image/{idUser}")
+    @PatchMapping("/preferences/update/{idUser}")
     @Operation(
-            summary = "Edit Image In User Profile by User Id"
+            summary = "Update user preferences",
+            description = "Route to update user preferences like notification"
     )
-    public ResponseEntity<UserProfileResponse> editImageProfile(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestPart(name = "file") MultipartFile fileImage) {
-        return ResponseEntity.ok(userService.editImageProfile(idUser, fileImage));
+    public ResponseEntity<UserProfilePreferencesResponse> updateUserPreferences(@PathVariable(name = "idUser") UUID idUser, @RequestBody
+                                                                                UserPreferencesDTO userPreferencesDTO) {
+        return ResponseEntity.ok(userService.updateUserPreferences(idUser, userPreferencesDTO));
     }
-
-    @GetMapping("/profile/{idUser}")
-    @Operation(
-            summary = "Get User Infos to Profile"
-    )
-    public ResponseEntity<UserProfileResponse> getUserProfile(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestParam(name = "idEventScale", required = false) UUID idEventScale) {
-        return ResponseEntity.ok(userService.getUserProfile(idUser, idEventScale));
-    }
-
-
-    @GetMapping("/profile/token/{accessToken}")
-    @Operation(summary = "Get profile infos by token", description = "Get the infos of user with token related with user")
-    public ResponseEntity<UserProfileResponse> getUserProfileByToken(@PathVariable(name = "accessToken") String token) {
-        return ResponseEntity.ok(userService.getUserProfileByToken(token));
-    }
-
-    @GetMapping("/list-all/guests-scale/{id}")
-    @Operation(
-            summary = "Listing all Guests in Event Scale"
-    )
-    public ResponseEntity<List<GuestInvitedEventScaleResponse>> listAllGuestsInScaleByID_UserInfo(
-            @PathVariable(name = "id") UUID id) {
-        return ResponseEntity.ok(this.memberEventScaleService.listAllGuestsInvitedsByEventScaleId(id));
-    }
-
-
 }

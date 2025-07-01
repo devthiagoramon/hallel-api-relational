@@ -4,9 +4,7 @@ import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
-import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
-import br.hallel.relational.api.app.user.dto.UserProfileResponse;
-import br.hallel.relational.api.app.user.dto.UserLoginDTO;
+import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
@@ -126,7 +124,8 @@ public class UserService implements UserInterface {
 
         if (eventScaleId != null) {
             System.out.println("EventScaleId: " + eventScaleId);
-            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idUser, eventScaleId);
+            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idUser,
+                    eventScaleId);
             if (optional.isPresent()) {
                 MemberEventScale member = optional.get();
                 date_view_invite = member.getDate_view();
@@ -137,10 +136,26 @@ public class UserService implements UserInterface {
         User userById = this.getUserById(idUser);
 
         UserProfileResponse user = new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
-                userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(), date_view_invite);
+                userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
+                date_view_invite);
         System.out.println(user);
         return user;
     }
+
+    public UserProfilePreferencesResponse getUserPreferences(UUID userId) {
+        User user = this.getUserById(userId);
+        return new UserProfilePreferencesResponse(user.getId(), user.getPushNotification());
+    }
+
+    public UserProfilePreferencesResponse updateUserPreferences(UUID userId, UserPreferencesDTO dto){
+        User user = this.getUserById(userId);
+        if (dto.pushNotification() != null){
+            user.setPushNotification(!dto.pushNotification());
+        }
+        userRepository.save(user);
+        return new UserProfilePreferencesResponse(user.getId(), user.getPushNotification());
+    }
+
 
     @Override
     public List<UserProfileResponse> listAllUsers(int page, int size) {
