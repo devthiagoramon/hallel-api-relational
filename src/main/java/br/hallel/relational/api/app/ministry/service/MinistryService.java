@@ -106,9 +106,19 @@ public class MinistryService implements MinistryInterface {
         return mapper.entityMinistryToResponse(this.ministryRepository.save(ministry));
     }
 
+    public List<MinistryResponse> listAllMinistries() {
+        List<Ministry> ministryList = this.ministryRepository.findAll();
+        List<MinistryResponse> responseList =
+                ministryList.stream().map(ministry ->
+                                mapper.entityMinistryToResponse(ministry))
+                        .collect(Collectors.toList());
+        
+        return responseList;
+    }
+    
     @Override
-    public List<MinistryResponse> listAllMinistries(int page,
-                                                    int size) {
+    public List<MinistryResponse> listAllMinistriesPage(int page,
+                                                        int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Ministry> ministryPagination = this.ministryRepository.findAll(pageable);
 

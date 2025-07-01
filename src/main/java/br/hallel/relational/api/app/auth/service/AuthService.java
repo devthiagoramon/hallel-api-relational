@@ -47,12 +47,12 @@ public class AuthService {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             User user = userRepository.findByEmail(loginRequest.getEmail())
-                                      .orElseThrow(() -> new AuthRequestException("User not found"));
+                    .orElseThrow(() -> new AuthRequestException("User not found"));
 
             var tokenResponse = new TokenDTO();
             tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
                     user.getRoles().stream().map(Role::getDescription)
-                        .toList());
+                            .toList());
             user.setToken(tokenResponse.getAccessToken());
             userRepository.save(user);
             return tokenResponse;
@@ -64,7 +64,7 @@ public class AuthService {
 
     public TokenDTO refreshToken(String email, String refreshToken) {
         var user = userRepository.findByEmail(email)
-                                 .orElseThrow(() -> new AuthRequestException("User not found"));
+                .orElseThrow(() -> new AuthRequestException("User not found"));
         if (user != null)
             throw new AuthRequestException("User not found");
         var tokenResponse = new TokenDTO();
@@ -74,7 +74,7 @@ public class AuthService {
 
     public TokenDTO singUp(
             SingUpRequest request
-                          ) {
+    ) {
 
         List<Role> rolesBD = roleRepository.findAll();
         log.info("Add member...");
@@ -91,42 +91,41 @@ public class AuthService {
         var tokenResponse = new TokenDTO();
         log.info("Antes do token...");
         tokenResponse = jwtTokenProvider.createAccessToken(request.getEmail(), user.getRoles()
-                                                                                   .stream()
-                                                                                   .map(Role::getDescription)
-                                                                                   .toList());
-
+                .stream()
+                .map(Role::getDescription)
+                .toList());
         user.setToken(tokenResponse.getAccessToken());
 
         User userSaved = userRepository.save(user);
 
         UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), rolesBD.stream()
-                                                                            .filter(item -> item.getDescription()
-                                                                                                .equals("USER"))
-                                                                            .toList()
-                                                                            .get(0)
-                                                                            .getId());
+                .filter(item -> item.getDescription()
+                        .equals("USER"))
+                .toList()
+                .get(0)
+                .getId());
         userRoleRepository.save(new UserRole(userRoleIds));
         log.info("SAVING MEMBER...");
 
         return tokenResponse;
     }
 
-    public TokenAdminResponse verifyIfTokenIsAdmin(String token){
+    public TokenAdminResponse verifyIfTokenIsAdmin(String token) {
         boolean isAdmin = jwtTokenProvider.verifyAdminRoleExisting(token);
 
-        if (isAdmin){
+        if (isAdmin) {
             String code = tokenAdminValidationCode.generateCode();
             User user = this.userRepository.findByToken(token).orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
             return new TokenAdminResponse(tokenAdmin, code);
 
-        }else{
+        } else {
             log.info("Returning null");
             return null;
         }
     }
 
-    public Boolean validateTokenAdmin(String tokenAdmin, String code){
+    public Boolean validateTokenAdmin(String tokenAdmin, String code) {
         return tokenAdminValidationCode.validateToken(tokenAdmin, code);
     }
 

@@ -40,8 +40,7 @@ public class JwtTokenProvider {
 
     }
 
-    public TokenDTO createAccessToken(String username,
-                                      List<String> roles) {
+    public TokenDTO createAccessToken(String username, List<String> roles) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTimeInMiliseconds);
         var accessToken = getAccessToken(username, roles, now, expiration);

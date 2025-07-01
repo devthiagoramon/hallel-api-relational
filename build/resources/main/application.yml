@@ -3,6 +3,11 @@ security:
     token:
       expire-length: 2592000000
       expire-coordenador-length: 86400000
+firebase:
+  messaging:
+    fcm:
+      token: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
+      url: https://fcm.googleapis.com/fcm/send
 spring:
   jpa:
     hibernate:

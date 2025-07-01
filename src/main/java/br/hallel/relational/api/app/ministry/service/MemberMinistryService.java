@@ -127,6 +127,7 @@ public class MemberMinistryService {
         List<MinistryParticipationResponse> responses = ministries.stream()
                 .map(ministry -> new MinistryParticipationResponse(ministry.getId(), ministry.getTitle(),
                         ministry.getImage(), getStatusParticipationInMinistryUser(ministry, userId))).toList();
+        System.out.println(responses);
         return responses;
     }
 

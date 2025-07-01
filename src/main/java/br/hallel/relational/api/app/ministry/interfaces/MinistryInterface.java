@@ -15,7 +15,7 @@ public interface MinistryInterface {
     MinistryResponse
     createMinistry(MinistryRequestDTO ministryRequestDTO, MultipartFile image);
 
-    List<MinistryResponse> listAllMinistries(int page, int size);
+    List<MinistryResponse> listAllMinistriesPage(int page, int size);
 
     MinistryResponse getMinistryById(UUID id);
 
