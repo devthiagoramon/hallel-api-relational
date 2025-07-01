@@ -46,13 +46,13 @@ public class UserDeviceNotificationService {
             throw new DeviceAlreadySavedException("Device already exists for push notification");
         }
         DeviceNotification deviceNotification = new DeviceNotification();
+        deviceNotification.setDeviceId(deviceNotificationDTO.getDeviceId());
         deviceNotification.setFcmToken(deviceNotificationDTO.getFcmToken());
         deviceNotification.setIpAddress(deviceNotificationDTO.getIpAddress());
         deviceNotification.setOperationSystem(deviceNotificationDTO.getOperationSystem());
 
         try {
             DeviceNotification savedDevice = deviceNotificationRepository.save(deviceNotification);
-
 
             userDeviceNotificationRepository.save(
                     new UserDeviceNotification(new UserDeviceNotificationId(user.getId(), savedDevice.getId())));
