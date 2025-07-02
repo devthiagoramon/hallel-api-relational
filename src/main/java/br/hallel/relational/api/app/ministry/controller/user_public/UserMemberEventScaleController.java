@@ -1,10 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 
-import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
-import br.hallel.relational.api.app.event.dto.MemberAuditionStatusResponse;
-import br.hallel.relational.api.app.event.dto.MemberEventScaleResponseUserInfos;
-import br.hallel.relational.api.app.event.dto.MemberEventScaleStatusResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.global.utils.DateUtils;
@@ -86,8 +83,18 @@ public class UserMemberEventScaleController {
             @RequestParam(name = "start") LocalDateTime start,
             @RequestParam(name = "end") LocalDateTime end) {
         return ResponseEntity.ok(
-                this.memberEventScaleService.listAllScaleOfUserInMinistryInRangeOfDateStatus(userId, ministryId,
-                        DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
+                this.memberEventScaleService.listAllScaleOfUserInMinistryInRangeOfDateStatus(userId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
+    }
+
+    @GetMapping("/scales-range-date-with-members/{idMinistry}/{userId}")
+    @Operation(summary = "List all scales of user in ministry with members", description = "List all scales of user in some ministry with status and membersin range of date")
+    public ResponseEntity<List<EventScaleWithMembers>> listAllEventScaleWithMembers(
+            @PathVariable(name = "idMinistry") UUID ministryId,
+            @PathVariable(name = "userId") UUID userId,
+            @RequestParam(name = "start") LocalDateTime start,
+            @RequestParam(name = "end") LocalDateTime end) {
+        return ResponseEntity.ok(
+                this.memberEventScaleService.listAllEventScaleWithMembers(userId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
     }
 
     @GetMapping("/get-status/{eventScaleId}/{userId}")

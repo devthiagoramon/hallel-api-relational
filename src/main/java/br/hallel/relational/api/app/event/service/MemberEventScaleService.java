@@ -225,10 +225,46 @@ public class MemberEventScaleService {
                 ministryId, initialDate, finalDate);
     }
 
+
     public List<EventScaleWithStatusInfos> listAllScaleOfUserInMinistryInRangeOfDateStatus(UUID userId, UUID ministryId, Date initialDate, Date finalDate) {
         log.info("Listing all scales of user {} with status", userId);
         return this.memberEventScaleRepository.listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(userId,
                 ministryId, initialDate, finalDate);
+    }
+
+    public List<EventScaleWithMembers>
+    listAllEventScaleWithMembers(UUID userId, UUID ministryId, Date initialDate, Date finalDate) {
+        log.info("Listing all scales of user {} with status", userId);
+
+        List<EventScaleWithMembers> escalasPrincipais =
+                this.memberEventScaleRepository.listAllEventScaleWithMembers(
+                        userId, ministryId, initialDate, finalDate
+                );
+
+
+        for (EventScaleWithMembers escala : escalasPrincipais) {
+            UUID escalaId = escala.getScaleId();
+
+            List<MemberEventScale> allMembers = memberEventScaleRepository.findAllByEventScaleId((escalaId));
+
+            escala.setMembersParticipate(allMembers.stream()
+                    .filter(m -> m.getStatus() == MemberEventScaleStatus.PARTICIPANDO)
+                    .map(m -> m.getUser().getName())
+                    .toList());
+
+            escala.setMembersDecline(allMembers.stream()
+                    .filter(m -> m.getStatus() == MemberEventScaleStatus.RECUSADO)
+                    .map(m -> m.getUser().getName())
+                    .toList());
+
+            escala.setMembersInvited(allMembers.stream()
+                    .filter(m -> m.getStatus() == MemberEventScaleStatus.CONVIDADO)
+                    .map(m -> m.getUser().getName())
+                    .toList());
+        }
+
+
+        return escalasPrincipais;
     }
 
     public MemberAuditionStatusResponse getMemberStatus(UUID idmemberministry, UUID idEventScale) {

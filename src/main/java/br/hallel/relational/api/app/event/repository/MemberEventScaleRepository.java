@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventScaleWithMembers;
 import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
@@ -35,10 +36,27 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                     order by es.date asc
                     """
     )
-    List<EventScale> listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(@Param("userId") UUID userId,
+    List<EventScale>
+    listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(@Param("userId") UUID userId,
                                                                                      @Param("ministryId") UUID ministryId,
                                                                                      @Param("initial") Date initialDate,
                                                                                      @Param("final") Date finalDate);
+
+    @Query("""
+                SELECT new br.hallel.relational.api.app.event.dto.EventScaleWithMembers(
+                    es.id,
+                    es.date,
+                    es.event,
+                    mes.status
+                )
+                FROM MemberEventScale mes
+                JOIN mes.eventScale es
+                WHERE mes.user.id = :userId
+                  AND es.ministry.id = :ministryId
+                  AND es.date BETWEEN :initial AND :final
+                ORDER BY es.date ASC
+            """)
+    List<EventScaleWithMembers> listAllEventScaleWithMembers(@Param("userId") UUID userId, UUID ministryId, @Param("initial") Date initialDate, @Param("final") Date finalDate);
 
     @Query(
             """
@@ -63,4 +81,6 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
     UUID id(UUID id);
 
     UUID user(User user);
+
+    List<MemberEventScale> findAllByEventScaleId(UUID eventScaleId);
 }
