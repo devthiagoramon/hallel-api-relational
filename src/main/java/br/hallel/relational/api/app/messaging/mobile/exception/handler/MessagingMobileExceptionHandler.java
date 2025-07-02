@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.messaging.mobile.exception.handler;
 
 import br.hallel.relational.api.app.global.exception.UUIDFormatException;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
+import br.hallel.relational.api.app.messaging.mobile.exception.CredentialsFirebaseException;
 import br.hallel.relational.api.app.messaging.mobile.exception.DeviceAlreadySavedException;
 import br.hallel.relational.api.app.messaging.mobile.exception.DeviceNotificationNotFoundException;
 import br.hallel.relational.api.app.messaging.mobile.exception.MessageFormatterException;
@@ -32,6 +33,12 @@ public class MessagingMobileExceptionHandler {
 
     @ExceptionHandler(value = MessageFormatterException.class)
     public ResponseEntity<ExceptionResponse> handleDeviceAlreadySavedException(MessageFormatterException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = CredentialsFirebaseException.class)
+    public ResponseEntity<ExceptionResponse> handleDeviceAlreadySavedException(CredentialsFirebaseException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

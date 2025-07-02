@@ -10,6 +10,9 @@ import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
+import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
+import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificationRepository;
+import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
@@ -21,16 +24,20 @@ import br.hallel.relational.api.app.ministry.repository.EventScaleRepertoryRepos
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
+import br.hallel.relational.api.app.user.model.User;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 public class EventScaleService implements ScaleInterface {
     @Autowired
     private MemberMinistryRepository memberMinistryRepository;
@@ -46,6 +53,10 @@ public class EventScaleService implements ScaleInterface {
     private RepertoryRepository repertoryRepository;
     @Autowired
     private EventScaleRepertoryRepository eventScaleRepertoryRepository;
+    @Autowired
+    private DeviceNotificationRepository deviceNotificationRepository;
+    @Autowired
+    private FCMSenderService fcmSenderService;
 
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
@@ -65,15 +76,46 @@ public class EventScaleService implements ScaleInterface {
         eventScale.setEvent(event);
         eventScale.setDate(event.getDate());
         EventScale eventScaleSaved = this.eventScaleRepository.save(eventScale);
-        log.info("Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
+        log.info(
+                "Escala " + eventScaleSaved.getId() + " created for event " + event.getTitle() + " to ministerio " + idMinistry);
 
         List<UUID> memberIds = new ArrayList<>();
         memberIds.add(ministry.getCoordinator().getId());
         memberIds.add(ministry.getViceCoordinator().getId());
         memberEventScaleService.inviteUserIntoScale(eventScaleSaved.getId(), memberIds);
+        sendNotificationOfCreatingScaleForCoordinators(ministry, eventScaleSaved);
 
         return scaleMapper.entityToResponse(eventScaleSaved);
     }
+
+    private void sendNotificationOfCreatingScaleForCoordinators(Ministry ministry, EventScale eventScale) {
+        List<DeviceNotification> devicesCoordinador = ministry.getCoordinator().getDevicesUser();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        devicesCoordinador.forEach(device -> {
+            fcmSenderService.sendNotification(device.getFcmToken(),
+                    "Escala do ministério %s".formatted(ministry.getTitle()),
+                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
+                    eventScaleNotificationTemplate(ministry.getCoordinator(), ministry, eventScale));
+        });
+        List<DeviceNotification> devicesViceCoordinador = ministry.getViceCoordinator().getDevicesUser();
+        devicesViceCoordinador.forEach(device -> {
+            fcmSenderService.sendNotification(device.getFcmToken(),
+                    "Escala do ministério %s".formatted(ministry.getTitle()),
+                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
+                    eventScaleNotificationTemplate(ministry.getViceCoordinator(), ministry, eventScale));
+        });
+    }
+
+    private Map<String, String> eventScaleNotificationTemplate(User user, Ministry ministry, EventScale eventScale) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("type", "event_scale");
+        map.put("userId", user.getId().toString());
+        map.put("action", "invite_scale");
+        map.put("eventScaleId", eventScale.getId().toString());
+        map.put("ministryId", ministry.getId().toString());
+        return map;
+    }
+
 
     @Override
     public EventScaleResponse editDateScale(UUID id, Date date) {
@@ -98,12 +140,15 @@ public class EventScaleService implements ScaleInterface {
         );
 
         List<MemberEventScale> membersInviteds =
-                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO, eventScaleId);
+                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.CONVIDADO,
+                        eventScaleId);
 
         List<MemberEventScale> membersConfirmed =
-                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO, eventScaleId);
+                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.PARTICIPANDO,
+                        eventScaleId);
         List<MemberEventScale> membersDecline =
-                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.RECUSADO, eventScaleId);
+                this.memberEventScaleRepository.findAllByStatusAndEventScale_Id(MemberEventScaleStatus.RECUSADO,
+                        eventScaleId);
 
         List<UUID> invitedIds = membersInviteds.stream()
                 .map(member -> member.getUser().getId())
@@ -115,9 +160,10 @@ public class EventScaleService implements ScaleInterface {
                 .map(member -> member.getUser().getId())
                 .collect(Collectors.toList());
 
-        List<UUID> repertoryIds = this.repertoryRepository.findAllByMinistry_Id(eventScale.getMinistry().getId()).stream().map(
-                repertory -> repertory.getId()
-        ).collect(Collectors.toList());
+        List<UUID> repertoryIds = this.repertoryRepository.findAllByMinistry_Id(eventScale.getMinistry().getId())
+                .stream().map(
+                        repertory -> repertory.getId()
+                ).collect(Collectors.toList());
 
         EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
         eventScaleWithInfos.setId(eventScale.getId());
@@ -177,26 +223,31 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public List<ScaleEventWithEventInfoResponse> listScaleMemberIdCanParticipate(UUID memberId, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMemberIdCanParticipate(UUID memberId, LocalDateTime start,
+                                                                                 LocalDateTime end) {
 //        return this.eventScaleRepository.findAllByMemberIdAndDateBetween(memberId, start, end);
         return null;
     }
 
     @Override
-    public List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMemberIdThatCanParticipate(UUID membroId,
+                                                                                                  LocalDateTime start,
+                                                                                                  LocalDateTime end) {
 //        return this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdCanPaticipate(membroId, start, end);
         return null;
     }
 
 
     @Override
-    public List<ScaleEventWithEventInfoResponse> listScaleMinistryConfirmedMember(UUID membroId, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMinistryConfirmedMember(UUID membroId, LocalDateTime start,
+                                                                                  LocalDateTime end) {
 //        return this.eventScaleRepository.findConfirmedScalesByMemberAndDateRange(membroId, start, end);
         return null;
     }
 
     @Override
-    public List<SimpleScaleResponse> listScaleMinistryIdsByMembroIdThatConfirmed(UUID membroId, LocalDateTime start, LocalDateTime end) {
+    public List<SimpleScaleResponse> listScaleMinistryIdsByMembroIdThatConfirmed(UUID membroId, LocalDateTime start,
+                                                                                 LocalDateTime end) {
 //        return this.eventScaleRepository.findScalesConfirmedByMemberIdAndDateRange(membroId, start, end);
         return null;
     }
@@ -208,12 +259,16 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMinistryIdAndRangeDate(UUID idMinisterio, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMinistryIdsByMinistryIdAndRangeDate(UUID idMinisterio,
+                                                                                              LocalDateTime start,
+                                                                                              LocalDateTime end) {
         return this.eventScaleRepository.findScalesByMinistryIdAndDateRange(idMinisterio, start, end);
     }
 
     @Override
-    public List<ScaleEventWithEventInfoResponse> listScaleMinistryRangeDateByMinistryId(UUID idMinisterio, LocalDateTime start, LocalDateTime end) {
+    public List<ScaleEventWithEventInfoResponse> listScaleMinistryRangeDateByMinistryId(UUID idMinisterio,
+                                                                                        LocalDateTime start,
+                                                                                        LocalDateTime end) {
         return this.eventScaleRepository.findScalesByMinistryIdAndDateRange(idMinisterio, start, end);
     }
 
@@ -228,7 +283,8 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public EventScaleWithRepertoriesResponse addAndRemoveRepertoryInScale(UUID eventScaleId, ScaleRepertoryDTO escalaRepertorioDTO) {
+    public EventScaleWithRepertoriesResponse addAndRemoveRepertoryInScale(UUID eventScaleId,
+                                                                          ScaleRepertoryDTO escalaRepertorioDTO) {
         log.info("Adding or removing repertory of scale {}...", eventScaleId);
 
         Optional<EventScale> optionalEventScale = this.eventScaleRepository.findById(eventScaleId);
@@ -237,18 +293,24 @@ public class EventScaleService implements ScaleInterface {
         }
         if (escalaRepertorioDTO.getRepertoryIdsAdd() != null) {
             escalaRepertorioDTO.getRepertoryIdsAdd().forEach(repertoryId -> {
-                eventScaleRepertoryRepository.save(new EventScaleRepertory(new EventScaleRepertoryId(eventScaleId, repertoryId)));
+                eventScaleRepertoryRepository.save(
+                        new EventScaleRepertory(new EventScaleRepertoryId(eventScaleId, repertoryId)));
             });
         }
         if (escalaRepertorioDTO.getRepertoryIdsRemove() != null) {
             escalaRepertorioDTO.getRepertoryIdsRemove().forEach(repertoryId -> {
-                Optional<EventScaleRepertory> optionalEventScaleRepertory = eventScaleRepertoryRepository.findById(new EventScaleRepertoryId(eventScaleId, repertoryId));
-                optionalEventScaleRepertory.ifPresent(eventScaleRepertoryToRemove -> eventScaleRepertoryRepository.delete(eventScaleRepertoryToRemove));
+                Optional<EventScaleRepertory> optionalEventScaleRepertory = eventScaleRepertoryRepository.findById(
+                        new EventScaleRepertoryId(eventScaleId, repertoryId));
+                optionalEventScaleRepertory.ifPresent(
+                        eventScaleRepertoryToRemove -> eventScaleRepertoryRepository.delete(
+                                eventScaleRepertoryToRemove));
             });
         }
 
-        EventScale eventScaleUpdated = this.eventScaleRepository.findById(eventScaleId).orElseThrow(() -> new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found"));
-        return new EventScaleWithRepertoriesResponse(eventScaleUpdated.getId(), eventScaleUpdated.getMinistry().getId(), eventScaleUpdated.getRepertories());
+        EventScale eventScaleUpdated = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
+                () -> new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found"));
+        return new EventScaleWithRepertoriesResponse(eventScaleUpdated.getId(), eventScaleUpdated.getMinistry().getId(),
+                eventScaleUpdated.getRepertories());
     }
 
     @Override
@@ -275,14 +337,16 @@ public class EventScaleService implements ScaleInterface {
         return this.eventScaleRepository.findMinistriesByEventId(eventId);
     }
 
-    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(String idEscalaMinisterio, ScaleRepertoryDTO escalaRepertorioDTO) {
+    public ScaleEventResponseWithInfos addAndRemoveRepertoryInScala(String idEscalaMinisterio,
+                                                                    ScaleRepertoryDTO escalaRepertorioDTO) {
         return null;
     }
 
     public List<EventScaleSimpleResponse> listEventsScalesByUserIdParticipate(
             UUID idMemberMinistry, LocalDateTime start, LocalDateTime end) {
         List<EventScaleSimpleResponse> response = new ArrayList<>();
-        List<EventScale> eventScales = this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdParticipate(idMemberMinistry, MemberEventScaleStatus.PARTICIPANDO, start, end);
+        List<EventScale> eventScales = this.eventScaleRepository.findEscalaMinisterioIdsByMembroIdParticipate(
+                idMemberMinistry, MemberEventScaleStatus.PARTICIPANDO, start, end);
         eventScales.forEach(event -> {
             response.add(new EventScaleSimpleResponse(
                     event.getId(), event.getDate()
@@ -301,7 +365,8 @@ public class EventScaleService implements ScaleInterface {
 
         UUID ministryId = eventScale.getMinistry().getId();
 
-        List<MemberMinistry> availableMembers = memberMinistryRepository.findAvailableMembersToInvite(ministryId, eventScaleId);
+        List<MemberMinistry> availableMembers = memberMinistryRepository.findAvailableMembersToInvite(ministryId,
+                eventScaleId);
 
         return availableMembers.stream()
                 .filter(m -> m.getUser() != null)

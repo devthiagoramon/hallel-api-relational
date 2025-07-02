@@ -82,3 +82,4 @@ docker-compose.override.yml
 
 
 /src/main/resources/crypto-avatar.json
+/src/main/resources/hallel-messaging-firebase-adminsdk-fbsvc-bbb8ade5e2.json

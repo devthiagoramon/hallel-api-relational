@@ -40,6 +40,8 @@ public class UserDeviceNotificationService {
         if (user.getLgpdConsent() == false) user.setLgpdConsent(true);
         if (user.getLgpdConsentDate() == null) user.setLgpdConsentDate(new Date());
 
+        userRepository.save(user);
+
         Optional<DeviceNotification> optionalDevice = deviceNotificationRepository.findByDeviceId(
                 deviceNotificationDTO.getDeviceId());
         if (optionalDevice.isPresent()) {
