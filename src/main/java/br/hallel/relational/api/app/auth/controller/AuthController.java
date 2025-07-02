@@ -92,7 +92,6 @@ public class AuthController {
         System.out.println("Token recebido: " + idTokenRequest);
         try {
             try {
-                // Testa se o backend consegue acessar os certificados do Google
                 String certs = new NetHttpTransport().createRequestFactory()
                         .buildGetRequest(new GenericUrl("https://www.googleapis.com/oauth2/v3/certs"))
                         .execute()
@@ -142,6 +141,7 @@ public class AuthController {
                     user_member.setName(name);
                     user_member.setPassword(encoder.encode(senhaAleatoria));
                     user_member.setRoles(roles);
+                    user_member.setPushNotification(false);
                     return this.userRepository.save(user_member);
                 });
                 TokenDTO jwt = jwtService.createAccessToken(user.getEmail(), user.getRoles()
