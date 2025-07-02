@@ -142,6 +142,7 @@ public class AuthController {
                     user_member.setName(name);
                     user_member.setPassword(encoder.encode(senhaAleatoria));
                     user_member.setRoles(roles);
+                    user_member.setPushNotification(false);
                     return this.userRepository.save(user_member);
                 });
                 TokenDTO jwt = jwtService.createAccessToken(user.getEmail(), user.getRoles()

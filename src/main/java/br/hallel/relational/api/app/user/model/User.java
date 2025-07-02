@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.user.model;
 
+import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.security.model.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -78,6 +79,15 @@ public class User implements Serializable, UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_device_notification",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "device_notification_id")
+    )
+    @JsonIgnore
+    private List<DeviceNotification> devicesUser;
 
     @Override
     @JsonIgnore

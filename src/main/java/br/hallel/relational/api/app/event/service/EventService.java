@@ -95,11 +95,9 @@ public class EventService implements EventInterface {
         }
         Event event = this.repository.save(eventToSave);
 
-        if (eventDTO.ministryIds() != null) {
-            for (UUID ministryId : eventDTO.ministryIds()) {
-                log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
-                eventScaleService.createScale(event, ministryId);
-            }
+        for (UUID ministryId : eventDTO.ministryIds()) {
+            log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
+            eventScaleService.createScale(event, ministryId);
         }
 
         return mapper.entityToResponse(this.repository.save(event));
