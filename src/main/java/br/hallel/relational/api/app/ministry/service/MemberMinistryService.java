@@ -1,5 +1,8 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
+import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
 import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
@@ -23,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +45,8 @@ public class MemberMinistryService {
     private UserRepository userRepository;
     @Autowired
     private MinistryRepository ministryRepository;
+    @Autowired
+    private FCMSenderService fcmSenderService;
 
 
     public Page<MemberMinistryResponseWithFunctions> getAllMemberOfMinistry(
@@ -63,7 +69,7 @@ public class MemberMinistryService {
                         fmm -> fmm.getUser()
                                 .getId(),
                         Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
-                                              ));
+                ));
 
         List<MemberMinistryResponseWithFunctions> dtos = users.stream()
                 .map(user -> new MemberMinistryResponseWithFunctions(
@@ -107,11 +113,31 @@ public class MemberMinistryService {
         MemberMinistryId id = new MemberMinistryId(userId, ministryId);
 
         MemberMinistry memberMinistry = new MemberMinistry(id, user, ministry);
-        System.out.println(memberMinistry.getId());
-        System.out.println("MINISTRY: "+memberMinistry.getMinistry().getId());
-        System.out.println("USER: " +memberMinistry.getUser().getId());
+        sendNotificationToPersonAddedIntoMinistry(memberMinistry);
         return memberMinistryRepository.save(memberMinistry);
     }
+
+    private void sendNotificationToPersonAddedIntoMinistry(MemberMinistry memberMinistry) {
+        List<DeviceNotification> devicesCoordinador = memberMinistry.getUser().getDevicesUser();
+
+        devicesCoordinador.forEach(device -> {
+            fcmSenderService.sendNotification(device.getFcmToken(),
+                    "Ministério %s".formatted(memberMinistry.getMinistry().getTitle()),
+                    "Parabéns! Você foi adicionado pelo coordenador ao ministério %s, veja agora.".formatted(
+                            memberMinistry.getMinistry().getTitle()),
+                    personAddedNotificationTemplate(memberMinistry));
+        });
+    }
+
+    private Map<String, String> personAddedNotificationTemplate(MemberMinistry memberMinistry) {
+        Map<String, String> map = new HashMap<>();
+        map.put("type", "panel_ministry");
+        map.put("action", "open_panel");
+        map.put("userId", memberMinistry.getUser().getId().toString());
+        map.put("ministryId", memberMinistry.getMinistry().getId().toString());
+        return map;
+    }
+
 
     public void removeMemberFromMinistry(UUID ministryId,
                                          UUID userId) {
