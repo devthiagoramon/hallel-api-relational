@@ -8,6 +8,8 @@ import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.GuestInvitedEventScaleRepository;
 import br.hallel.relational.api.app.event.repository.InviteEventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
+import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
+import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.RepertoryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
@@ -36,6 +38,7 @@ public class MemberEventScaleService {
     private final GuestInvitedEventScaleRepository guestRepository;
     private final InviteEventScaleRepository inviteRepository;
     private final MemberMinistryRepository memberMinistryRepository;
+    private final FCMSenderService fcmSenderService;
 
     private final RepertoryMapper repertoryMapper;
 
@@ -43,31 +46,52 @@ public class MemberEventScaleService {
             UUID eventScaleId, List<UUID> userIds) {
 
         log.info("Inviting users {} into scale {}", userIds, eventScaleId);
-
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
                 .orElseThrow(() -> new EventScaleNotFoundException(
                         "Event scale with id %s not found".formatted(eventScaleId)));
-
         List<User> users = userRepository.findAllById(userIds);
-
         if (users.size() != userIds.size()) {
             throw new UserNotFoundException("Um ou mais usuários não foram encontrados.");
         }
-
         List<MemberEventScale> invitedMembers = new ArrayList<>();
-
         for (User user : users) {
             MemberEventScale member = new MemberEventScale(
                     MemberEventScaleStatus.CONVIDADO,
                     null, user, eventScale
             );
+            sendNotificationInviteIntoScale(eventScale, user);
             invitedMembers.add(member);
         }
-
         memberEventScaleRepository.saveAll(invitedMembers);
-
         return new EventScaleSimpleResponse(eventScaleId, eventScale.getDate());
     }
+
+    private void sendNotificationInviteIntoScale(EventScale eventScale, User user) {
+        List<DeviceNotification> deviceNotifications = user.getDevicesUser();
+        if (deviceNotifications.isEmpty()) {
+            return;
+        }
+        deviceNotifications.forEach(deviceNotification -> {
+            fcmSenderService.sendNotification(
+                    deviceNotification.getFcmToken(),
+                    "Convite para escala do ministério",
+                    "Você foi convidado para participar da escala do ministério %s, veja agora e confirme a sua participação!".formatted(eventScale.getMinistry().getTitle()),
+                    dataNotificationInviteIntoScale(eventScale, user)
+                    );
+        });
+
+    }
+
+    private Map<String, String> dataNotificationInviteIntoScale(EventScale eventScale, User user) {
+        Map<String, String> data = new HashMap<>();
+        data.put("userId", user.getId().toString());
+        data.put("eventScaleId", eventScale.getId().toString());
+        data.put("type", "invite_scale");
+        data.put("action", "panel_ministry");
+        data.put("dateScale", eventScale.getDate().toString());
+        return data;
+    }
+
 
     public boolean viewInvite(UUID eventScaleId, UUID userId) {
 
