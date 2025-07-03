@@ -108,11 +108,12 @@ public class EventScaleService implements ScaleInterface {
 
     private Map<String, String> eventScaleNotificationTemplate(User user, Ministry ministry, EventScale eventScale) {
         HashMap<String, String> map = new HashMap<>();
-        map.put("type", "event_scale");
+        map.put("type", "create_event_scale");
         map.put("userId", user.getId().toString());
         map.put("action", "invite_scale");
         map.put("eventScaleId", eventScale.getId().toString());
         map.put("ministryId", ministry.getId().toString());
+
         return map;
     }
 

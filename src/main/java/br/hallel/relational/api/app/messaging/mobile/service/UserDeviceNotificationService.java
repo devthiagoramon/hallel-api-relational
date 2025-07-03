@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -73,6 +74,15 @@ public class UserDeviceNotificationService {
         log.info("Removing user device {}", deviceNotificationId);
         DeviceNotification deviceNotification = deviceNotificationRepository.findById(deviceNotificationId).orElseThrow(
                 () -> new DeviceNotificationNotFoundException("Device %s not found".formatted(deviceNotificationId)));
+        List<UserDeviceNotification> usersDevicesByDeviceNotificationId = this.userDeviceNotificationRepository.findUserDeviceNotificationByUserDeviceNotificationId_DeviceNotificationId(
+                deviceNotificationId);
+        UserDeviceNotification userDeviceNotification = usersDevicesByDeviceNotificationId.get(0);
+        User user = userRepository.findById(userDeviceNotification.getUserDeviceNotificationId().getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found by id %s".formatted(
+                        userDeviceNotification.getUserDeviceNotificationId().getUserId())));
+        user.setPushNotification(false);
+        userRepository.save(user);
+        userDeviceNotificationRepository.delete(userDeviceNotification);
         deviceNotificationRepository.delete(deviceNotification);
     }
 

@@ -17,6 +17,7 @@ import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.model.StatusParticipationMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
@@ -74,11 +75,14 @@ public class MinistryService implements MinistryInterface {
         Ministry ministryMapped = mapper.requestToEntity(ministryRequestDTO);
 
         User coordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
-                .orElseThrow(() -> new UserNotFoundException("User to add as coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
-                        .toString())));
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User to add as coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
+                                .toString())));
         User viceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
-                .orElseThrow(() -> new UserNotFoundException("User to add as vice-coordinator not found by id: %s".formatted(ministryRequestDTO.getViceCoordinatorId()
-                        .toString())));
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User to add as vice-coordinator not found by id: %s".formatted(
+                                ministryRequestDTO.getViceCoordinatorId()
+                                        .toString())));
         ministryMapped.setCoordinator(coordinator);
         ministryMapped.setViceCoordinator(viceCoordinator);
         Ministry ministry =
@@ -90,8 +94,8 @@ public class MinistryService implements MinistryInterface {
                     image, GoogleBucketUtils.getImageName(
                             ministry.getId()
                                     .toString(), Ministry.class.getSimpleName(), "image"
-                    )
-            );
+                                                         )
+                                                            );
         } catch (IOException e) {
             log.info("Image Url Response: " + image);
             throw new RuntimeException(e);
@@ -112,10 +116,10 @@ public class MinistryService implements MinistryInterface {
                 ministryList.stream().map(ministry ->
                                 mapper.entityMinistryToResponse(ministry))
                         .collect(Collectors.toList());
-        
+
         return responseList;
     }
-    
+
     @Override
     public List<MinistryResponse> listAllMinistriesPage(int page,
                                                         int size) {
@@ -138,7 +142,8 @@ public class MinistryService implements MinistryInterface {
     public MinistryResponse getMinistryById(UUID id) {
         log.info("Getting ministry by id" + id);
 
-        Ministry ministry = this.ministryRepository.findById(id).orElseThrow(() -> new MinistryIllegalArgumentException("Ministry Id: " + id + " not found!"));
+        Ministry ministry = this.ministryRepository.findById(id)
+                .orElseThrow(() -> new MinistryIllegalArgumentException("Ministry Id: " + id + " not found!"));
 
         log.info("Ministry Response: " + ministry.getId());
 
@@ -166,7 +171,7 @@ public class MinistryService implements MinistryInterface {
                         image, GoogleBucketUtils.getImageName(
                                 ministry.getId()
                                         .toString(), Ministry.class.getSimpleName(), "image"
-                        ));
+                                                             ));
                 ministry.setImage(imageUrl);
                 log.info("image Url Response: " + imageUrl);
             } catch (IOException e) {
@@ -190,9 +195,11 @@ public class MinistryService implements MinistryInterface {
 
     private void deleteCoordinatorFromMemberMinistryTable(UUID userId, UUID ministryId) {
         log.info("Deleting coordinator from member ministry table...");
-        Optional<MemberMinistry> optionalMemberMinistry = memberMinistryRepository.findById(new MemberMinistryId(userId, ministryId));
+        Optional<MemberMinistry> optionalMemberMinistry = memberMinistryRepository.findById(
+                new MemberMinistryId(userId, ministryId));
         if (optionalMemberMinistry.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException("Member Ministry Id: " + userId + " not found as member ministry!");
+            throw new MemberMinistryRegisterNotFoundException(
+                    "Member Ministry Id: " + userId + " not found as member ministry!");
         }
         MemberMinistry oldMinistryMember = optionalMemberMinistry.get();
         memberMinistryRepository.delete(oldMinistryMember);
@@ -232,13 +239,16 @@ public class MinistryService implements MinistryInterface {
     }
 
     @Override
-    public List<EventScaleSimpleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<EventScaleSimpleResponse> listAllEventScalesByMinistryIdAndRangeDate(UUID ministryId,
+                                                                                     LocalDateTime startDate,
+                                                                                     LocalDateTime endDate) {
 
         if (startDate.isAfter(endDate)) {
             throw new EventScaleIllegalArgumentException("Data inicial não pode ser maior que a data final.");
         }
         List<EventScaleSimpleResponse> responses = new ArrayList<>();
-        List<EventScale> eventScales = this.ministryRepository.findAllEventScalesByMinistryIdAndDateRange(ministryId, startDate, endDate);
+        List<EventScale> eventScales = this.ministryRepository.findAllEventScalesByMinistryIdAndDateRange(ministryId,
+                startDate, endDate);
         for (EventScale eventScale : eventScales) {
             responses.add(new EventScaleSimpleResponse(eventScale.getId(),
                     eventScale.getDate()));
@@ -248,9 +258,29 @@ public class MinistryService implements MinistryInterface {
     }
 
     public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
-        Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(() -> new MinistryIllegalArgumentException("Can't find ministry of id %s".formatted(ministryId)));
+        Ministry ministry = this.ministryRepository.findById(ministryId)
+                .orElseThrow(() -> new MinistryIllegalArgumentException(
+                        "Can't find ministry of id %s".formatted(ministryId)));
 
         if (ministry.getCoordinator().getId().equals(userId)) return true;
         return ministry.getViceCoordinator().getId().equals(userId);
     }
+
+    public StatusParticipationMinistry listStatusParticipationInMinistry(UUID ministryId, UUID userId) {
+        Ministry ministry = this.ministryRepository.findById(ministryId)
+                .orElseThrow(() -> new MinistryIllegalArgumentException(
+                        "Ministry not found by id %s".formatted(ministryId)));
+
+        if (ministry.getCoordinator().getId().equals(userId)) {
+            return StatusParticipationMinistry.COORDINATOR;
+        }
+        if (ministry.getViceCoordinator().getId().equals(userId)) {
+            return StatusParticipationMinistry.VICE_COORDINATOR;
+        }
+        return StatusParticipationMinistry.MEMBER;
+
+    }
+
 }
+
+

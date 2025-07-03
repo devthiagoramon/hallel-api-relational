@@ -22,6 +22,7 @@ import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,6 +30,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MemberEventScaleService {
 
     private final MemberEventScaleRepository memberEventScaleRepository;
@@ -67,6 +69,7 @@ public class MemberEventScaleService {
     }
 
     private void sendNotificationInviteIntoScale(EventScale eventScale, User user) {
+        Hibernate.initialize(user.getDevicesUser());
         List<DeviceNotification> deviceNotifications = user.getDevicesUser();
         if (deviceNotifications.isEmpty()) {
             return;
@@ -86,6 +89,7 @@ public class MemberEventScaleService {
         Map<String, String> data = new HashMap<>();
         data.put("userId", user.getId().toString());
         data.put("eventScaleId", eventScale.getId().toString());
+        data.put("ministryId", eventScale.getMinistry().getId().toString());
         data.put("type", "invite_scale");
         data.put("action", "panel_ministry");
         data.put("dateScale", eventScale.getDate().toString());

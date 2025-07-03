@@ -131,7 +131,7 @@ public class MemberMinistryService {
 
     private Map<String, String> personAddedNotificationTemplate(MemberMinistry memberMinistry) {
         Map<String, String> map = new HashMap<>();
-        map.put("type", "panel_ministry");
+        map.put("type", "add_member_ministry");
         map.put("action", "open_panel");
         map.put("userId", memberMinistry.getUser().getId().toString());
         map.put("ministryId", memberMinistry.getMinistry().getId().toString());
