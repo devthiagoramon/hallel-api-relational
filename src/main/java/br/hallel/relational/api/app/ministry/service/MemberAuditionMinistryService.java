@@ -18,9 +18,9 @@ public class MemberAuditionMinistryService {
     @Autowired
     private MemberAuditionMinistryRepository repository;
 
-    public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberId) {
+    public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberMinistryId) {
 
-        Optional<MemberAuditionMinistry> optional = this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId);
+        Optional<MemberAuditionMinistry> optional = this.repository.findStatusByAuditionMinistry_IdAndMemberMinistry_Id(auditionId, memberMinistryId);
         if (optional.isEmpty()) {
             return MemberEventScaleStatus.NAO_CONVIDADO;
         }
@@ -28,10 +28,10 @@ public class MemberAuditionMinistryService {
         return optional.get().getStatus();
     }
 
-    public Boolean confirmInviteAudition(UUID auditionId, UUID memberId) {
+    public Boolean confirmInviteAudition(UUID auditionId, UUID memberMinistryId) {
 
         MemberAuditionMinistry memberAuditionMinistry =
-                this.repository.findStatusByAuditionMinistry_IdAndUser_Id(auditionId, memberId).orElseThrow(
+                this.repository.findStatusByAuditionMinistry_IdAndMemberMinistry_Id(auditionId, memberMinistryId).orElseThrow(
                         () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
                 );
 
@@ -39,16 +39,20 @@ public class MemberAuditionMinistryService {
 
         this.repository.save(memberAuditionMinistry);
 
-        log.info("Member Name {} and Status {}: ", memberAuditionMinistry.getUser().getName(),
-                memberAuditionMinistry.getStatus().name());
+        getInfo(memberAuditionMinistry);
 
         return true;
+    }
+
+    private static void getInfo(MemberAuditionMinistry memberAuditionMinistry) {
+        log.info("Member Name {} and Status {}: ", memberAuditionMinistry.getMemberMinistry().getUser().getName(),
+                memberAuditionMinistry.getStatus().name());
     }
 
     public Boolean declineInviteAudition(AuditionNotConfirmedResponse requestDTO) {
 
         MemberAuditionMinistry memberAuditionMinistry =
-                this.repository.findStatusByAuditionMinistry_IdAndUser_Id(requestDTO.auditionId(), requestDTO.userId()).orElseThrow(
+                this.repository.findStatusByAuditionMinistry_IdAndMemberMinistry_Id(requestDTO.auditionId(), requestDTO.memberMinistryId()).orElseThrow(
                         () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
                 );
         memberAuditionMinistry.setStatus(MemberEventScaleStatus.RECUSADO);
@@ -56,8 +60,7 @@ public class MemberAuditionMinistryService {
 
         this.repository.save(memberAuditionMinistry);
 
-        log.info("Member Name {} and Status {}: ", memberAuditionMinistry.getUser().getName(),
-                memberAuditionMinistry.getStatus().name());
+        getInfo(memberAuditionMinistry);
         return true;
     }
 

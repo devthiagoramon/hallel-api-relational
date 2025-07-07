@@ -68,7 +68,7 @@ public class TokenCoordinatorMinistry {
                                                       .build()
                                                       .toUriString();
         return JWT.create()
-                  .withClaim("userId", userId.toString())
+                  .withClaim("memberMinistryId", userId.toString())
                   .withClaim("ministryId", ministryId.toString())
                   .withIssuedAt(now)
                   .withExpiresAt(expiration)
@@ -82,7 +82,7 @@ public class TokenCoordinatorMinistry {
         Date expirationRefreshToken = new Date(now.getTime() + expirationTimeInMiliseconds * 3);
 
         return JWT.create()
-                  .withClaim("userId", userId.toString())
+                  .withClaim("memberMinistryId", userId.toString())
                   .withClaim("ministryId", ministryId.toString())
                   .withIssuedAt(now)
                   .withExpiresAt(expirationRefreshToken)

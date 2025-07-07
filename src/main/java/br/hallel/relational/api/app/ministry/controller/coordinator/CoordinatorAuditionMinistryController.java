@@ -88,36 +88,36 @@ public class CoordinatorAuditionMinistryController {
     }
 
 
-    @GetMapping("/get-status/{auditionId}/{memberId}")
+    @GetMapping("/get-status/{auditionId}/{memberMinistryId}")
     public ResponseEntity<MemberAuditionStatusResponse> findMemberAuditionMinistryByAuditionId(
             @PathVariable(name = "auditionId") UUID auditionId,
-            @PathVariable(name = "memberId") UUID memberId
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId
     ) {
-        log.info("GET /get-status called with auditionId = {}, memberId = {}", auditionId, memberId);
+        log.info("GET /get-status called with auditionId = {}, memberId = {}", auditionId, memberMinistryId);
         MemberEventScaleStatus status = this.memberAuditionMinistryService
-                .findMemberAuditionByAuditionAndMemberId(auditionId, memberId);
+                .findMemberAuditionByAuditionAndMemberId(auditionId, memberMinistryId);
         log.info("Returning status: {}", new MemberAuditionStatusResponse(status.name()));
         return ResponseEntity.ok(new MemberAuditionStatusResponse(status.name()));
     }
 
-    @PatchMapping("/confirm-participation/{auditionId}/{memberId}")
+    @PatchMapping("/confirm-participation/{auditionId}/{memberMinistryId}")
     public ResponseEntity<Boolean> confirmInviteAudition(
             @PathVariable(name = "auditionId") UUID auditionId,
-            @PathVariable(name = "memberId") UUID memberId
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId
     ) {
-        log.info("GET /confirm-participation called with auditionId = {}, memberId = {}", auditionId, memberId);
+        log.info("GET /confirm-participation called with auditionId = {}, memberId = {}", auditionId, memberMinistryId);
 
         return ResponseEntity.ok(
-                this.memberAuditionMinistryService.confirmInviteAudition(auditionId, memberId));
+                this.memberAuditionMinistryService.confirmInviteAudition(auditionId, memberMinistryId));
     }
 
-    @PutMapping("/decline-participation/{auditionId}/{memberId}")
+    @PutMapping("/decline-participation/{auditionId}/{memberMinistryId}")
     public ResponseEntity<Boolean> declineInviteAudition(
             @PathVariable(name = "auditionId") UUID auditionId,
-            @PathVariable(name = "memberId") UUID memberId,
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId,
             @RequestBody AuditionNotConfirmedResponse request
     ) {
-        log.info("GET /decline-participation called with auditionId = {}, memberId = {}", auditionId, memberId);
+        log.info("GET /decline-participation called with auditionId = {}, memberId = {}", auditionId, memberMinistryId);
 
         return ResponseEntity.ok(
                 this.memberAuditionMinistryService.declineInviteAudition(request));

@@ -37,7 +37,7 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                     """
     )
     List<EventScale>
-    listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(@Param("userId") UUID userId,
+    listAllScaleWhoUserHasBeenInvitedByUserIdAndMinistryIdRangeDate(@Param("memberMinistryId") UUID userId,
                                                                                      @Param("ministryId") UUID ministryId,
                                                                                      @Param("initial") Date initialDate,
                                                                                      @Param("final") Date finalDate);
@@ -56,7 +56,7 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                   AND es.date BETWEEN :initial AND :final
                 ORDER BY es.date ASC
             """)
-    List<EventScaleWithMembers> listAllEventScaleWithMembers(@Param("userId") UUID userId, UUID ministryId, @Param("initial") Date initialDate, @Param("final") Date finalDate);
+    List<EventScaleWithMembers> listAllEventScaleWithMembers(@Param("memberMinistryId") UUID userId, UUID ministryId, @Param("initial") Date initialDate, @Param("final") Date finalDate);
 
     @Query(
             """

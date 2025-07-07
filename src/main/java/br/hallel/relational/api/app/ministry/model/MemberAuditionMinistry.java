@@ -24,8 +24,8 @@ public class MemberAuditionMinistry {
     @JoinColumn(name = "audition_ministry_id")
     private AuditionMinistry auditionMinistry;
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_ministry_id")
+    private MemberMinistry memberMinistry;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -34,9 +34,9 @@ public class MemberAuditionMinistry {
     @Column(name = "reason_abscence")
     private String reason_abscence;
 
-    public MemberAuditionMinistry(MemberEventScaleStatus status, User user, AuditionMinistry auditionMinistry) {
+    public MemberAuditionMinistry(MemberEventScaleStatus status, MemberMinistry memberMinistry, AuditionMinistry auditionMinistry) {
         this.status = status;
-        this.user = user;
+        this.memberMinistry = memberMinistry;
         this.auditionMinistry = auditionMinistry;
     }
 }
