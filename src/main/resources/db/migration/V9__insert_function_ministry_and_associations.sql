@@ -26,15 +26,15 @@ VALUES ('e27bd127-51b4-44c0-a3bc-a8fdba1697a8'::uuid,
         'É o guitarrista do ministério', '🎸', '#eb984e');
 
 INSERT INTO function_ministry_member (member_ministry_id, function_ministry_id)
-VALUES ('fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid,
+VALUES ('fbc03b19-c26e-4b27-90cd-08586c8d1470'::uuid,
         'e27bd127-51b4-44c0-a3bc-a8fdba1697a8'::uuid),
-       ('fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid,
+       ('fbc03b19-c26e-4b27-90cd-08586c8d1470'::uuid,
         'e818f183-cf7f-4911-9ad3-348916be2b55'::uuid),
-       ('a78319c9-abd5-48d0-988a-60f421e9dd98'::uuid,
+       ('a21575a9-8068-4820-a5b0-2de6e6d6577f'::uuid,
         '50ed7247-5b94-4a8c-af9c-1564962d5543'::uuid),
-       ('35e5d0dc-b95b-42c1-ab41-96954e488ea0'::uuid,
+       ('66704d4c-61b7-4c38-8ef9-175b32fc017b'::uuid,
         '768ac5e7-b6e4-4792-995b-65e0986c9776'::uuid),
-       ('35e5d0dc-b95b-42c1-ab41-96954e488ea0'::uuid,
+       ('66704d4c-61b7-4c38-8ef9-175b32fc017b'::uuid,
         'd7f21edd-e673-402f-ab94-ea46ee22a5f1'::uuid),
-       ('fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid,
+       ('2f284993-2431-4f0f-99cc-7929e239eb4e'::uuid,
         'de4eb9ac-11b6-4f5b-8652-af1546ed334d'::uuid);

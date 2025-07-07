@@ -14,12 +14,12 @@ VALUES ('123e4567-e89b-12d3-a456-426614174000',
 
 
 INSERT INTO member_audition_ministry
-    (id, audition_ministry_id, user_id, status)
+    (id, audition_ministry_id, member_ministry_id, status)
 VALUES ('9b23fd61-7f6e-4a5a-9e62-68d3db45e6e1',
         '123e4567-e89b-12d3-a456-426614174000',
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190',
+        'fbc03b19-c26e-4b27-90cd-08586c8d1470',
         'PARTICIPANDO'),
        ('2c76a845-df0c-44c8-a430-3d68e3d3d1a1',
         '123e4567-e89b-12d3-a456-426614174000',
-        'a78319c9-abd5-48d0-988a-60f421e9dd98',
+        'a21575a9-8068-4820-a5b0-2de6e6d6577f',
         'CONVIDADO');

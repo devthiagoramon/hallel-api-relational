@@ -51,29 +51,29 @@ VALUES ('123e4567-e89b-12d3-a456-426614174000'::uuid, 'a1b2c3d4-e5f6-7890-ab12-c
        ('9b35a429-d2b5-43f8-84d7-ee60cc488c2b'::uuid, 'f15dfabb-923c-4010-8c64-1432414e82ca'::uuid,
         'dc317933-167f-4f76-b7cb-a2a219dc8191'::uuid, '2025-06-22');
 
-INSERT INTO member_event_scale (id, event_scale_id, user_id, status, reason_absence)
+INSERT INTO member_event_scale (id, event_scale_id, member_ministry_id, status, reason_absence)
 VALUES ('b39c58c8-9c0f-4c7b-b1d3-c8d83ce57f9d'::uuid, '808bb575-e8cb-4186-a91b-e13f992d9457'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        'fbc03b19-c26e-4b27-90cd-08586c8d1470'::uuid, 'CONVIDADO', NULL),
        ('acfe55a5-24cf-4559-8374-2c658e14c012'::uuid, '808bb575-e8cb-4186-a91b-e13f992d9457'::uuid,
-        'a78319c9-abd5-48d0-988a-60f421e9dd98'::uuid, 'CONVIDADO', NULL),
+        'a21575a9-8068-4820-a5b0-2de6e6d6577f'::uuid, 'CONVIDADO', NULL),
        ('170305d7-a272-4f4e-96fa-b701fa75a268'::uuid, '316e53c8-8009-4247-96f7-729b18ec396e'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        '2f284993-2431-4f0f-99cc-7929e239eb4e'::uuid, 'CONVIDADO', NULL),
        ('b373d87e-3781-42c2-b899-264f65b9f591'::uuid, '316e53c8-8009-4247-96f7-729b18ec396e'::uuid,
-        '35e5d0dc-b95b-42c1-ab41-96954e488ea0'::uuid, 'CONVIDADO', NULL),
+        '66704d4c-61b7-4c38-8ef9-175b32fc017b'::uuid, 'CONVIDADO', NULL),
        ('24fe60b2-abe3-46ad-ab45-372d8e484417'::uuid, '1890152a-455f-4ecb-8c7b-2e322cb66675'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        'fbc03b19-c26e-4b27-90cd-08586c8d1470'::uuid, 'CONVIDADO', NULL),
        ('99a8e7eb-be00-4d40-9f00-c4840c1fd9e9'::uuid, '1890152a-455f-4ecb-8c7b-2e322cb66675'::uuid,
-        'a78319c9-abd5-48d0-988a-60f421e9dd98'::uuid, 'CONVIDADO', NULL),
+        'a21575a9-8068-4820-a5b0-2de6e6d6577f'::uuid, 'CONVIDADO', NULL),
        ('fef243de-3b01-4bea-bc5d-56349a076d19'::uuid, 'f7126854-dbdc-4ced-9efa-04a521458afb'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        '2f284993-2431-4f0f-99cc-7929e239eb4e'::uuid, 'CONVIDADO', NULL),
        ('ab89a8b6-0a03-4ba0-af82-9f70ab599442'::uuid, 'f7126854-dbdc-4ced-9efa-04a521458afb'::uuid,
-        '35e5d0dc-b95b-42c1-ab41-96954e488ea0'::uuid, 'CONVIDADO', NULL),
+        '66704d4c-61b7-4c38-8ef9-175b32fc017b'::uuid, 'CONVIDADO', NULL),
        ('e582cf22-9134-4946-b4ec-480240e819ef'::uuid, '09b2415e-ec84-4df3-973b-7ea6cfc32a17'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        'fbc03b19-c26e-4b27-90cd-08586c8d1470'::uuid, 'CONVIDADO', NULL),
        ('2fcc9a2d-0270-4461-91e2-ca3df4ac0c86'::uuid, '09b2415e-ec84-4df3-973b-7ea6cfc32a17'::uuid,
-        'a78319c9-abd5-48d0-988a-60f421e9dd98'::uuid, 'CONVIDADO', NULL);
-INSERT INTO member_event_scale (id, event_scale_id, user_id, status, reason_absence)
+        'a21575a9-8068-4820-a5b0-2de6e6d6577f'::uuid, 'CONVIDADO', NULL);
+INSERT INTO member_event_scale (id, event_scale_id, member_ministry_id, status, reason_absence)
 VALUES ('1a18f3fa-b192-408c-9661-a3f1b93180d2'::uuid, '9b35a429-d2b5-43f8-84d7-ee60cc488c2b'::uuid,
-        'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid, 'CONVIDADO', NULL),
+        '2f284993-2431-4f0f-99cc-7929e239eb4e'::uuid, 'CONVIDADO', NULL),
        ('2592cc35-2b1f-434c-8660-9a1f07f10584'::uuid, '9b35a429-d2b5-43f8-84d7-ee60cc488c2b'::uuid,
-        '35e5d0dc-b95b-42c1-ab41-96954e488ea0'::uuid, 'CONVIDADO', NULL);
+        '66704d4c-61b7-4c38-8ef9-175b32fc017b'::uuid, 'CONVIDADO', NULL);

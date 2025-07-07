@@ -18,7 +18,7 @@ Com humildade e compromisso, servimos à igreja e ao Reino, dedicando nossos tal
 Mais do que uma performance, cada dança é uma oferta viva diante do Senhor, fruto de oração, consagração e paixão por Sua presença.','https://storage.googleapis.com/download/storage/v1/b/hallel-bucket/o/dc317933-167f-4f76-b7cb-a2a219dc8191-Ministry-image?generation=1747246377826157&alt=media',true,'0','fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190','35e5d0dc-b95b-42c1-ab41-96954e488ea0');
 
 INSERT INTO member_ministry (id, user_id,ministry_id) VALUES
-                                                             ("fbc03b19-c26e-4b27-90cd-08586c8d1470", 'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190','8675330f-9c78-4c6d-9230-b046b4097392'),
-                                                             ("a21575a9-8068-4820-a5b0-2de6e6d6577f", 'a78319c9-abd5-48d0-988a-60f421e9dd98','8675330f-9c78-4c6d-9230-b046b4097392'),
-                                                             ("2f284993-2431-4f0f-99cc-7929e239eb4e", 'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190','dc317933-167f-4f76-b7cb-a2a219dc8191'),
-                                                             ("66704d4c-61b7-4c38-8ef9-175b32fc017b", '35e5d0dc-b95b-42c1-ab41-96954e488ea0','dc317933-167f-4f76-b7cb-a2a219dc8191');
+                                                             ('fbc03b19-c26e-4b27-90cd-08586c8d1470', 'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190','8675330f-9c78-4c6d-9230-b046b4097392'),
+                                                             ('a21575a9-8068-4820-a5b0-2de6e6d6577f', 'a78319c9-abd5-48d0-988a-60f421e9dd98','8675330f-9c78-4c6d-9230-b046b4097392'),
+                                                             ('2f284993-2431-4f0f-99cc-7929e239eb4e', 'fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190','dc317933-167f-4f76-b7cb-a2a219dc8191'),
+                                                             ('66704d4c-61b7-4c38-8ef9-175b32fc017b', '35e5d0dc-b95b-42c1-ab41-96954e488ea0','dc317933-167f-4f76-b7cb-a2a219dc8191');
