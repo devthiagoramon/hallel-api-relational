@@ -21,10 +21,10 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
     List<MemberEventScale> findAllByStatusAndEventScale_Id(MemberEventScaleStatus status
             , UUID eventScaleId);
 
-    MemberEventScale findByStatusAndEventScale_IdAndUser_Id(MemberEventScaleStatus status
+    MemberEventScale findByStatusAndEventScale_IdAndMemberMinistry_Id(MemberEventScaleStatus status
             , UUID eventScaleId, UUID userId);
 
-    Optional<MemberEventScale> findByUser_IdAndEventScale_Id(UUID userId, UUID eventScaleId);
+    Optional<MemberEventScale> findByMemberMinistry_IdAndEventScale_Id(UUID userId, UUID eventScaleId);
 
     List<MemberEventScale> findAllByEventScale_Id(UUID eventScaleId);
 
@@ -32,7 +32,8 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
             """
                     select es from EventScale es
                     join MemberEventScale mes on mes.eventScale.id = es.id
-                    where user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final and mes.status = br.hallel.relational.api.app.event.model.MemberEventScaleStatus.CONVIDADO
+                    join mes.memberMinistry mm
+                    where mm.user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final and mes.status = br.hallel.relational.api.app.event.model.MemberEventScaleStatus.CONVIDADO
                     order by es.date asc
                     """
     )
@@ -51,7 +52,8 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                 )
                 FROM MemberEventScale mes
                 JOIN mes.eventScale es
-                WHERE mes.user.id = :userId
+                JOIN mes.memberMinistry mm
+                WHERE mm.user.id = :userId
                   AND es.ministry.id = :ministryId
                   AND es.date BETWEEN :initial AND :final
                 ORDER BY es.date ASC
@@ -67,16 +69,17 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                                         mes.status
                                         ) from EventScale es
                     join MemberEventScale mes on mes.eventScale.id = es.id
-                    where user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final
+                    join mes.memberMinistry mm
+                    where mm.user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final
                     order by es.date asc
                     """
     )
-    List<EventScaleWithStatusInfos> listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(UUID userId,
+    List<EventScaleWithStatusInfos> listAllScaleWithStatusInfosByUserIdAndMinistryIdRangeDate(UUID memberMinistryId,
                                                                                               UUID ministryId,
                                                                                               @Param("initial") Date initialDate,
                                                                                               @Param("final") Date finalDate);
 
-    void deleteMemberEventScaleByEventScale_IdAndUser_Id(UUID eventScaleId, UUID userId);
+    void deleteMemberEventScaleByEventScale_IdAndMemberMinistry_Id(UUID eventScaleId, UUID userId);
 
     UUID id(UUID id);
 

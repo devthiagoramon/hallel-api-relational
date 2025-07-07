@@ -21,12 +21,12 @@ public class UserMinistryController {
 
     private final MinistryService ministryService;
 
-    @GetMapping("/status/{ministryId}/{userId}")
+    @GetMapping("/status/{ministryId}/{memberMinistryId}")
     @Operation(summary = "List user status in some minsitry", description = "Route to list the status of user in ministry")
     public ResponseEntity<StatusParticipationMinistry> getUserStatusParticipationMinistry(@PathVariable("ministryId")
                                                                                           UUID ministryId,
-                                                                                          @PathVariable("userId") UUID userId) {
-        return ResponseEntity.ok().body(this.ministryService.listStatusParticipationInMinistry(ministryId, userId));
+                                                                                          @PathVariable("memberMinistryId") UUID memberMinistryId) {
+        return ResponseEntity.ok().body(this.ministryService.listStatusParticipationInMinistry(ministryId, memberMinistryId));
 
     }
 

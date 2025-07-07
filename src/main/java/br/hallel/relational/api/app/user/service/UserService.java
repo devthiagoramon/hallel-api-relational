@@ -124,7 +124,7 @@ public class UserService implements UserInterface {
 
         if (eventScaleId != null) {
             System.out.println("EventScaleId: " + eventScaleId);
-            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByUser_IdAndEventScale_Id(idUser,
+            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByMemberMinistry_IdAndEventScale_Id(idUser,
                     eventScaleId);
             if (optional.isPresent()) {
                 MemberEventScale member = optional.get();

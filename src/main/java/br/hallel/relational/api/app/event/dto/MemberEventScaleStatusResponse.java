@@ -20,6 +20,6 @@ public class MemberEventScaleStatusResponse {
             reason = member.getReason_absence();
         }
 
-        return new MemberEventScaleStatusResponse(member.getUser().getName(), member.getStatus(),reason);
+        return new MemberEventScaleStatusResponse(member.getMemberMinistry().getUser().getName(), member.getStatus(),reason);
     }
 }

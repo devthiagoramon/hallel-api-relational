@@ -77,38 +77,38 @@ public class UserMemberEventScaleController {
                 start, end));
     }
 
-    @GetMapping("/scales-range-date-with-status/{idMinistry}/{userId}")
+    @GetMapping("/scales-range-date-with-status/{idMinistry}/{memberMinistryId}")
     @Operation(summary = "List all scales of user in ministry with status", description = "List all scales of user in some ministry with status in range of date")
     public ResponseEntity<List<EventScaleWithStatusInfos>> listAllScaleOfUserWithStatusInfoByRangeDate(
             @PathVariable(name = "idMinistry") UUID ministryId,
-            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId,
             @RequestParam(name = "start") LocalDateTime start,
             @RequestParam(name = "end") LocalDateTime end) {
         return ResponseEntity.ok(
-                this.memberEventScaleService.listAllScaleOfUserInMinistryInRangeOfDateStatus(userId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
+                this.memberEventScaleService.listAllScaleOfUserInMinistryInRangeOfDateStatus(memberMinistryId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
     }
 
-    @GetMapping("/scales-range-date-with-members/{idMinistry}/{userId}")
+    @GetMapping("/scales-range-date-with-members/{idMinistry}/{memberMinistryId}")
     @Operation(summary = "List all scales of user in ministry with members", description = "List all scales of user in some ministry with status and membersin range of date")
     public ResponseEntity<List<EventScaleWithMembers>> listAllEventScaleWithMembers(
             @PathVariable(name = "idMinistry") UUID ministryId,
-            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId,
             @RequestParam(name = "start") LocalDateTime start,
             @RequestParam(name = "end") LocalDateTime end) {
         return ResponseEntity.ok(
-                this.memberEventScaleService.listAllEventScaleWithMembers(userId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
+                this.memberEventScaleService.listAllEventScaleWithMembers(memberMinistryId, ministryId, DateUtils.convertLocalDateTimeToDate(start), DateUtils.convertLocalDateTimeToDate(end)));
     }
 
-    @GetMapping("/get-status/{eventScaleId}/{userId}")
+    @GetMapping("/get-status/{eventScaleId}/{memberMinistryId}")
     @Operation(
             summary = "Getting Member Status in Event Scale by your Id"
     )
     public ResponseEntity<MemberAuditionStatusResponse> getMemberStatus(
-            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "memberMinistryId") UUID memberMinistryId,
             @PathVariable(name = "eventScaleId") UUID eventScaleId
     ) {
 
-        MemberAuditionStatusResponse status = this.memberEventScaleService.getMemberStatus(userId, eventScaleId);
+        MemberAuditionStatusResponse status = this.memberEventScaleService.getMemberStatus(memberMinistryId, eventScaleId);
         log.info(status.getAuditionStatus());
         return ResponseEntity.ok(status);
     }

@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.model;
 
-import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,19 +31,19 @@ public class MemberEventScale {
     private Date date_view;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_ministry_id")
+    private MemberMinistry memberMinistry;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "event_scale_id")
     private EventScale eventScale;
 
     public MemberEventScale(MemberEventScaleStatus status,
-                            String reason_absence, User user,
+                            String reason_absence, MemberMinistry memberMinistry,
                             EventScale eventScale) {
         this.status = status;
         this.reason_absence = reason_absence;
-        this.user = user;
+        this.memberMinistry = memberMinistry;
         this.eventScale = eventScale;
     }
 }

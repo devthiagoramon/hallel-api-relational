@@ -27,7 +27,8 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT es
                 FROM MemberEventScale mes
                 JOIN mes.eventScale es
-                WHERE mes.user.id = :memberId
+                JOIN mes.memberMinistry mm
+                WHERE mm.user.id = :memberId
                   AND mes.status = :status
                   AND es.date BETWEEN :start AND :end
             """)

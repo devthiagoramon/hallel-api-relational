@@ -48,10 +48,11 @@ public interface MemberMinistryRepository
 
     @Query("""
     SELECT m FROM MemberMinistry m
+
     WHERE m.ministry.id = :ministryId
     AND NOT EXISTS (
         SELECT mes FROM MemberEventScale mes
-        WHERE mes.user.id = m.user.id
+        WHERE m.user.id = m.user.id
         AND mes.eventScale.id = :eventScaleId
     )
 """)

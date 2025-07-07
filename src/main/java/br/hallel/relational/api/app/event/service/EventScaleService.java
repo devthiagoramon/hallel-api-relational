@@ -16,10 +16,7 @@ import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.model.EventScaleRepertory;
-import br.hallel.relational.api.app.ministry.model.EventScaleRepertoryId;
-import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.ministry.model.Ministry;
+import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.EventScaleRepertoryRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
@@ -152,18 +149,18 @@ public class EventScaleService implements ScaleInterface {
                         eventScaleId);
 
         List<UUID> invitedIds = membersInviteds.stream()
-                .map(member -> member.getUser().getId())
+                .map(member -> member.getMemberMinistry().getUser().getId())
                 .collect(Collectors.toList());
         List<UUID> confirmedIds = membersConfirmed.stream()
-                .map(member -> member.getUser().getId())
+                .map(member -> member.getMemberMinistry().getUser().getId())
                 .collect(Collectors.toList());
         List<UUID> declinedIds = membersDecline.stream()
-                .map(member -> member.getUser().getId())
+                .map(member -> member.getMemberMinistry().getUser().getId())
                 .collect(Collectors.toList());
 
         List<UUID> repertoryIds = this.repertoryRepository.findAllByMinistry_Id(eventScale.getMinistry().getId())
                 .stream().map(
-                        repertory -> repertory.getId()
+                        RepertoryMinistry::getId
                 ).collect(Collectors.toList());
 
         EventScaleWithInfos eventScaleWithInfos = new EventScaleWithInfos();
