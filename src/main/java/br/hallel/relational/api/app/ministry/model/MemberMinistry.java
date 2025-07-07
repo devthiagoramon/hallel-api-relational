@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity(name = "MemberMinistry")
 @Table(name = "member_ministry")
@@ -17,8 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 public class MemberMinistry {
 
-    @EmbeddedId
-    private MemberMinistryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.EAGER)
@@ -29,4 +31,9 @@ public class MemberMinistry {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
+
+    public MemberMinistry(User user, Ministry ministry) {
+        this.user = user;
+        this.ministry = ministry;
+    }
 }

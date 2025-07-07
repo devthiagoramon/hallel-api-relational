@@ -15,7 +15,6 @@ import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentEx
 import br.hallel.relational.api.app.ministry.exception.MinistryListEmptyException;
 import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.model.StatusParticipationMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
@@ -195,8 +194,10 @@ public class MinistryService implements MinistryInterface {
 
     private void deleteCoordinatorFromMemberMinistryTable(UUID userId, UUID ministryId) {
         log.info("Deleting coordinator from member ministry table...");
-        Optional<MemberMinistry> optionalMemberMinistry = memberMinistryRepository.findById(
-                new MemberMinistryId(userId, ministryId));
+
+        Optional<MemberMinistry> optionalMemberMinistry = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
+                userId, ministryId);
+
         if (optionalMemberMinistry.isEmpty()) {
             throw new MemberMinistryRegisterNotFoundException(
                     "Member Ministry Id: " + userId + " not found as member ministry!");
@@ -213,9 +214,7 @@ public class MinistryService implements MinistryInterface {
         Ministry ministry = ministryRepository.findById(ministryId)
                 .orElseThrow(() -> new RuntimeException("Ministry not found with id: " + ministryId));
 
-        MemberMinistryId memberMinistryId = new MemberMinistryId(userId, ministryId);
-
-        memberMinistryRepository.save(new MemberMinistry(memberMinistryId, user, ministry));
+        memberMinistryRepository.save(new MemberMinistry(user, ministry));
     }
 
     @Override

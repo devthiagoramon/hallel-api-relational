@@ -1,10 +1,6 @@
 package br.hallel.relational.api.app.ministry.repository;
 
-import br.hallel.relational.api.app.event.model.EventScale;
-import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
-import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.ministry.model.MemberMinistryId;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
@@ -15,11 +11,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface MemberMinistryRepository
-        extends JpaRepository<MemberMinistry, MemberMinistryId> {
+        extends JpaRepository<MemberMinistry, UUID> {
 
 
     @Query(
@@ -43,14 +40,12 @@ public interface MemberMinistryRepository
     List<Ministry> listMinistryThatUserParticipateByUserId(
             @Param("user_id") UUID userId);
 
-    MemberMinistry findMemberMinistryById(MemberMinistryId ministryId);
-
 
     List<MemberMinistry> findMemberMinistriesByMinistry_Id(UUID ministryId
 //            , Pageable pageable
     );
 
-    MemberMinistryId id(MemberMinistryId id);
+
 
     @Query("""
     SELECT m FROM MemberMinistry m
@@ -63,4 +58,5 @@ public interface MemberMinistryRepository
 """)
     List<MemberMinistry> findAvailableMembersToInvite(UUID ministryId, UUID eventScaleId);
 
+    Optional<MemberMinistry> findMemberMinistryByUser_IdAndMinistry_Id(UUID userId, UUID ministryId);
 }

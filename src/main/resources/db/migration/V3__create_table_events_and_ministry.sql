@@ -1,5 +1,5 @@
 CREATE
-EXTENSION IF NOT EXISTS pgcrypto;
+    EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE events
 (
     id                    UUID PRIMARY KEY          DEFAULT gen_random_uuid(),
@@ -44,10 +44,10 @@ CREATE TABLE function_ministry
 
 CREATE TABLE function_ministry_member
 (
-    user_id              uuid not null,
+    member_ministry_id   uuid not null,
     function_ministry_id uuid not null,
-    primary key (user_id, function_ministry_id),
-    CONSTRAINT fk_user foreign key (user_id) REFERENCES "user" (id) on delete cascade,
+    primary key (member_ministry_id, function_ministry_id),
+    CONSTRAINT fk_member_ministry foreign key (member_ministry_id) REFERENCES "member_ministry" (id) on delete cascade,
     CONSTRAINT fk_function_ministry foreign key (function_ministry_id) references function_ministry (id) on delete cascade on update cascade
 );
 
@@ -149,38 +149,38 @@ CREATE TABLE repertory_video_ministry
 
 CREATE TABLE member_event_scale
 (
-    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_scale_id UUID    NOT NULL,
-    user_id        UUID    NOT NULL,
-    status         VARCHAR NOT NULL,
-    date_view TIMESTAMP,
-    reason_absence TEXT,
-    CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_scale_id     UUID    NOT NULL,
+    member_ministry_id UUID    NOT NULL,
+    status             VARCHAR NOT NULL,
+    date_view          TIMESTAMP,
+    reason_absence     TEXT,
+    CONSTRAINT fk_member_ministry_id FOREIGN KEY (member_ministry_id) REFERENCES "member_ministry" (id) ON DELETE CASCADE,
     CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE member_ministry
 (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     UUID NOT NULL,
     ministry_id UUID NOT NULL,
-    PRIMARY KEY (user_id, ministry_id),
-    CONSTRAINT fk_member_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE member_audition_ministry
 (
-    id          UUID PRIMARY KEY,
-    audition_ministry_id UUID NOT NULL ,
-    user_id     UUID NOT NULL ,
-    reason_abscence     TEXT,
-    status      TEXT NOT NULL,
+    id                   UUID PRIMARY KEY,
+    audition_ministry_id UUID NOT NULL,
+    member_ministry_id   UUID NOT NULL,
+    reason_abscence      TEXT,
+    status               TEXT NOT NULL,
 
     CONSTRAINT fk_audition_ministry FOREIGN KEY (audition_ministry_id)
         REFERENCES "audition_ministry" (id)
-        ON DELETE CASCADE ,
+        ON DELETE CASCADE,
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
+    CONSTRAINT fk_member_ministry_id FOREIGN KEY (member_ministry_id)
+        REFERENCES "member_ministry" (id)
         ON DELETE CASCADE
 );

@@ -81,24 +81,14 @@ public class MemberMinistryService {
         return new PageImpl<>(dtos, pageable, pageUsers.getTotalElements());
     }
 
-    public MemberMinistry getMemberMinistryById(UUID ministryId,
-                                                UUID userId) {
-        Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(
-                new MemberMinistryId(userId, ministryId));
-        if (memberMinistryId.isEmpty()) {
+    public MemberMinistry getMemberMinistryById(UUID memberMinistryId) {
+        Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findById(memberMinistryId);
+        if (memberMinistryOptional.isEmpty()) {
             throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
         }
-        return memberMinistryId.get();
+        return memberMinistryOptional.get();
     }
 
-    public MemberMinistry getStatusMemberByMemberMinistryId(UUID ministryId, UUID userId) {
-        Optional<MemberMinistry> memberMinistryId = memberMinistryRepository.findById(
-                new MemberMinistryId(userId, ministryId));
-        if (memberMinistryId.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
-        }
-        return memberMinistryId.get();
-    }
 
     public MemberMinistry addMemberIntoMinistry(UUID ministryId,
                                                 UUID userId) {
@@ -110,9 +100,7 @@ public class MemberMinistryService {
         Ministry ministry = ministryRepository.findById(ministryId)
                 .orElseThrow(() -> new RuntimeException("Ministry not found"));
 
-        MemberMinistryId id = new MemberMinistryId(userId, ministryId);
-
-        MemberMinistry memberMinistry = new MemberMinistry(id, user, ministry);
+        MemberMinistry memberMinistry = new MemberMinistry(user, ministry);
         sendNotificationToPersonAddedIntoMinistry(memberMinistry);
         return memberMinistryRepository.save(memberMinistry);
     }
@@ -142,7 +130,8 @@ public class MemberMinistryService {
     public void removeMemberFromMinistry(UUID ministryId,
                                          UUID userId) {
         log.info("Removing member {} from ministry {}", userId, ministryId);
-        MemberMinistry memberMinistry = getMemberMinistryById(ministryId, userId);
+        MemberMinistry memberMinistry = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
+                userId, ministryId).orElseThrow(()->new MemberMinistryRegisterNotFoundException("Member ministry not found"));
         memberMinistryRepository.delete(memberMinistry);
     }
 
@@ -153,7 +142,7 @@ public class MemberMinistryService {
         List<MinistryParticipationResponse> responses = ministries.stream()
                 .map(ministry -> new MinistryParticipationResponse(ministry.getId(), ministry.getTitle(),
                         ministry.getImage(), getStatusParticipationInMinistryUser(ministry, userId))).toList();
-        System.out.println(responses);
+
         return responses;
     }
 
