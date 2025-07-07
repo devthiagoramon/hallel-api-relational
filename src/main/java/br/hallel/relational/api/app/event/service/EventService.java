@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.event.dto.EventDTO;
-import br.hallel.relational.api.app.event.dto.EventResponse;
-import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
-import br.hallel.relational.api.app.event.dto.EventShortResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
@@ -11,6 +8,7 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
@@ -112,8 +110,8 @@ public class EventService implements EventInterface {
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
-                                .map(event -> mapper.entityToResponse(event))
-                                .collect(Collectors.toList());
+                        .map(event -> mapper.entityToResponse(event))
+                        .collect(Collectors.toList());
         log.info("Listing events...", listResponse);
         return listResponse;
     }
@@ -138,9 +136,9 @@ public class EventService implements EventInterface {
                                     MultipartFile img_url,
                                     MultipartFile banner_url) {
         Event event = this.repository.findById(id).
-                                     orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
+                orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
-        if (!eventDTO.date().equals(event.getDate())){
+        if (!eventDTO.date().equals(event.getDate())) {
             this.eventScaleService.editEventDate(event.getId(), eventDTO.date());
         }
         event.setId(id);
@@ -159,13 +157,13 @@ public class EventService implements EventInterface {
                 imageUrl = bucketService.updateImageOfBucket(
                         img_url, GoogleBucketUtils.getImageName(
                                 event.getId()
-                                     .toString(), Ministry.class.getSimpleName(), "image"
-                                                               ));
+                                        .toString(), Ministry.class.getSimpleName(), "image"
+                        ));
                 bannerUrl = bucketService.updateImageOfBucket(
                         banner_url, GoogleBucketUtils.getImageName(
                                 event.getId()
-                                     .toString(), Ministry.class.getSimpleName(), "banner"
-                                                                  ));
+                                        .toString(), Ministry.class.getSimpleName(), "banner"
+                        ));
                 event.setImage_url(imageUrl);
                 event.setBanner_url(bannerUrl);
                 log.info("image Url Response: " + imageUrl);
@@ -216,8 +214,8 @@ public class EventService implements EventInterface {
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
-                                .map(event -> mapper.entityToResponse(event))
-                                .collect(Collectors.toList());
+                        .map(event -> mapper.entityToResponse(event))
+                        .collect(Collectors.toList());
         log.info("Listing events Order by title ASC...", listResponse);
         return listResponse;
 
@@ -237,12 +235,14 @@ public class EventService implements EventInterface {
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
-                                .map(event -> mapper.entityToResponse(event))
-                                .collect(Collectors.toList());
+                        .map(event -> mapper.entityToResponse(event))
+                        .collect(Collectors.toList());
         log.info("Listing events Order By Data expiration...", listResponse);
         return listResponse;
 
     }
 
-
+    public List<EventSimpleResponse> listAllEventsByMinistryId(UUID ministryId) {
+        return this.ministryRepository.findAllEventsByMinistryId(ministryId);
+    }
 }

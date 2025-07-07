@@ -374,4 +374,6 @@ public class EventScaleService implements ScaleInterface {
                 .map(m -> m.getUser().getId().toString())
                 .toList();
     }
+
+
 }

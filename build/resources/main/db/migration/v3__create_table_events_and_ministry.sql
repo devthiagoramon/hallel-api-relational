@@ -125,8 +125,8 @@ CREATE TABLE repertory_music_ministry
     repertory_ministry_id UUID,
     music_ministry_id     UUID,
     PRIMARY KEY (repertory_ministry_id, music_ministry_id),
-    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id),
-    FOREIGN KEY (music_ministry_id) REFERENCES music_ministry (id)
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) on delete cascade on update cascade,
+    FOREIGN KEY (music_ministry_id) REFERENCES music_ministry (id) on delete cascade on update cascade
 );
 
 CREATE TABLE repertory_dance_ministry
@@ -134,8 +134,8 @@ CREATE TABLE repertory_dance_ministry
     repertory_ministry_id UUID,
     dance_ministry_id     UUID,
     PRIMARY KEY (repertory_ministry_id, dance_ministry_id),
-    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id),
-    FOREIGN KEY (dance_ministry_id) REFERENCES dance_ministry (id)
+    FOREIGN KEY (repertory_ministry_id) REFERENCES repertory_ministry (id) on delete cascade on update cascade,
+    FOREIGN KEY (dance_ministry_id) REFERENCES dance_ministry (id) on delete cascade on update cascade
 );
 
 CREATE TABLE repertory_video_ministry

@@ -257,4 +257,6 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok(this.memberEventScaleService.editGuestInvited(
                 guestId, dto));
     }
+
+
 }

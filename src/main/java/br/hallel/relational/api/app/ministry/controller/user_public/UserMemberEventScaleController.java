@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.global.utils.DateUtils;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
@@ -29,6 +30,7 @@ public class UserMemberEventScaleController {
 
     private final MemberEventScaleService memberEventScaleService;
     private final MinistryService ministryService;
+    private final EventService eventService;
 
     @PatchMapping("/accept-participation")
     @Operation(summary = "Accept participation of user in some scale", description = "Route to accept the participation of user in some scale passing the id of scale and id of user")
@@ -129,4 +131,11 @@ public class UserMemberEventScaleController {
         return ResponseEntity.ok(this.memberEventScaleService.viewInvite(eventScaleId, userId));
     }
 
+    @GetMapping("/get-events/ministry-id/{ministry-id}")
+    @Operation(summary = "Get events by ministry ID")
+    public ResponseEntity<List<EventSimpleResponse>> listAllEventsInMinistry(
+            @PathVariable(name = "ministry-id") UUID ministryId
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllEventsByMinistryId(ministryId));
+    }
 }
