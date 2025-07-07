@@ -1,3 +1,5 @@
+import org.flywaydb.gradle.task.FlywayMigrateTask
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.5'
@@ -61,6 +63,8 @@ flyway {
     password = 'root'
     locations = ['filesystem:src/main/resources/db/migration']
 }
+
+tasks.register("flywaymigrate", FlywayMigrateTask)
 
 tasks.named('test') {
     useJUnitPlatform()

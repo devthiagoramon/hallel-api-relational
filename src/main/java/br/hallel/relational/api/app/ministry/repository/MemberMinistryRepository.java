@@ -21,14 +21,13 @@ public interface MemberMinistryRepository
 
     @Query(
             value = """
-                    SELECT u.* from "user" u
-                    join member_ministry mm on u.id = mm.user_id
+                    SELECT mm from member_ministry mm
                     where mm.ministry_id = :ministry_id""",
             countQuery = """
                     SELECT count(*) from member_ministry mm
                     where mm.ministry_id = :ministry_id"""
             , nativeQuery = true)
-    Page<User> findAllMembersFromMinistry(
+    Page<MemberMinistry> findAllMembersFromMinistry(
             @Param("ministry_id") UUID ministryId, Pageable pageable);
 
     @Query(

@@ -16,7 +16,7 @@ public interface FunctionMinistryMemberRepository extends
         SELECT fmm
         from function_ministry_member fmm
         join fetch fmm.functionMinistry
-        where fmm.user.id in :userIds and fmm.functionMinistry.ministryId = :ministryId
+        where fmm.memberMinistry.id in :userIds and fmm.functionMinistry.ministryId = :ministryId
         """)
-    List<FunctionMinistryMember> listAllByUserIds(@Param("userIds")List<UUID> userIds, @Param("ministryId") UUID ministryId);
+    List<FunctionMinistryMember> listAllByMemberMinistryIds(@Param("memberMinistryIds")List<UUID> memberMinistryIds, @Param("ministryId") UUID ministryId);
 }

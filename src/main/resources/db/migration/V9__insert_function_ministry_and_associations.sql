@@ -25,7 +25,7 @@ VALUES ('e27bd127-51b4-44c0-a3bc-a8fdba1697a8'::uuid,
         '8675330f-9c78-4c6d-9230-b046b4097392'::uuid, 'Guitarrista',
         'É o guitarrista do ministério', '🎸', '#eb984e');
 
-INSERT INTO function_ministry_member (user_id, function_ministry_id)
+INSERT INTO function_ministry_member (member_ministry_id, function_ministry_id)
 VALUES ('fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid,
         'e27bd127-51b4-44c0-a3bc-a8fdba1697a8'::uuid),
        ('fdf09dab-a1b1-4c8e-bfa5-cbb80eb40190'::uuid,

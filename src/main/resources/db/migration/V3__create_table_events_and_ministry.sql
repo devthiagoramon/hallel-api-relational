@@ -30,6 +30,16 @@ CREATE TABLE ministry
     CONSTRAINT fk_vice_coordinator FOREIGN KEY (vice_coordinator_id) REFERENCES "user" (id)
 );
 
+CREATE TABLE member_ministry
+(
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL,
+    ministry_id UUID NOT NULL,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
+);
+
+
 CREATE TABLE function_ministry
 (
     id          uuid default gen_random_uuid(),
@@ -159,14 +169,7 @@ CREATE TABLE member_event_scale
     CONSTRAINT fk_event_scale_id FOREIGN KEY (event_scale_id) REFERENCES "event_scale" (id) ON DELETE CASCADE
 );
 
-CREATE TABLE member_ministry
-(
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id     UUID NOT NULL,
-    ministry_id UUID NOT NULL,
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_ministry_id FOREIGN KEY (ministry_id) REFERENCES "ministry" (id) ON DELETE CASCADE
-);
+
 
 CREATE TABLE member_audition_ministry
 (

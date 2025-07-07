@@ -1,15 +1,12 @@
 package br.hallel.relational.api.app.ministry.service;
 
-import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunctions;
 import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
-import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
-import br.hallel.relational.api.app.ministry.repository.EventScaleRepertoryRepository;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
@@ -22,11 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,32 +48,33 @@ public class MemberMinistryService {
             UUID ministryId, Pageable pageable) {
         log.info("Listing all members of ministry {}", ministryId);
 
-        Page<User> pageUsers = this.memberMinistryRepository.findAllMembersFromMinistry(ministryId, pageable);
-        List<User> users = pageUsers.getContent();
+        Page<MemberMinistry> pageMemberMinistry = this.memberMinistryRepository.findAllMembersFromMinistry(ministryId, pageable);
+        List<MemberMinistry> membersMinistry = pageMemberMinistry.getContent();
 
-        if (users.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, pageUsers.getTotalElements());
+        if (membersMinistry.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, pageMemberMinistry.getTotalElements());
         }
 
-        List<UUID> userIds = users.stream().map(User::getId).toList();
-        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByUserIds(
-                userIds, ministryId);
+        List<UUID> memberMinistryIds = membersMinistry.stream().map(MemberMinistry::getId).toList();
+        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByMemberMinistryIds(
+                memberMinistryIds, ministryId);
 
         Map<UUID, List<FunctionMinistry>> functionsByUserId = functionMinistryMembers.stream()
                 .collect(Collectors.groupingBy(
-                        fmm -> fmm.getUser()
+                        fmm -> fmm.getMemberMinistry()
                                 .getId(),
                         Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
                 ));
 
-        List<MemberMinistryResponseWithFunctions> dtos = users.stream()
-                .map(user -> new MemberMinistryResponseWithFunctions(
-                        user,
-                        functionsByUserId.getOrDefault(user.getId(), Collections.emptyList())
+        List<MemberMinistryResponseWithFunctions> dtos = membersMinistry.stream()
+                .map(memberMinistry -> new MemberMinistryResponseWithFunctions(
+                        memberMinistry.getId(),
+                        memberMinistry.getUser(),
+                        functionsByUserId.getOrDefault(memberMinistry.getId(), Collections.emptyList())
                 ))
                 .toList();
 
-        return new PageImpl<>(dtos, pageable, pageUsers.getTotalElements());
+        return new PageImpl<>(dtos, pageable, pageMemberMinistry.getTotalElements());
     }
 
     public MemberMinistry getMemberMinistryById(UUID memberMinistryId) {
@@ -139,11 +135,10 @@ public class MemberMinistryService {
             UUID userId) {
         log.info("Listing ministries that user participate");
         List<Ministry> ministries = memberMinistryRepository.listMinistryThatUserParticipateByUserId(userId);
-        List<MinistryParticipationResponse> responses = ministries.stream()
+
+        return ministries.stream()
                 .map(ministry -> new MinistryParticipationResponse(ministry.getId(), ministry.getTitle(),
                         ministry.getImage(), getStatusParticipationInMinistryUser(ministry, userId))).toList();
-
-        return responses;
     }
 
     private StatusParticipationMinistry getStatusParticipationInMinistryUser(Ministry ministry, UUID userId) {

@@ -16,8 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class FunctionMinistryMemberId {
 
-    @Column(name = "user_id")
-    private UUID userId;
+    @Column(name = "member_ministry_id")
+    private UUID memberMInistryId;
 
     @Column(name = "function_ministry_id")
     private UUID functionMinistryId;

@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.ministry.model;
 
-import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,9 +17,9 @@ public class FunctionMinistryMember {
     private FunctionMinistryMemberId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")
-    @JoinColumn(name = "user_id")
-    private User user;
+    @MapsId("member_ministry_id")
+    @JoinColumn(name = "member_ministry_id")
+    private MemberMinistry memberMinistry;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("functionMinistryId")
