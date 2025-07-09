@@ -368,7 +368,7 @@ public class EventScaleService implements ScaleInterface {
 
         return availableMembers.stream()
                 .filter(m -> m.getUser() != null)
-                .map(m -> m.getUser().getId().toString())
+                .map(m -> m.getId().toString())
                 .toList();
     }
 

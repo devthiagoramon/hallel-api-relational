@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
-import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,10 +20,10 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
     List<MemberEventScale> findAllByStatusAndEventScale_Id(MemberEventScaleStatus status
             , UUID eventScaleId);
 
-    MemberEventScale findByStatusAndEventScale_IdAndMemberMinistry_Id(MemberEventScaleStatus status
+    MemberEventScale findByStatusAndEventScale_IdAndMemberMinistry_User_Id(MemberEventScaleStatus status
             , UUID eventScaleId, UUID userId);
 
-    Optional<MemberEventScale> findByMemberMinistry_IdAndEventScale_Id(UUID userId, UUID eventScaleId);
+    Optional<MemberEventScale> findByMemberMinistry_User_IdAndEventScale_Id(UUID userId, UUID eventScaleId);
 
     List<MemberEventScale> findAllByEventScale_Id(UUID eventScaleId);
 
@@ -79,7 +78,7 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                                                                                               @Param("initial") Date initialDate,
                                                                                               @Param("final") Date finalDate);
 
-    void deleteMemberEventScaleByEventScale_IdAndMemberMinistry_Id(UUID eventScaleId, UUID userId);
+    void deleteMemberEventScaleByEventScale_IdAndMemberMinistry_User_Id(UUID eventScaleId, UUID userId);
 
     UUID id(UUID id);
 

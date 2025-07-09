@@ -53,6 +53,8 @@ public class MemberEventScaleService {
                         "Event scale with id %s not found".formatted(eventScaleId)));
         List<MemberMinistry> memberMinistries = memberMinistryRepository.findAllById(memberMinistryIds);
         if (memberMinistries.size() != memberMinistryIds.size()) {
+            log.info("IDS SIZE: {}", memberMinistryIds.size());
+            log.info("IDS MEMBERSS FOUND: {}", memberMinistries.size());
             throw new UserNotFoundException("Um ou mais usuários não foram encontrados.");
         }
         List<MemberEventScale> invitedMembers = new ArrayList<>();
@@ -104,7 +106,7 @@ public class MemberEventScaleService {
         );
 
         log.info("Viewing invite user {} into scale {}", userId, eventScaleId);
-        Optional<MemberEventScale> optional = memberEventScaleRepository.findByMemberMinistry_IdAndEventScale_Id(userId,
+        Optional<MemberEventScale> optional = memberEventScaleRepository.findByMemberMinistry_User_IdAndEventScale_Id(userId,
                 eventScaleId);
 
         if (optional.isEmpty() || optional.get().getDate_view() != null) {
@@ -126,7 +128,7 @@ public class MemberEventScaleService {
         for (UUID id : userId) {
             System.out.println("User id: " + id);
             date = this.eventScaleRepository.findById(eventScaleId).get().getDate();
-            this.memberEventScaleRepository.deleteMemberEventScaleByEventScale_IdAndMemberMinistry_Id(eventScaleId, id);
+            this.memberEventScaleRepository.deleteMemberEventScaleByEventScale_IdAndMemberMinistry_User_Id(eventScaleId, id);
         }
 
         log.info("Withdraw Invitation user {} into scale {}", userId, eventScaleId);
@@ -175,7 +177,7 @@ public class MemberEventScaleService {
     }
 
     public MemberNotConfirmedResponse getMemberReasonAbscence(UUID eventScaleId, UUID userId) {
-        MemberEventScale memberStatus = this.memberEventScaleRepository.findByStatusAndEventScale_IdAndMemberMinistry_Id(
+        MemberEventScale memberStatus = this.memberEventScaleRepository.findByStatusAndEventScale_IdAndMemberMinistry_User_Id(
                 MemberEventScaleStatus.RECUSADO, eventScaleId, userId
         );
         if (memberStatus == null) {
@@ -188,7 +190,7 @@ public class MemberEventScaleService {
     public MemberEventScaleResponseUserInfos confirmParticipationUserInEvent(UUID eventScaleId, UUID userId) {
         log.info("Confirming user {} into scale {}", userId, eventScaleId);
         MemberEventScale memberEventScale = this.memberEventScaleRepository
-                .findByMemberMinistry_IdAndEventScale_Id(userId, eventScaleId)
+                .findByMemberMinistry_User_IdAndEventScale_Id(userId, eventScaleId)
                 .orElseThrow(() -> new MemberEventScaleNotFoundException(
                         "User not associated in scale %s".formatted(eventScaleId.toString())));
         memberEventScale.setStatus(MemberEventScaleStatus.PARTICIPANDO);
@@ -203,7 +205,7 @@ public class MemberEventScaleService {
                                                                              String reason) {
         log.info("Declining user {} into scale {}", userId, eventScaleId);
         MemberEventScale memberEventScale = this.memberEventScaleRepository
-                .findByMemberMinistry_IdAndEventScale_Id(userId, eventScaleId)
+                .findByMemberMinistry_User_IdAndEventScale_Id(userId, eventScaleId)
                 .orElseThrow(() -> new MemberEventScaleNotFoundException(
                         "User not associated in scale %s".formatted(eventScaleId.toString())));
         memberEventScale.setStatus(MemberEventScaleStatus.RECUSADO);
@@ -223,7 +225,7 @@ public class MemberEventScaleService {
 
     public MemberEventScaleResponseUserInfos acceptOrDeclineMember(
             UUID idMemberScale, UUID eventScaleId, AcceptOrDeclineMemberInScale memberInScale) {
-        MemberEventScale member = this.memberEventScaleRepository.findByMemberMinistry_IdAndEventScale_Id(idMemberScale, eventScaleId).orElseThrow(
+        MemberEventScale member = this.memberEventScaleRepository.findByMemberMinistry_User_IdAndEventScale_Id(idMemberScale, eventScaleId).orElseThrow(
                 () -> new MemberMinistryRegisterNotFoundException("Member with id" + idMemberScale + " not found!")
         );
 
@@ -296,7 +298,7 @@ public class MemberEventScaleService {
     }
 
     public MemberAuditionStatusResponse getMemberStatus(UUID idmemberministry, UUID idEventScale) {
-        Optional<MemberEventScale> member = this.memberEventScaleRepository.findByMemberMinistry_IdAndEventScale_Id(idmemberministry, idEventScale);
+        Optional<MemberEventScale> member = this.memberEventScaleRepository.findByMemberMinistry_User_IdAndEventScale_Id(idmemberministry, idEventScale);
 
         if (member.isEmpty()) {
             throw new MemberEventScaleNotFoundException("Member with id " + idmemberministry + " not found in scale id: " + idEventScale + " !");

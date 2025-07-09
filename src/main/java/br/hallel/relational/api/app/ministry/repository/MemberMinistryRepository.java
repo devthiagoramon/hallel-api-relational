@@ -47,11 +47,11 @@ public interface MemberMinistryRepository
                 WHERE m.ministry.id = :ministryId
                 AND NOT EXISTS (
                     SELECT mes FROM MemberEventScale mes
-                    WHERE m.user.id = m.user.id
+                    WHERE m.user.id = mes.memberMinistry.user.id
                     AND mes.eventScale.id = :eventScaleId
                 )
             """)
-    List<MemberMinistry> findAvailableMembersToInvite(UUID ministryId, UUID eventScaleId);
+    List<MemberMinistry> findAvailableMembersToInvite(@Param("ministryId") UUID ministryId, @Param("eventScaleId") UUID eventScaleId);
 
     Optional<MemberMinistry> findMemberMinistryByUser_IdAndMinistry_Id(UUID userId, UUID ministryId);
 }
