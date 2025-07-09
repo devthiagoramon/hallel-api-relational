@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberMinistryResponseWithFunctions {
-    private UUID memberMinistryId;
+    private UUID id;
     private User user;
     private List<FunctionMinistry> functionMember;
 }

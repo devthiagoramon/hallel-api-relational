@@ -22,12 +22,11 @@ public class MemberMinistry {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @MapsId("memberMinistryId")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @MapsId("ministryId")
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;

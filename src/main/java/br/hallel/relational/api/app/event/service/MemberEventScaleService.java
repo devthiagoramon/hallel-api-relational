@@ -216,7 +216,7 @@ public class MemberEventScaleService {
         List<MemberEventScaleResponseUserInfos> response = new ArrayList<>();
         this.memberEventScaleRepository.findAllByEventScale_Id(idScale).forEach(member -> {
             response.add(new MemberEventScaleResponseUserInfos(member.getId(), member.getStatus(),
-                    member.getReason_absence(), member.getMemberMinistry().getUser()));
+                    member.getReason_absence(), member.getMemberMinistry()));
         });
         return response;
     }
@@ -243,7 +243,7 @@ public class MemberEventScaleService {
         memberEventScaleRepository.save(member);
 
         return new MemberEventScaleResponseUserInfos(member.getId(), member.getStatus(), member.getReason_absence(),
-                member.getMemberMinistry().getUser());
+                member.getMemberMinistry());
     }
 
     public List<EventScale> listAllInvitedScaleOfUserInMinistryInRangeOfDate(UUID userId, UUID ministryId,

@@ -17,13 +17,12 @@ public class FunctionMinistryMember {
     private FunctionMinistryMemberId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("member_ministry_id")
-    @JoinColumn(name = "member_ministry_id")
+    @JoinColumn(name = "member_ministry_id", updatable = false, insertable = false)
     private MemberMinistry memberMinistry;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("functionMinistryId")
-    @JoinColumn(name = "function_ministry_id")
+    @JoinColumn(name = "function_ministry_id", updatable = false, insertable = false)
     private FunctionMinistry functionMinistry;
 
 

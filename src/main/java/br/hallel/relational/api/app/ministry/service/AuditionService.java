@@ -11,11 +11,14 @@ import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.AuditionMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFound;
+import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberAuditionMinistry;
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.repository.AuditionRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberAuditionMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -49,6 +52,8 @@ public class AuditionService {
     private MemberAuditionMinistryRepository memberAuditionMinistryRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MemberMinistryRepository  memberMinistryRepository;
 
     public AuditionResponse createAudition(AuditionDTO auditionDTO, UUID memberAuditionId) {
         log.info("Scale: " + auditionDTO.getEventScale().toString());
@@ -69,12 +74,12 @@ public class AuditionService {
 
         AuditionMinistry saved = this.repository.save(auditionMinistry);
         if (memberAuditionId !=null){
-        User user = userRepository.findById(memberAuditionId).orElseThrow(() ->
-                new UserNotFoundException("User not found"));
+        MemberMinistry memberMinistry = memberMinistryRepository.findById(memberAuditionId).orElseThrow(() ->
+                new MemberMinistryRegisterNotFoundException("Member ministry not registred wih id %s".formatted(memberAuditionId)));
             this.memberAuditionMinistryRepository.save(
                     new MemberAuditionMinistry(
                             MemberEventScaleStatus.CONVIDADO,
-                            user,
+                            memberMinistry,
                             saved
                     )
             );
