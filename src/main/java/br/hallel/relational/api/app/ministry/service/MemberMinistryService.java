@@ -47,38 +47,51 @@ public class MemberMinistryService {
     public Page<MemberMinistryResponseWithFunctions> getAllMemberOfMinistry(
             UUID ministryId, Pageable pageable) {
         log.info("Listing all members of ministry {}", ministryId);
+        try {
 
-        Page<MemberMinistry> pageMemberMinistry = this.memberMinistryRepository.findAllMembersFromMinistry(ministryId, pageable);
-        List<MemberMinistry> membersMinistry = pageMemberMinistry.getContent();
+            Page<MemberMinistry> pageMemberMinistry = this.memberMinistryRepository.findAllMembersFromMinistry(
+                    ministryId, pageable);
+            List<MemberMinistry> membersMinistry = pageMemberMinistry.getContent();
 
-        if (membersMinistry.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, pageMemberMinistry.getTotalElements());
+            if (membersMinistry.isEmpty()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, pageMemberMinistry.getTotalElements());
+            }
+            List<UUID> memberMinistryIds = membersMinistry.stream().map(MemberMinistry::getId).toList();
+            List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByMemberMinistryIds(
+                    memberMinistryIds, ministryId);
+
+            Map<UUID, List<FunctionMinistry>> functionsByUserId = functionMinistryMembers.stream()
+                    .collect(Collectors.groupingBy(
+                            fmm -> fmm.getMemberMinistry()
+                                    .getId(),
+                            Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
+                    ));
+
+            List<MemberMinistryResponseWithFunctions> dtos = membersMinistry.stream()
+                    .map(memberMinistry -> new MemberMinistryResponseWithFunctions(
+                            memberMinistry.getId(),
+                            memberMinistry.getUser(),
+                            functionsByUserId.getOrDefault(memberMinistry.getId(), Collections.emptyList())
+                    ))
+                    .toList();
+
+            return new PageImpl<>(dtos, pageable, pageMemberMinistry.getTotalElements());
+        } catch (Exception e) {
+            log.error("Error listing all members of ministry {}", ministryId, e);
+            throw new RuntimeException(e);
         }
-
-        List<UUID> memberMinistryIds = membersMinistry.stream().map(MemberMinistry::getId).toList();
-        List<FunctionMinistryMember> functionMinistryMembers = functionMinistryMemberRepository.listAllByMemberMinistryIds(
-                memberMinistryIds, ministryId);
-
-        Map<UUID, List<FunctionMinistry>> functionsByUserId = functionMinistryMembers.stream()
-                .collect(Collectors.groupingBy(
-                        fmm -> fmm.getMemberMinistry()
-                                .getId(),
-                        Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
-                ));
-
-        List<MemberMinistryResponseWithFunctions> dtos = membersMinistry.stream()
-                .map(memberMinistry -> new MemberMinistryResponseWithFunctions(
-                        memberMinistry.getId(),
-                        memberMinistry.getUser(),
-                        functionsByUserId.getOrDefault(memberMinistry.getId(), Collections.emptyList())
-                ))
-                .toList();
-
-        return new PageImpl<>(dtos, pageable, pageMemberMinistry.getTotalElements());
     }
 
     public MemberMinistry getMemberMinistryById(UUID memberMinistryId) {
         Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findById(memberMinistryId);
+        if (memberMinistryOptional.isEmpty()) {
+            throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
+        }
+        return memberMinistryOptional.get();
+    }
+
+    public MemberMinistry getMemberMinistryByUserAndMinistryId(UUID userId, UUID ministryId) {
+        Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(userId, ministryId);
         if (memberMinistryOptional.isEmpty()) {
             throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
         }
@@ -127,7 +140,8 @@ public class MemberMinistryService {
                                          UUID userId) {
         log.info("Removing member {} from ministry {}", userId, ministryId);
         MemberMinistry memberMinistry = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
-                userId, ministryId).orElseThrow(()->new MemberMinistryRegisterNotFoundException("Member ministry not found"));
+                        userId, ministryId)
+                .orElseThrow(() -> new MemberMinistryRegisterNotFoundException("Member ministry not found"));
         memberMinistryRepository.delete(memberMinistry);
     }
 

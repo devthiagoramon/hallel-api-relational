@@ -19,14 +19,10 @@ public interface MemberMinistryRepository
         extends JpaRepository<MemberMinistry, UUID> {
 
 
-    @Query(
-            value = """
-                    SELECT mm from member_ministry mm
-                    where mm.ministry_id = :ministry_id""",
-            countQuery = """
-                    SELECT count(*) from member_ministry mm
-                    where mm.ministry_id = :ministry_id"""
-            , nativeQuery = true)
+    @Query("""
+                select mm from MemberMinistry mm
+                where mm.ministry.id = :ministry_id
+            """)
     Page<MemberMinistry> findAllMembersFromMinistry(
             @Param("ministry_id") UUID ministryId, Pageable pageable);
 
@@ -45,17 +41,16 @@ public interface MemberMinistryRepository
     );
 
 
-
     @Query("""
-    SELECT m FROM MemberMinistry m
-
-    WHERE m.ministry.id = :ministryId
-    AND NOT EXISTS (
-        SELECT mes FROM MemberEventScale mes
-        WHERE m.user.id = m.user.id
-        AND mes.eventScale.id = :eventScaleId
-    )
-""")
+                SELECT m FROM MemberMinistry m
+            
+                WHERE m.ministry.id = :ministryId
+                AND NOT EXISTS (
+                    SELECT mes FROM MemberEventScale mes
+                    WHERE m.user.id = m.user.id
+                    AND mes.eventScale.id = :eventScaleId
+                )
+            """)
     List<MemberMinistry> findAvailableMembersToInvite(UUID ministryId, UUID eventScaleId);
 
     Optional<MemberMinistry> findMemberMinistryByUser_IdAndMinistry_Id(UUID userId, UUID ministryId);
