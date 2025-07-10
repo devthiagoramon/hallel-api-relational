@@ -110,7 +110,7 @@ public class EventScaleService implements ScaleInterface {
         map.put("action", "invite_scale");
         map.put("eventScaleId", eventScale.getId().toString());
         map.put("ministryId", ministry.getId().toString());
-
+    
         return map;
     }
 

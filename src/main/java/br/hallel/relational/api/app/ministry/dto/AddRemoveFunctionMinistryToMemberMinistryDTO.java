@@ -11,5 +11,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AddRemoveFunctionMinistryToMemberMinistryDTO {
     private UUID functionMinistryId;
-    private UUID userId;
+    private UUID memberMinistryId;
 }
