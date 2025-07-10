@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.ministry.repository;
 
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.Ministry;
-import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,4 +53,6 @@ public interface MemberMinistryRepository
     List<MemberMinistry> findAvailableMembersToInvite(@Param("ministryId") UUID ministryId, @Param("eventScaleId") UUID eventScaleId);
 
     Optional<MemberMinistry> findMemberMinistryByUser_IdAndMinistry_Id(UUID userId, UUID ministryId);
+
+    Optional<MemberMinistry> findByUser_Id(UUID userId);
 }

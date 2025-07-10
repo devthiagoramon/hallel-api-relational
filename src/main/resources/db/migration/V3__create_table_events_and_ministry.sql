@@ -76,7 +76,7 @@ CREATE TABLE audition_ministry
 (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ministry_id    UUID         NOT NULL,
-    event_scale_id UUID         NOT NULL,
+    event_scale_id UUID         NULL,
     title          VARCHAR(100) NOT NULL,
     description    TEXT         NOT NULL,
     date           DATE         NOT NULL,

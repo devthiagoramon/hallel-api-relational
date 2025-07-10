@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -53,19 +54,22 @@ public class AuditionService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private MemberMinistryRepository  memberMinistryRepository;
+    private MemberMinistryRepository memberMinistryRepository;
 
     public AuditionResponse createAudition(AuditionDTO auditionDTO, UUID memberAuditionId) {
-        log.info("Scale: " + auditionDTO.getEventScale().toString());
-        log.info("Ministry: " + auditionDTO.getMinistry().toString());
+        log.info("Scale: " + auditionDTO.getEventScale());
+        log.info("Ministry: " + auditionDTO.getMinistry());
         AuditionMinistry auditionMinistry = new AuditionMinistry();
         auditionMinistry.setTitle(auditionDTO.getTitle());
         auditionMinistry.setDescription(auditionDTO.getDescription());
         auditionMinistry.setDate(auditionDTO.getDate());
-        auditionMinistry.setEventScale(
-                eventScaleMapper.responseToEntity(
-                        this.eventScaleService.getEventScaleById(auditionDTO.getEventScale()))
-        );
+        if (auditionDTO.getEventScale() != null) {
+            auditionMinistry.setEventScale(
+                    eventScaleMapper.responseToEntity(
+                            this.eventScaleService.getEventScaleById(auditionDTO.getEventScale()))
+            );
+        }
+
         auditionMinistry.setMinistry(
                 this.ministryMapper.responseToEntity(
                         this.ministryService.getMinistryById(auditionDTO.getMinistry())
@@ -73,18 +77,24 @@ public class AuditionService {
         );
 
         AuditionMinistry saved = this.repository.save(auditionMinistry);
-        if (memberAuditionId !=null){
-        MemberMinistry memberMinistry = memberMinistryRepository.findById(memberAuditionId).orElseThrow(() ->
-                new MemberMinistryRegisterNotFoundException("Member ministry not registred wih id %s".formatted(memberAuditionId)));
+        if (memberAuditionId != null) {
+            Optional<MemberMinistry> memberMinistry =
+                    memberMinistryRepository.
+                            findMemberMinistryByUser_IdAndMinistry_Id(memberAuditionId, auditionDTO.getMinistry());
+            if (memberMinistry.isEmpty()) {
+                throw new
+                        MemberMinistryRegisterNotFoundException
+                        ("Member ministry not registred wih id %s".formatted(memberAuditionId));
+            }
             this.memberAuditionMinistryRepository.save(
                     new MemberAuditionMinistry(
                             MemberEventScaleStatus.CONVIDADO,
-                            memberMinistry,
+                            memberMinistry.get(),
                             saved
                     )
             );
             log.info("Audition: Membro que criou, já está participando"
-                    + auditionDTO.getEventScale().toString());
+                    + auditionDTO.getEventScale());
         }
 
         return this.auditionMapper.entityToResponse(saved);
@@ -109,7 +119,10 @@ public class AuditionService {
         audition.setTitle(auditionDTO.getTitle());
         audition.setDescription(auditionDTO.getDescription());
         audition.setDate(auditionDTO.getDate());
-        EventScaleResponse eventScale = this.eventScaleService.getEventScaleById(auditionDTO.getEventScale());
+        EventScaleResponse eventScale = null;
+        if (auditionDTO.getEventScale() != null) {
+            eventScale = this.eventScaleService.getEventScaleById(auditionDTO.getEventScale());
+        }
         MinistryResponse ministryResponse = this.ministryService.getMinistryById(auditionDTO.getMinistry());
         audition.setEventScale(this.eventScaleMapper.responseToEntity(eventScale));
         audition.setMinistry(this.ministryMapper.responseToEntity(ministryResponse));

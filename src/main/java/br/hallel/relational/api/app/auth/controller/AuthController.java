@@ -75,7 +75,9 @@ public class AuthController {
     @GetMapping("/verify-admin-access")
     @Operation(summary = "Verify if the user is admin", description = "Verify with the token of user if he is a ADMIN and return the token and the code to validate him")
     public TokenAdminResponse verifyAdminAccess(@RequestParam("token") String token) {
-        return authService.verifyIfTokenIsAdmin(token);
+        TokenAdminResponse tokenAdminResponse = authService.verifyIfTokenIsAdmin(token);
+        System.out.println(tokenAdminResponse.getCode());
+        return tokenAdminResponse;
     }
 
     @GetMapping("/validate-admin-access")
