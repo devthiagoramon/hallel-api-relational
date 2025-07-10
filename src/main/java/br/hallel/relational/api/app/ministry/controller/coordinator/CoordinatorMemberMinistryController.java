@@ -98,7 +98,7 @@ public class CoordinatorMemberMinistryController {
             @RequestBody
             AddRemoveFunctionMinistryToMemberMinistryDTO dto) {
         return ResponseEntity.ok()
-                .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getUserId()));
+                .body(this.functionMinistryMemberService.associateAFunctionMinistryToMember(dto.getFunctionMinistryId(), dto.getMemberMinistryId()));
     }
 
     @DeleteMapping("/remove/function")
@@ -108,7 +108,7 @@ public class CoordinatorMemberMinistryController {
     public ResponseEntity<?> removeFunctionMinistryToAMember(
             @RequestBody
             AddRemoveFunctionMinistryToMemberMinistryDTO dto) {
-        this.functionMinistryMemberService.removeFunctionMinistryMember(dto.getFunctionMinistryId(), dto.getUserId());
+        this.functionMinistryMemberService.removeFunctionMinistryMember(dto.getFunctionMinistryId(), dto.getMemberMinistryId());
         return ResponseEntity.noContent().build();
     }
 
