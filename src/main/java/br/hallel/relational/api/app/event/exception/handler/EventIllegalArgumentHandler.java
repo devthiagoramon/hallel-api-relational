@@ -73,4 +73,9 @@ public class EventIllegalArgumentHandler {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(EventScaleRuntimeException.class)
+    public ResponseEntity<ExceptionResponse> handleEventScaleRuntimeException(EventScaleRuntimeException exception, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
 }

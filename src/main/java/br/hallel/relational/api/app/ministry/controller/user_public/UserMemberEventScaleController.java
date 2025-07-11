@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -137,5 +140,19 @@ public class UserMemberEventScaleController {
             @PathVariable(name = "ministry-id") UUID ministryId
     ) {
         return ResponseEntity.ok(this.eventService.listAllEventsByMinistryId(ministryId));
+    }
+
+    @PostMapping("/generate-report/pdf/scales")
+    public ResponseEntity<byte[]> gerarRelatorioEscalaPDF(
+            @RequestBody EventScaleReportPDF eventScaleReportPDF,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        byte[] pdf = this.memberEventScaleService.generateReportEventScale(eventScaleReportPDF, start, end);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=relatorio_escalas.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 }
