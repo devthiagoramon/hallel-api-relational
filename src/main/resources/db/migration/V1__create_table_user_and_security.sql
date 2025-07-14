@@ -10,7 +10,7 @@ create table "user"
     age            int null,
     cpf            varchar(11) null,
     file_image_url text null,
-    phone_number   varchar(12) null
+    phone_number   text null
 );
 
 create table "role"
