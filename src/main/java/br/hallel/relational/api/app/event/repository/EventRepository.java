@@ -23,7 +23,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     Page<Event> findAllByOrderByDateAsc(Pageable pageable);
 
-    List<EventResponse> findAllByTitleContainingIgnoreCase(String title, Pageable pageable);
+    List<Event> findAllByTitleContainingIgnoreCaseOrderByTitleAsc(String title, Pageable pageable);
 
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.EventShortResponse(

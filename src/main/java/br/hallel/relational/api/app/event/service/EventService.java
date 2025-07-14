@@ -106,13 +106,14 @@ public class EventService implements EventInterface {
                                              int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPagination = this.repository.findAll(pageable);
+        Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
                         .map(event -> mapper.entityToResponse(event))
                         .collect(Collectors.toList());
-        log.info("Listing events...", listResponse);
+
+        log.info("Listing events...");
         return listResponse;
     }
 
@@ -207,8 +208,8 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public List<EventResponse> listEventsByTitleAsc(int page,
-                                                    int size) {
+    public List<EventResponse> listEventsByTitleOrderByAsc(int page,
+                                                           int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
 
@@ -224,7 +225,11 @@ public class EventService implements EventInterface {
     @Override
     public List<EventResponse> listEventsByTitle(String title, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return this.repository.findAllByTitleContainingIgnoreCase(title, pageable);
+        List<Event> events = this.repository.findAllByTitleContainingIgnoreCaseOrderByTitleAsc(title, pageable);
+
+        return events.stream()
+                .map(event -> mapper.entityToResponse(event))
+                .collect(Collectors.toList());
     }
 
     @Override

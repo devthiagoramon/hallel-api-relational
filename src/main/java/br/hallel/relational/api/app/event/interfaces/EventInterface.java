@@ -23,7 +23,7 @@ public interface EventInterface {
 
     EventShortResponse listEventInScaleInfo(UUID id);
 
-    List<EventResponse> listEventsByTitleAsc(int page, int size);
+    List<EventResponse> listEventsByTitleOrderByAsc(int page, int size);
     List<EventResponse> listEventsByTitle(String title, int page, int size);
     List<EventResponse> listEventsByDateExp(int page, int size);
 

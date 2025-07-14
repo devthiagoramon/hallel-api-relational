@@ -63,4 +63,15 @@ public class AdminMinistryController {
         return ResponseEntity.ok(this.eventScaleService.listMinistriesByEventId(eventId));
     }
 
+    @GetMapping("/list-all/by-title")
+    public ResponseEntity<List<MinistryResponse>>
+    listAllMinistriesByTitleOrderByAsc(@RequestParam(name = "title") String title) {
+        List<MinistryResponse> body = this.service.listAllMinistriesByTitleOrderByAsc(title);
+        if (body.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(body);
+    }
+
+
 }

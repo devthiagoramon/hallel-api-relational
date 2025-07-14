@@ -93,8 +93,8 @@ public class MinistryService implements MinistryInterface {
                     image, GoogleBucketUtils.getImageName(
                             ministry.getId()
                                     .toString(), Ministry.class.getSimpleName(), "image"
-                                                         )
-                                                            );
+                    )
+            );
         } catch (IOException e) {
             log.info("Image Url Response: " + image);
             throw new RuntimeException(e);
@@ -154,9 +154,9 @@ public class MinistryService implements MinistryInterface {
                                          MinistryRequestDTO ministryRequestDTO,
                                          MultipartFile image) {
         log.info("Updating ministry: {}", id);
-        Ministry ministry = mapper.responseToEntity(this.getMinistryById(id));
+        Ministry ministry = ministryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ministério não encontrado"));
 
-        ministry.setId(id);
         ministry.setTitle(ministryRequestDTO.getTitle());
         ministry.setDescription(ministryRequestDTO.getDescription());
         ministry.setMinistryType(ministryRequestDTO.getMinistryType());
@@ -164,13 +164,15 @@ public class MinistryService implements MinistryInterface {
 
         if (image != null) {
             log.info("has image");
-            String imageUrl = null;
             try {
-                imageUrl = googleBucketService.updateImageOfBucket(
-                        image, GoogleBucketUtils.getImageName(
-                                ministry.getId()
-                                        .toString(), Ministry.class.getSimpleName(), "image"
-                                                             ));
+                String imageUrl = googleBucketService.updateImageOfBucket(
+                        image,
+                        GoogleBucketUtils.getImageName(
+                                ministry.getId().toString(),
+                                Ministry.class.getSimpleName(),
+                                "image"
+                        )
+                );
                 ministry.setImage(imageUrl);
                 log.info("image Url Response: " + imageUrl);
             } catch (IOException e) {
@@ -179,17 +181,26 @@ public class MinistryService implements MinistryInterface {
         }
 
         if (ministryRequestDTO.getCoordinatorId() != null
-                && ministryRequestDTO.getCoordinatorId() != ministry.getCoordinator().getId()) {
+                && !ministryRequestDTO.getCoordinatorId().equals(ministry.getCoordinator().getId())) {
             deleteCoordinatorFromMemberMinistryTable(ministry.getCoordinator().getId(), ministry.getId());
             addCoordinatorToMemberMinistryTable(ministryRequestDTO.getCoordinatorId(), ministry.getId());
-        }
-        if (ministryRequestDTO.getViceCoordinatorId() != null
-                && ministryRequestDTO.getViceCoordinatorId() != ministry.getViceCoordinator().getId()) {
-            deleteCoordinatorFromMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
-            addCoordinatorToMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
+
+            User newCoordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
+                    .orElseThrow(() -> new RuntimeException("Coordenador não encontrado"));
+            ministry.setCoordinator(newCoordinator);
         }
 
-        return mapper.entityMinistryToResponse(this.ministryRepository.save(ministry));
+        if (ministryRequestDTO.getViceCoordinatorId() != null
+                && !ministryRequestDTO.getViceCoordinatorId().equals(ministry.getViceCoordinator().getId())) {
+            deleteCoordinatorFromMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
+            addCoordinatorToMemberMinistryTable(ministryRequestDTO.getViceCoordinatorId(), ministry.getId());
+
+            User newViceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
+                    .orElseThrow(() -> new RuntimeException("Vice Coordenador não encontrado"));
+            ministry.setViceCoordinator(newViceCoordinator);
+        }
+
+        return mapper.entityMinistryToResponse(ministryRepository.save(ministry));
     }
 
     private void deleteCoordinatorFromMemberMinistryTable(UUID userId, UUID ministryId) {
@@ -278,6 +289,12 @@ public class MinistryService implements MinistryInterface {
         }
         return StatusParticipationMinistry.MEMBER;
 
+    }
+
+    public List<MinistryResponse> listAllMinistriesByTitleOrderByAsc(String title) {
+        List<Ministry> ministries = this.ministryRepository.findAllByTitleContainingIgnoreCaseOrderByTitle(title);
+
+        return this.mapper.entityMinistriesToResponse(ministries);
     }
 
 }

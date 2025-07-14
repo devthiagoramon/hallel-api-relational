@@ -18,8 +18,27 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
+    Page<User> findAllByOrderByNameAsc(Pageable pageable);
+
     List<UserProfileResponse> findAllByNameContainingIgnoreCase(
             String name, Pageable pageable);
+
+    @Query("""
+                SELECT new br.hallel.relational.api.app.user.dto.UserProfileResponse(
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.phoneNumber,
+                    u.dateBirth,
+                    u.fileImageUrl,
+                    u.cpf,
+                    NULL
+                )
+                FROM User u
+                WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))
+            """)
+    List<UserProfileResponse> searchUserProfilesByName(@Param("name") String name, Pageable pageable);
+
 
     UUID id(UUID id);
 

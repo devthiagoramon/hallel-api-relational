@@ -46,15 +46,15 @@ public class PublicEventController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        List<EventResponse> events = eventService.listEventsByTitleAsc(page, size);
+        List<EventResponse> events = eventService.listEventsByTitleOrderByAsc(page, size);
         if (events.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(events);
     }
-    @GetMapping("/list-all/by-title/{title}")
+    @GetMapping("/list-all/by-title")
     public ResponseEntity<List<EventResponse>> getAllEventsByTitle(
-            @PathVariable(name = "title") String title,
+            @RequestParam(name = "title") String title,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
 

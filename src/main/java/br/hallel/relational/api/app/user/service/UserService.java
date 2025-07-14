@@ -147,9 +147,9 @@ public class UserService implements UserInterface {
         return new UserProfilePreferencesResponse(user.getId(), user.getPushNotification());
     }
 
-    public UserProfilePreferencesResponse updateUserPreferences(UUID userId, UserPreferencesDTO dto){
+    public UserProfilePreferencesResponse updateUserPreferences(UUID userId, UserPreferencesDTO dto) {
         User user = this.getUserById(userId);
-        if (dto.pushNotification() != null){
+        if (dto.pushNotification() != null) {
             user.setPushNotification(!dto.pushNotification());
         }
         userRepository.save(user);
@@ -160,7 +160,7 @@ public class UserService implements UserInterface {
     @Override
     public List<UserProfileResponse> listAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = this.userRepository.findAll(pageable);
+        Page<User> users = this.userRepository.findAllByOrderByNameAsc(pageable);
         List<UserProfileResponse> response = new ArrayList<>();
         for (User user : users) {
             response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
@@ -173,7 +173,8 @@ public class UserService implements UserInterface {
     public List<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        List<UserProfileResponse> list = this.userRepository.findAllByNameContainingIgnoreCase(name, pageable);
+        List<UserProfileResponse> list = this.userRepository.searchUserProfilesByName(name, pageable);
+
         if (list.isEmpty()) {
             throw new UserNotFoundException("User not found by name: " + name);
         }

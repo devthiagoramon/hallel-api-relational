@@ -38,4 +38,5 @@ public interface MinistryRepository extends JpaRepository<Ministry, UUID> {
             @Param("endDate") LocalDateTime endDate);
 
 
+    List<Ministry> findAllByTitleContainingIgnoreCaseOrderByTitle(String title);
 }
