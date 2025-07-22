@@ -10,8 +10,10 @@ import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
+import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import br.hallel.relational.api.app.user.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.GenericUrl;
@@ -28,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -44,6 +47,8 @@ public class AuthController {
     private final UserRepository userRepository;
     @Autowired
     private final RoleRepository roleRepository;
+    @Autowired
+    private final UserService userService;
 
     @Autowired
     private final JwtTokenProvider jwtService;
@@ -53,17 +58,23 @@ public class AuthController {
 
     @PostMapping("/login")
     public TokenDTO login(@RequestBody LoginRequest loginRequest) {
+        System.out.println("LOGIN REALIZADO!!!");
+        this.userService.registerLastActivity(loginRequest.getEmail(), null);
         return authService.login(loginRequest);
     }
 
     @GetMapping("/refresh-token")
     public TokenDTO refreshToken(@RequestParam(name = "refresh_token") String refreshToken,
                                  @RequestParam(name = "email") String email) {
+        System.out.println("REFRESH REALIZADO!!!");
+        this.userService.registerLastActivity(email, null);
         return authService.refreshToken(refreshToken, email);
     }
 
     @GetMapping("/validate-token")
     public boolean validateToken(@RequestParam(name = "token") String token) {
+        System.out.println("VALIDATE REALIZADO!!!");
+        userService.registerLastActivity(null, token);
         return authService.validateToken(token);
     }
 
@@ -102,7 +113,7 @@ public class AuthController {
                 System.out.println("Certificados recebidos do Google:");
                 System.out.println(certs);
             } catch (Exception e) {
-                System.err.println("❌ Falha ao acessar os certificados públicos do Google:");
+                System.err.println("Falha ao acessar os certificados públicos do Google:");
                 e.printStackTrace();
             }
 

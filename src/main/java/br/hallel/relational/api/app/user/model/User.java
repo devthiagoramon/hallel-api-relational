@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity(name = "User")
@@ -71,7 +72,6 @@ public class User implements Serializable, UserDetails {
     @Column(name = "lgpd_consent_date")
     private Date lgpdConsentDate;
 
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
@@ -88,6 +88,10 @@ public class User implements Serializable, UserDetails {
     )
     @JsonIgnore
     private List<DeviceNotification> devicesUser;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<LastAcessLog> lastAccessLogs;
 
     @Override
     @JsonIgnore

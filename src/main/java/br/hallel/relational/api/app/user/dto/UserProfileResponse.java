@@ -11,7 +11,8 @@ public record UserProfileResponse(
         Date dateBirth,
         String fileImageUrl,
         String cpf,
-        Date date_view
+        Date date_view,
+        Date last_access
 ) {
 
 }

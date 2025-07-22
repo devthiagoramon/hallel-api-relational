@@ -32,6 +32,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                     u.dateBirth,
                     u.fileImageUrl,
                     u.cpf,
+                    NULL,
                     NULL
                 )
                 FROM User u

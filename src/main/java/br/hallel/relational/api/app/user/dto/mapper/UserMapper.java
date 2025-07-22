@@ -14,5 +14,6 @@ import org.mapstruct.ReportingPolicy;
 public interface UserMapper {
 
     @Mapping(target = "date_view", ignore = true)
+    @Mapping(target = "last_access", ignore = true)
     UserProfileResponse userEditProfileToResponse(User user);
 }

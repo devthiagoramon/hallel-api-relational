@@ -8,7 +8,9 @@ import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
+import br.hallel.relational.api.app.user.model.LastAcessLog;
 import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.repository.LastAcessLogRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.*;
@@ -40,6 +43,8 @@ public class UserService implements UserInterface {
 
     @Autowired
     private MemberEventScaleRepository memberEventScaleRepository;
+    @Autowired
+    private LastAcessLogRepository lastAcessLogRepository;
 
     private final UserMapper userMapper;
 
@@ -137,7 +142,7 @@ public class UserService implements UserInterface {
 
         UserProfileResponse user = new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
                 userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
-                date_view_invite);
+                date_view_invite,null);
         System.out.println(user);
         return user;
     }
@@ -163,8 +168,13 @@ public class UserService implements UserInterface {
         Page<User> users = this.userRepository.findAllByOrderByNameAsc(pageable);
         List<UserProfileResponse> response = new ArrayList<>();
         for (User user : users) {
+            LocalDateTime lastAcessLog = this.getLastAcessLog(user);
+            Date date = null;
+            if(lastAcessLog != null){
+                 date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
+            }
             response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null));
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(),null, date));
         }
         return response;
     }
@@ -188,6 +198,33 @@ public class UserService implements UserInterface {
         User user = this.userRepository.findByToken(token)
                 .orElseThrow(() -> new UserNotFoundException("User not find by token: " + token));
         return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null);
+                user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, null);
+    }
+
+    public void registerLastActivity(String email, String token) {
+        User user = null;
+        if (email != null) {
+            user = this.userRepository.findByEmail(email).orElseThrow(()
+                    -> new UserNotFoundException("User not found by email: " + email));
+        } else {
+            user = this.userRepository.findByToken(token).orElseThrow(
+                    () -> new UserNotFoundException("User not found by token: " + token)
+            );
+        }
+        if (user == null) {
+            System.out.println("User not found");
+            return;
+        }
+
+        LastAcessLog log = new LastAcessLog(user, LocalDateTime.now());
+        System.out.println("Last Acess Log: " + log.getAccessedAt());
+        lastAcessLogRepository.save(log);
+    }
+
+    public LocalDateTime getLastAcessLog(User user) {
+        LocalDateTime lastAcess =
+                this.lastAcessLogRepository.findLastAccessDateByUser(user);
+        System.out.println("Get Last Access: " + lastAcess + " | Name: " + user.getName());
+        return lastAcess;
     }
 }
