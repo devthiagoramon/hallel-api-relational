@@ -31,6 +31,11 @@ import org.springframework.stereotype.Service;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
 
@@ -89,7 +94,7 @@ public class MemberEventScaleService {
                     "Convite para escala do ministério",
                     "Você foi convidado para participar da escala do ministério %s, veja agora e confirme a sua participação!".formatted(eventScale.getMinistry().getTitle()),
                     dataNotificationInviteIntoScale(eventScale, user)
-                    );
+            );
         });
 
     }
@@ -441,7 +446,11 @@ public class MemberEventScaleService {
     public List<RepertoryResponse> listAllRepertoryOfEventScale(UUID eventScaleId) {
         return this.repertoryMapper.toListResponseRepertory(this.eventScaleRepository.findRepertoriesOfEventScale(eventScaleId));
     }
-    public byte[] generateReportEventScale(EventScaleReportPDF dto, LocalDateTime start, LocalDateTime end) {
+
+    public byte[] generateReportEventScale(EventScaleReportPDF dto,
+                                           LocalDateTime start, LocalDateTime end) {
+        System.out.println("Gerando Relatório em PDF...");
+
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document();
             PdfWriter.getInstance(document, out);
@@ -463,13 +472,33 @@ public class MemberEventScaleService {
             document.add(intervalo);
 
             document.add(new Paragraph("📆 Eventos", subtituloFont));
+
             if (dto.events_title().isEmpty()) {
                 document.add(new Paragraph("Nenhum evento encontrado.", textoNormal));
             } else {
+                DateTimeFormatter inputFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH'h'mm'min'");
+
+                ZoneId zonaBrasil = ZoneId.of("America/Sao_Paulo");
+
                 for (int i = 0; i < dto.events_title().size(); i++) {
                     String title = dto.events_title().get(i);
-                    String dataStr = dto.date_events().size() > i ? dto.date_events().get(i) : "Data inválida";
-                    document.add(new Paragraph("• " + title + " - " + dataStr, textoNormal));
+                    String dataStrOriginal = dto.date_events().size() > i ? dto.date_events().get(i) : null;
+
+                    String dataFormatada;
+                    if (dataStrOriginal != null) {
+                        try {
+                            OffsetDateTime offsetDateTime = OffsetDateTime.parse(dataStrOriginal, inputFormatter);
+                            ZonedDateTime dataBrasileira = offsetDateTime.atZoneSameInstant(zonaBrasil);
+                            dataFormatada = dataBrasileira.format(outputFormatter);
+                        } catch (DateTimeParseException e) {
+                            dataFormatada = "Data inválida";
+                        }
+                    } else {
+                        dataFormatada = "Data inválida";
+                    }
+
+                    document.add(new Paragraph("• " + title + " - " + dataFormatada, textoNormal));
                 }
             }
             document.add(new Paragraph(" "));
