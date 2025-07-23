@@ -9,14 +9,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 
 @Entity(name = "User")
@@ -91,7 +90,11 @@ public class User implements Serializable, UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<LastAcessLog> lastAccessLogs;
+    private List<LastAccessLog> lastAccessLogs;
+
+    @JsonIgnore
+    @Column(name = "birth_day_email_sent_in")
+    private LocalDate birthdayEmailSentIn;
 
     @Override
     @JsonIgnore

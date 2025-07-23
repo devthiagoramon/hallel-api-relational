@@ -56,4 +56,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """)
     Page<UserShortResponse> listUsersAddableInMinistry(
             @Param("ministryId") UUID ministryId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM \"user\" WHERE EXTRACT(DAY FROM date_birth) = :day AND EXTRACT(MONTH FROM date_birth) = :month", nativeQuery = true)
+    List<User> findByDayAndMonth(@Param("day") int day, @Param("month") int month);
 }

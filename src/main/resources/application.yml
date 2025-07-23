@@ -18,7 +18,19 @@ spring:
     gcp:
       storage:
         bucket: hallel-bucket
-
+  task:
+    scheduling:
+      cron: 0 00 * * * ?
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: miguelimabr10@gmail.com
+    password: uvbylzgyrbasdvre
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
   application:
     name: hallel-api
   profiles:
@@ -44,3 +56,4 @@ springdoc:
   swagger-ui:
     path: "/swagger-ui.html"
     enabled: true
+

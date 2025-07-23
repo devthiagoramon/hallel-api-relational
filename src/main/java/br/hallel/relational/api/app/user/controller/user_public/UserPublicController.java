@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.event.dto.GuestInvitedEventScaleResponse;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileResponseWithToken;
 import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,10 +32,9 @@ public class UserPublicController {
     @Operation(
             summary = "Edit Infos User Profile by User ID"
     )
-    public ResponseEntity<UserProfileResponse> editProfile(
+    public ResponseEntity<UserProfileResponseWithToken> editProfile(
             @PathVariable(name = "idUser") UUID idUser,
             @RequestBody UserEditProfileDTO userDto) {
-        System.out.println("DATA:" + userDto.dateBirth());
         return ResponseEntity.ok(userService.editProfile(idUser, userDto));
     }
 

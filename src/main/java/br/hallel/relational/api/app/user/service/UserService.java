@@ -4,11 +4,14 @@ import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.security.dto.TokenDTO;
+import br.hallel.relational.api.app.security.model.Role;
+import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
-import br.hallel.relational.api.app.user.model.LastAcessLog;
+import br.hallel.relational.api.app.user.model.LastAccessLog;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.LastAcessLogRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -22,10 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 
 @Slf4j
@@ -45,6 +45,8 @@ public class UserService implements UserInterface {
     private MemberEventScaleRepository memberEventScaleRepository;
     @Autowired
     private LastAcessLogRepository lastAcessLogRepository;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     private final UserMapper userMapper;
 
@@ -63,7 +65,7 @@ public class UserService implements UserInterface {
     }
 
     @Override
-    public UserProfileResponse editProfile(UUID idUser, UserEditProfileDTO userDto) {
+    public UserProfileResponseWithToken editProfile(UUID idUser, UserEditProfileDTO userDto) {
         log.info("Edit Profile...");
 
         User user = this.getUserById(idUser);
@@ -85,8 +87,19 @@ public class UserService implements UserInterface {
 
         User userUpdated = userRepository.save(user);
         log.info("Profile Updated successfully!");
+        TokenDTO newToken = jwtTokenProvider.createAccessToken(
+                userUpdated.getEmail(),
+                userUpdated.getRoles().stream().map(Role::getDescription).toList()
+        );
 
-        return userMapper.userEditProfileToResponse(userUpdated);
+        userUpdated.setToken(newToken.getAccessToken());
+        userRepository.save(userUpdated);
+
+        return new UserProfileResponseWithToken(
+                newToken,
+                userMapper.userEditProfileToResponse(userUpdated)
+        );
+
     }
 
     @Override
@@ -142,7 +155,7 @@ public class UserService implements UserInterface {
 
         UserProfileResponse user = new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
                 userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
-                date_view_invite,null);
+                date_view_invite, null);
         System.out.println(user);
         return user;
     }
@@ -170,11 +183,11 @@ public class UserService implements UserInterface {
         for (User user : users) {
             LocalDateTime lastAcessLog = this.getLastAcessLog(user);
             Date date = null;
-            if(lastAcessLog != null){
-                 date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
+            if (lastAcessLog != null) {
+                date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
             }
             response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(),null, date));
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, date));
         }
         return response;
     }
@@ -202,23 +215,23 @@ public class UserService implements UserInterface {
     }
 
     public void registerLastActivity(String email, String token) {
-        User user = null;
-        if (email != null) {
-            user = this.userRepository.findByEmail(email).orElseThrow(()
-                    -> new UserNotFoundException("User not found by email: " + email));
-        } else {
-            user = this.userRepository.findByToken(token).orElseThrow(
-                    () -> new UserNotFoundException("User not found by token: " + token)
-            );
-        }
-        if (user == null) {
-            System.out.println("User not found");
-            return;
+        User user = (email != null)
+                ? userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found by email: " + email))
+                : userRepository.findByToken(token)
+                .orElseThrow(() -> new UserNotFoundException("User not found by token: " + token));
+
+        LocalDateTime lastAccess = lastAcessLogRepository.findLastAccessDateByUser(user);
+
+        boolean shouldLog = (lastAccess == null)
+                || Duration.between(lastAccess, LocalDateTime.now()).toHours() >= 1;
+
+        if (shouldLog) {
+            LastAccessLog log = new LastAccessLog(user, LocalDateTime.now());
+            System.out.println("Last Access Log: " + log.getAccessedAt());
+            lastAcessLogRepository.save(log);
         }
 
-        LastAcessLog log = new LastAcessLog(user, LocalDateTime.now());
-        System.out.println("Last Acess Log: " + log.getAccessedAt());
-        lastAcessLogRepository.save(log);
     }
 
     public LocalDateTime getLastAcessLog(User user) {
