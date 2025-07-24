@@ -26,10 +26,15 @@ public class MemberMinistry {
     @JoinColumn(name = "user_id")
     private User user;
 
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ministry_id")
     private Ministry ministry;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "ministry_member_role",
+            joinColumns = @JoinColumn(name = "member_ministry_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_ministry_id"))
+    private List<RoleMinistry> ministryRoles;
 
     public MemberMinistry(User user, Ministry ministry) {
         this.user = user;

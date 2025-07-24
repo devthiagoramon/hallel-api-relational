@@ -6,15 +6,15 @@ import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunct
 import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
+import br.hallel.relational.api.app.ministry.exception.RoleMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
-import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
-import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
-import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.*;
 import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.management.relation.RoleNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,10 @@ public class MemberMinistryService {
     private MinistryRepository ministryRepository;
     @Autowired
     private FCMSenderService fcmSenderService;
+    @Autowired
+    private RoleMinistryRepository roleMinistryRepository;
+    @Autowired
+    private MinistryMemberRoleRepository ministryMemberRoleRepository;
 
 
     public Page<MemberMinistryResponseWithFunctions> getAllMemberOfMinistry(
@@ -91,7 +96,8 @@ public class MemberMinistryService {
     }
 
     public MemberMinistry getMemberMinistryByUserAndMinistryId(UUID userId, UUID ministryId) {
-        Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(userId, ministryId);
+        Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
+                userId, ministryId);
         if (memberMinistryOptional.isEmpty()) {
             throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
         }
@@ -99,8 +105,9 @@ public class MemberMinistryService {
     }
 
 
+    @SneakyThrows
     public MemberMinistry addMemberIntoMinistry(UUID ministryId,
-                                                UUID userId) {
+                                                UUID userId, RoleMinistryTypes roleMinistry) {
         log.info("Adding member {} into ministry {}", userId, ministryId);
 
         User user = userRepository.findById(userId)
@@ -109,7 +116,27 @@ public class MemberMinistryService {
         Ministry ministry = ministryRepository.findById(ministryId)
                 .orElseThrow(() -> new RuntimeException("Ministry not found"));
 
+        List<RoleMinistry> rolesMinistryUser = new ArrayList<>(roleMinistryRepository.findAll().stream()
+                .filter((roleMinistry1 -> roleMinistry1.getDescription().equals("MEMBER"))).toList());
+
+        if (roleMinistry != RoleMinistryTypes.MEMBER) {
+            if (Objects.requireNonNull(roleMinistry) == RoleMinistryTypes.EXTERNAL_COORDINATOR) {
+                RoleMinistry externalCoordinatorRole = roleMinistryRepository.findAll().stream()
+                        .filter(roleMinistry1 -> roleMinistry1.getDescription().equals("EXTERNAL_COORDINATOR"))
+                        .findFirst().orElseThrow(
+                                () -> new RoleMinistryNotFoundException("External Coordinator Role not found"));
+                rolesMinistryUser.add(externalCoordinatorRole);
+            } else {
+                throw new RoleNotFoundException("Role ministry not found");
+            }
+        }
         MemberMinistry memberMinistry = new MemberMinistry(user, ministry);
+
+        for (RoleMinistry roleMin : rolesMinistryUser) {
+            ministryMemberRoleRepository.save(
+                    new MinistryMemberRole(new MinistryMemberRoleIds(memberMinistry.getId(), roleMin.getId())));
+        }
+
         sendNotificationToPersonAddedIntoMinistry(memberMinistry);
         return memberMinistryRepository.save(memberMinistry);
     }

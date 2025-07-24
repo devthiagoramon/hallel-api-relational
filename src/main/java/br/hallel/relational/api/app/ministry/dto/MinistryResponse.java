@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.dto;
 
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.model.MinistryType;
 import br.hallel.relational.api.app.user.model.User;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,6 @@ public class MinistryResponse {
     private String image;
     private Boolean hasRepertoire;
     private MinistryType ministryType;
-    private User coordinator;
-    private User viceCoordinator;
+    private MemberMinistry coordinator;
+    private MemberMinistry viceCoordinator;
 }

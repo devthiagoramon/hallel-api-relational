@@ -7,6 +7,7 @@ import br.hallel.relational.api.app.event.service.MemberEventScaleService;
 import br.hallel.relational.api.app.event.service.EventScaleService;
 import br.hallel.relational.api.app.ministry.dto.*;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
+import br.hallel.relational.api.app.ministry.model.RoleMinistryTypes;
 import br.hallel.relational.api.app.ministry.service.FunctionMinistryMemberService;
 import br.hallel.relational.api.app.ministry.service.MemberMinistryService;
 import br.hallel.relational.api.app.user.dto.UserShortResponse;
@@ -73,9 +74,9 @@ public class CoordinatorMemberMinistryController {
     )
     public ResponseEntity<MemberMinistry> addMemberMinistryIntoMinistry(
             @RequestParam(name = "ministry-id") UUID ministryId,
-            @RequestParam(name = "user-id") UUID userId) {
+            @RequestParam(name = "user-id") UUID userId, @RequestParam(name = "ministry-role") RoleMinistryTypes roleMinistry) {
         return ResponseEntity.ok()
-                .body(memberMinistryService.addMemberIntoMinistry(ministryId, userId));
+                .body(memberMinistryService.addMemberIntoMinistry(ministryId, userId, roleMinistry));
     }
 
     @DeleteMapping("/remove")
