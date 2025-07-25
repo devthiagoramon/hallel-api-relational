@@ -1,9 +1,14 @@
 package br.hallel.relational.api.app.user.service;
 
+import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
+import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificationRepository;
+import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
+import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
@@ -25,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
@@ -34,19 +40,20 @@ public class UserService implements UserInterface {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordEncoder encoder;
-
     @Autowired
     private GoogleBucketService bucketService;
-
     @Autowired
     private MemberEventScaleRepository memberEventScaleRepository;
     @Autowired
     private LastAcessLogRepository lastAcessLogRepository;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private DeviceNotificationRepository deviceNotificationRepository;
+    @Autowired
+    private FCMSenderService fcmSenderService;
 
     private final UserMapper userMapper;
 
@@ -240,4 +247,42 @@ public class UserService implements UserInterface {
         System.out.println("Get Last Access: " + lastAcess + " | Name: " + user.getName());
         return lastAcess;
     }
+
+    public void sendNotificationBirthDayMessage(User user){
+        System.out.println("Send Notification of Missing Users: " + user.getName());
+        List<DeviceNotification> devicesUser = user.getDevicesUser();
+
+        devicesUser.forEach(device -> {
+            fcmSenderService.sendNotification(
+                    device.getFcmToken(),
+                    "\uD83C\uDF89 Parabéns, %s!".formatted(user.getName().trim()),
+                    "Deus tem visto o seu esforço! Continue firme — sua dedicação faz a diferença na obra." +
+                            "\nQue Ele te abençoe grandemente nessa jornada! \uD83D\uDE4C",
+                    Map.of(
+                            "type", "open_app",
+                            "action", "birth_day_notification"
+                    )
+            );
+        });
+        System.out.println("Notification sending with success!");
+    }
+
+    public void sendNotificationOfMissingUsers(User user) {
+        System.out.println("Send Notification of Missing Users: " + user.getName());
+        List<DeviceNotification> devicesUser = user.getDevicesUser();
+
+        devicesUser.forEach(device -> {
+            fcmSenderService.sendNotification(
+                    device.getFcmToken(),
+                    "Sua presença faz a diferença!",
+                    "Acesse o app Hallel e veja onde você pode servir. Deus tem algo preparado pra você.",
+                    Map.of(
+                            "type", "open_app",
+                            "action", "reminder_notification"
+                    )
+            );
+        });
+        System.out.println("Notification sending with success!");
+    }
+
 }

@@ -77,12 +77,19 @@ public class AuthService {
     ) {
 
         List<Role> rolesBD = roleRepository.findAll();
+        Role userRole = rolesBD.stream()
+                .filter(role -> role.getDescription().equals("USER"))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Role USER not found"));
+
         log.info("Add member...");
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setDateBirth(new Date());
+        user.setRoles(Set.of(userRole));
+        user.setPushNotification(false);
         if (userRepository.
                 findByEmail(request.getEmail()).isPresent()) {
             throw new AuthRequestException("User already exists in Database");

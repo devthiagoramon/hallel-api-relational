@@ -12,7 +12,6 @@ public class SingUpRequest {
     private String name;
     private String email;
     private String password;
-    private Set<Role> roles;
 
     public SingUpRequest(String password, String email, String name) {
         this.password = password;

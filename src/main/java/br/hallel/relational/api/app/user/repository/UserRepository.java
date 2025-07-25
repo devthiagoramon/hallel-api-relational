@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,4 +60,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query(value = "SELECT * FROM \"user\" WHERE EXTRACT(DAY FROM date_birth) = :day AND EXTRACT(MONTH FROM date_birth) = :month", nativeQuery = true)
     List<User> findByDayAndMonth(@Param("day") int day, @Param("month") int month);
+
+    @Query("""
+                SELECT u FROM User u
+                LEFT JOIN FETCH u.devicesUser d
+                WHERE (
+                  SELECT MAX(l.accessedAt)
+                  FROM LastAccessLog l
+                  WHERE l.user = u
+                ) < :date
+            """)
+    List<User> findUsersWithLastAccessBefore(@Param("date") LocalDateTime date);
+
 }

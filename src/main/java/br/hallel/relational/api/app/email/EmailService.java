@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.email;
 
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import br.hallel.relational.api.app.user.service.UserService;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,8 @@ public class EmailService {
     private JavaMailSender mailSender;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -60,8 +63,9 @@ public class EmailService {
             mailSender.send(message);
             user.setBirthdayEmailSentIn(today);
             System.out.println("Email enviado com sucesso!");
-            userRepository.save(user);
 
+            userRepository.save(user);
+            this.userService.sendNotificationBirthDayMessage(user);
             return true;
         } catch (Exception e) {
             System.out.println("Erro ao enviar email HTML: " + e.getMessage());
