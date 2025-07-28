@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -31,15 +33,15 @@ public class MinistryCoordinatorFilter extends HttpFilter {
                             HttpServletResponse response,
                             FilterChain chain) throws IOException,
             ServletException {
-        if (request.getRequestURI()
-                   .contains("/coordinator")) {
-            String token = request.getHeader("coordenador-token");
+        String token = tokenCoordinatorMinistry.resolveToken(request);
 
-            if (token == null || !tokenCoordinatorMinistry.validateToken(token)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token for a coordinator or isn't a coordinator");
-                return;
+        if (token != null && tokenCoordinatorMinistry.validateToken(token)) {
+            Authentication authentication = tokenCoordinatorMinistry.getAuthentication(token);
+            if (authentication != null) {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
+
         chain.doFilter(request, response);
     }
 

@@ -254,8 +254,6 @@ public class MinistryService implements MinistryInterface {
                 .filter(roleMinistry -> roleMinistry.getDescription().equals("MEMBER")).findFirst()
                 .orElseThrow(() -> new RoleMinistryNotFoundException("Role ministry not found"));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
-
-
                 new MinistryMemberRoleIds(memberMinistrySaved.getId(), coordinatorLevel.getId())));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
                 new MinistryMemberRoleIds(memberMinistrySaved.getId(), roleMember.getId())));
@@ -301,13 +299,26 @@ public class MinistryService implements MinistryInterface {
     }
 
     public boolean validateCoordinatorOfMinistry(UUID ministryId, UUID userId) {
-        Ministry ministry = this.ministryRepository.findById(ministryId)
-                .orElseThrow(() -> new MinistryIllegalArgumentException(
-                        "Can't find ministry of id %s".formatted(ministryId)));
+        List<MemberMinistry> membersMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(ministryId);
+        for (MemberMinistry memberMinistry : membersMinistries) {
+            if (memberMinistry.getUser().getId().equals(userId)) {
+                List<String> rolesString = memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription).toList();
 
-        if (ministry.getCoordinator().getId().equals(userId)) return true;
-        return ministry.getViceCoordinator().getId().equals(userId);
+                if (rolesString.contains("COORDINATOR")) {
+                    return true;
+                }
+                if (rolesString.contains("VICE_COORDINATOR")) {
+                    return true;
+                }
+                if (rolesString.contains("EXTERNAL_COORDINATOR")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
+
+
 
     public StatusParticipationMinistry listStatusParticipationInMinistry(UUID ministryId, UUID userId) {
         Ministry ministry = this.ministryRepository.findById(ministryId)

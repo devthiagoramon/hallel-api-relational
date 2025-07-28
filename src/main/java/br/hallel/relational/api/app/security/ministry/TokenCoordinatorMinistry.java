@@ -1,5 +1,8 @@
 package br.hallel.relational.api.app.security.ministry;
 
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
+import br.hallel.relational.api.app.ministry.model.RoleMinistry;
+import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.security.dto.TokenCoordinatorDTO;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.exceptions.InvalidJwtAuthenticationException;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,9 @@ public class TokenCoordinatorMinistry {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private MemberMinistryRepository memberMinistryRepository;
+
     Algorithm algorithm = null;
 
     @PostConstruct
@@ -47,34 +54,38 @@ public class TokenCoordinatorMinistry {
     public TokenCoordinatorDTO createAccessToken(UUID userId, UUID ministryId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTimeInMiliseconds);
-        var accessToken = getAccessToken(userId,ministryId, now, expiration);
+        MemberMinistry memberMinistry = memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(userId,
+                ministryId).orElseThrow(() -> new InvalidJwtAuthenticationException("Member ministry not found"));
+        var accessToken = getAccessToken(userId, ministryId, now, expiration, memberMinistry);
         var refreshToken = getRefreshToken(userId, ministryId, now);
         return new TokenCoordinatorDTO(userId, ministryId, expiration, accessToken, refreshToken);
     }
 
-    public TokenCoordinatorDTO refreshToken(String refreshToken){
+    public TokenCoordinatorDTO refreshToken(String refreshToken) {
         if (refreshToken.contains("Bearer ")) refreshToken = refreshToken.substring("Bearer ".length());
         JWTVerifier verifier = JWT.require(algorithm).build();
         DecodedJWT decodedJWT = verifier.verify(refreshToken);
         UUID userId = UUID.fromString(decodedJWT.getSubject());
         UUID ministryId = UUID.fromString(decodedJWT.getClaim("ministryId").toString());
-        return createAccessToken(userId,  ministryId);
+        return createAccessToken(userId, ministryId);
     }
 
 
     private String getAccessToken(UUID userId, UUID ministryId,
-                                  Date now, Date expiration) {
+                                  Date now, Date expiration, MemberMinistry memberMinistry) {
         String issuerUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                                                      .build()
-                                                      .toUriString();
+                .build()
+                .toUriString();
         return JWT.create()
-                  .withClaim("memberMinistryId", userId.toString())
-                  .withClaim("ministryId", ministryId.toString())
-                  .withIssuedAt(now)
-                  .withExpiresAt(expiration)
-                  .withIssuer(issuerUrl)
-                    .withSubject(userId.toString())
-                  .sign(algorithm).strip();
+                .withClaim("memberMinistryId", userId.toString())
+                .withClaim("ministryId", ministryId.toString())
+                .withClaim("roles",
+                        memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription).toList())
+                .withIssuedAt(now)
+                .withExpiresAt(expiration)
+                .withIssuer(issuerUrl)
+                .withSubject(userId.toString())
+                .sign(algorithm).strip();
 
     }
 
@@ -82,17 +93,23 @@ public class TokenCoordinatorMinistry {
         Date expirationRefreshToken = new Date(now.getTime() + expirationTimeInMiliseconds * 3);
 
         return JWT.create()
-                  .withClaim("memberMinistryId", userId.toString())
-                  .withClaim("ministryId", ministryId.toString())
-                  .withIssuedAt(now)
-                  .withExpiresAt(expirationRefreshToken)
-                  .sign(algorithm).strip();
+                .withClaim("memberMinistryId", userId.toString())
+                .withClaim("ministryId", ministryId.toString())
+                .withIssuedAt(now)
+                .withExpiresAt(expirationRefreshToken)
+                .sign(algorithm).strip();
     }
 
     public Authentication getAuthentication(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(decodedJWT.getSubject());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        String userDetails = decodedJWT.getSubject();
+
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+
+        return new UsernamePasswordAuthenticationToken(userDetails, "", authorities); // <-- Usa as authorities do token
     }
 
     private DecodedJWT decodedToken(String token) {
@@ -103,20 +120,17 @@ public class TokenCoordinatorMinistry {
     }
 
     public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring("Bearer ".length());
+        String token = request.getHeader("coordenador-token");
+        if (token != null && !token.isBlank()) {
+            return token;
         }
         return null;
     }
 
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         try {
-            if (decodedJWT.getExpiresAt().before(new Date())) {
-                return false;
-            }
-            return true;
+            return !decodedJWT.getExpiresAt().before(new Date());
         } catch (Exception e) {
             throw new InvalidJwtAuthenticationException("Expired or invalid JWT token!");
         }
