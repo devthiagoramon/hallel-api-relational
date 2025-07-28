@@ -52,12 +52,12 @@ public class MinistryService implements MinistryInterface {
     @Autowired
     private MemberMinistryRepository memberMinistryRepository;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private RoleMinistryRepository roleMinistryRepository;
 
     @Autowired
     private MinistryMemberRoleRepository ministryMemberRoleRepository;
-    @Autowired
-    private UserRepository userRepository;
 
     private final MinistryMapper mapper;
     private final EventScaleMapper eventScaleMapper;
@@ -78,9 +78,22 @@ public class MinistryService implements MinistryInterface {
         }
 
         Ministry ministryMapped = mapper.requestToEntity(ministryRequestDTO);
+
+        User coordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User to add as coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
+                                .toString())));
+        User viceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User to add as vice-coordinator not found by id: %s".formatted(
+                                ministryRequestDTO.getViceCoordinatorId()
+                                        .toString())));
+        ministryMapped.setCoordinator(coordinator);
+        ministryMapped.setViceCoordinator(viceCoordinator);
         Ministry ministry =
                 this.ministryRepository.save(ministryMapped);
         String imageUrl = null;
+
         try {
             imageUrl = googleBucketService.sendImageToBucket(
                     image, GoogleBucketUtils.getImageName(
@@ -94,18 +107,17 @@ public class MinistryService implements MinistryInterface {
         }
         ministry.setImage(imageUrl);
         log.info("Ministry Response: " + ministry.toString());
+
         log.info("Adding coordinator and vice-coordinator as members ministry");
         List<RoleMinistry> roleMinistryList = roleMinistryRepository.findAll();
-        MemberMinistry coordinator = addCoordinatorToMemberMinistryTable(ministryRequestDTO.getCoordinatorId(),
-                ministry.getId(),
+        addCoordinatorToMemberMinistryTable(ministry.getCoordinator().getId(), ministry.getId(),
                 roleMinistryList.stream().filter(roleMinistry -> roleMinistry.getDescription().equals("COORDINATOR"))
                         .toList().get(0));
-        MemberMinistry viceCoordinator = addCoordinatorToMemberMinistryTable(ministryRequestDTO.getViceCoordinatorId(),
-                ministry.getId(), roleMinistryList.stream()
-                        .filter(roleMinistry -> roleMinistry.getDescription().equals("VICE_COORDINATOR")).toList()
-                        .get(0));
-        ministry.setCoordinator(coordinator);
-        ministry.setViceCoordinator(viceCoordinator);
+        addCoordinatorToMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId(),
+                roleMinistryList.stream()
+                        .filter(roleMinistry -> roleMinistry.getDescription().equals("VICE_COORDINATOR"))
+                        .toList().get(0));
+
         return mapper.entityMinistryToResponse(this.ministryRepository.save(ministry));
     }
 
@@ -184,24 +196,27 @@ public class MinistryService implements MinistryInterface {
         if (ministryRequestDTO.getCoordinatorId() != null
                 && !ministryRequestDTO.getCoordinatorId().equals(ministry.getCoordinator().getId())) {
             deleteCoordinatorFromMemberMinistryTable(ministry.getCoordinator().getId(), ministry.getId());
-            MemberMinistry newCoordinator = addCoordinatorToMemberMinistryTable(ministryRequestDTO.getCoordinatorId(),
-                    ministry.getId(), roleMinistryList.stream()
+
+            addCoordinatorToMemberMinistryTable(ministryRequestDTO.getCoordinatorId(), ministry.getId(),
+                    roleMinistryList.stream()
                             .filter(roleMinistry -> roleMinistry.getDescription().equals("COORDINATOR"))
                             .toList().get(0));
 
-
+            User newCoordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
+                    .orElseThrow(() -> new RuntimeException("Coordenador não encontrado"));
             ministry.setCoordinator(newCoordinator);
         }
 
         if (ministryRequestDTO.getViceCoordinatorId() != null
                 && !ministryRequestDTO.getViceCoordinatorId().equals(ministry.getViceCoordinator().getId())) {
             deleteCoordinatorFromMemberMinistryTable(ministry.getViceCoordinator().getId(), ministry.getId());
-            MemberMinistry newViceCoordinator = addCoordinatorToMemberMinistryTable(
-                    ministryRequestDTO.getViceCoordinatorId(), ministry.getId(), roleMinistryList.stream()
+            addCoordinatorToMemberMinistryTable(ministryRequestDTO.getViceCoordinatorId(), ministry.getId(),
+                    roleMinistryList.stream()
                             .filter(roleMinistry -> roleMinistry.getDescription().equals("VICE_COORDINATOR"))
                             .toList().get(0));
 
-
+            User newViceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
+                    .orElseThrow(() -> new RuntimeException("Vice Coordenador não encontrado"));
             ministry.setViceCoordinator(newViceCoordinator);
         }
 
@@ -222,8 +237,7 @@ public class MinistryService implements MinistryInterface {
         memberMinistryRepository.delete(oldMinistryMember);
     }
 
-    private MemberMinistry addCoordinatorToMemberMinistryTable(UUID userId, UUID ministryId,
-                                                               RoleMinistry coordinatorLevel) {
+    private void addCoordinatorToMemberMinistryTable(UUID userId, UUID ministryId, RoleMinistry coordinatorLevel) {
         log.info("Adding coordinator to member ministry table...");
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
@@ -232,17 +246,19 @@ public class MinistryService implements MinistryInterface {
                 .orElseThrow(() -> new RuntimeException("Ministry not found with id: " + ministryId));
 
         MemberMinistry memberMinistrySaved = memberMinistryRepository.save(new MemberMinistry(user, ministry));
+
+
         List<RoleMinistry> rolesMinistry = roleMinistryRepository.findAll();
+
         RoleMinistry roleMember = rolesMinistry.stream()
                 .filter(roleMinistry -> roleMinistry.getDescription().equals("MEMBER")).findFirst()
                 .orElseThrow(() -> new RoleMinistryNotFoundException("Role ministry not found"));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
+
+
                 new MinistryMemberRoleIds(memberMinistrySaved.getId(), coordinatorLevel.getId())));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
                 new MinistryMemberRoleIds(memberMinistrySaved.getId(), roleMember.getId())));
-
-
-        return memberMinistrySaved;
     }
 
     @Override
@@ -289,8 +305,8 @@ public class MinistryService implements MinistryInterface {
                 .orElseThrow(() -> new MinistryIllegalArgumentException(
                         "Can't find ministry of id %s".formatted(ministryId)));
 
-        if (ministry.getCoordinator().getUser().getId().equals(userId)) return true;
-        return ministry.getViceCoordinator().getUser().getId().equals(userId);
+        if (ministry.getCoordinator().getId().equals(userId)) return true;
+        return ministry.getViceCoordinator().getId().equals(userId);
     }
 
     public StatusParticipationMinistry listStatusParticipationInMinistry(UUID ministryId, UUID userId) {
@@ -315,5 +331,4 @@ public class MinistryService implements MinistryInterface {
     }
 
 }
-
 

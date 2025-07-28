@@ -19,6 +19,6 @@ public class MinistryResponse {
     private String image;
     private Boolean hasRepertoire;
     private MinistryType ministryType;
-    private MemberMinistry coordinator;
-    private MemberMinistry viceCoordinator;
+    private User coordinator;
+    private User viceCoordinator;
 }

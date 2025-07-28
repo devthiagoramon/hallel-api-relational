@@ -86,20 +86,20 @@ public class EventScaleService implements ScaleInterface {
     }
 
     private void sendNotificationOfCreatingScaleForCoordinators(Ministry ministry, EventScale eventScale) {
-        List<DeviceNotification> devicesCoordinador = ministry.getCoordinator().getUser().getDevicesUser();
+        List<DeviceNotification> devicesCoordinador = ministry.getCoordinator().getDevicesUser();
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         devicesCoordinador.forEach(device -> {
             fcmSenderService.sendNotification(device.getFcmToken(),
                     "Escala do ministério %s".formatted(ministry.getTitle()),
                     "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
-                    eventScaleNotificationTemplate(ministry.getCoordinator().getUser(), ministry, eventScale));
+                    eventScaleNotificationTemplate(ministry.getCoordinator(), ministry, eventScale));
         });
-        List<DeviceNotification> devicesViceCoordinador = ministry.getViceCoordinator().getUser().getDevicesUser();
+        List<DeviceNotification> devicesViceCoordinador = ministry.getViceCoordinator().getDevicesUser();
         devicesViceCoordinador.forEach(device -> {
             fcmSenderService.sendNotification(device.getFcmToken(),
                     "Escala do ministério %s".formatted(ministry.getTitle()),
                     "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
-                    eventScaleNotificationTemplate(ministry.getViceCoordinator().getUser(), ministry, eventScale));
+                    eventScaleNotificationTemplate(ministry.getViceCoordinator(), ministry, eventScale));
         });
     }
 

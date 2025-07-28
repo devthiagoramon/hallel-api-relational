@@ -35,11 +35,11 @@ public class Ministry {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coordinator_id")
-    private MemberMinistry coordinator;
+    private User coordinator;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vice_coordinator_id")
-    private MemberMinistry viceCoordinator;
+    private User viceCoordinator;
 
     @OneToMany(mappedBy = "ministry", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonBackReference
