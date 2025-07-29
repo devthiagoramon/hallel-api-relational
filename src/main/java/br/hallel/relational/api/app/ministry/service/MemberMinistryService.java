@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunct
 import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
+import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.exception.RoleMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.*;
@@ -72,12 +73,22 @@ public class MemberMinistryService {
                             Collectors.mapping(FunctionMinistryMember::getFunctionMinistry, Collectors.toList())
                     ));
 
+            Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(
+                    () -> new MinistryIllegalArgumentException("Member ministry not found")
+            );
+
             List<MemberMinistryResponseWithFunctions> dtos = membersMinistry.stream()
-                    .map(memberMinistry -> new MemberMinistryResponseWithFunctions(
-                            memberMinistry.getId(),
-                            memberMinistry.getUser(),
-                            functionsByUserId.getOrDefault(memberMinistry.getId(), Collections.emptyList())
-                    ))
+                    .map(memberMinistry -> {
+                        System.out.println("memberMinistry: " + memberMinistry.getUser().getName());
+                        StatusParticipationMinistry status = getStatusParticipationInMinistryUser(ministry, memberMinistry.getUser().getId());
+
+                        return new MemberMinistryResponseWithFunctions(
+                                memberMinistry.getId(),
+                                memberMinistry.getUser(),
+                                functionsByUserId.getOrDefault(memberMinistry.getId(), Collections.emptyList()),
+                                status
+                        );
+                    })
                     .toList();
 
             return new PageImpl<>(dtos, pageable, pageMemberMinistry.getTotalElements());
@@ -190,12 +201,15 @@ public class MemberMinistryService {
                 List<String> rolesString = memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription).toList();
 
                 if (rolesString.contains("COORDINATOR")) {
+                    System.out.println("COORDINATOR");
                     return StatusParticipationMinistry.COORDINATOR;
                 }
                 if (rolesString.contains("VICE_COORDINATOR")) {
+                    System.out.println("VICE_COORDINATOR");
                     return StatusParticipationMinistry.VICE_COORDINATOR;
                 }
                 if (rolesString.contains("EXTERNAL_COORDINATOR")) {
+                    System.out.println("EXTERNAL_COORDINATOR");
                     return StatusParticipationMinistry.EXTERNAL_COORDINATOR;
                 }
             }

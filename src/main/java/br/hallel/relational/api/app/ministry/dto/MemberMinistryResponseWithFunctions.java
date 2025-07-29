@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.dto;
 
 import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
+import br.hallel.relational.api.app.ministry.model.StatusParticipationMinistry;
 import br.hallel.relational.api.app.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,4 +19,5 @@ public class MemberMinistryResponseWithFunctions {
     private UUID id;
     private User user;
     private List<FunctionMinistry> functionMember;
+    private StatusParticipationMinistry status;
 }
