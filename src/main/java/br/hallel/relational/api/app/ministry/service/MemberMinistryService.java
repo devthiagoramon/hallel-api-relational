@@ -131,14 +131,15 @@ public class MemberMinistryService {
             }
         }
         MemberMinistry memberMinistry = new MemberMinistry(user, ministry);
+        MemberMinistry memberMinistrySaved = memberMinistryRepository.save(memberMinistry);
 
         for (RoleMinistry roleMin : rolesMinistryUser) {
             ministryMemberRoleRepository.save(
-                    new MinistryMemberRole(new MinistryMemberRoleIds(memberMinistry.getId(), roleMin.getId())));
+                    new MinistryMemberRole(new MinistryMemberRoleIds(memberMinistrySaved.getId(), roleMin.getId())));
         }
 
         sendNotificationToPersonAddedIntoMinistry(memberMinistry);
-        return memberMinistryRepository.save(memberMinistry);
+        return memberMinistrySaved;
     }
 
     private void sendNotificationToPersonAddedIntoMinistry(MemberMinistry memberMinistry) {
@@ -183,11 +184,21 @@ public class MemberMinistryService {
     }
 
     private StatusParticipationMinistry getStatusParticipationInMinistryUser(Ministry ministry, UUID userId) {
-        if (ministry.getCoordinator().getId().equals(userId)) {
-            return StatusParticipationMinistry.COORDINATOR;
-        }
-        if (ministry.getViceCoordinator().getId().equals(userId)) {
-            return StatusParticipationMinistry.VICE_COORDINATOR;
+        List<MemberMinistry> membersMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(ministry.getId());
+        for (MemberMinistry memberMinistry : membersMinistries) {
+            if (memberMinistry.getUser().getId().equals(userId)) {
+                List<String> rolesString = memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription).toList();
+
+                if (rolesString.contains("COORDINATOR")) {
+                    return StatusParticipationMinistry.COORDINATOR;
+                }
+                if (rolesString.contains("VICE_COORDINATOR")) {
+                    return StatusParticipationMinistry.VICE_COORDINATOR;
+                }
+                if (rolesString.contains("EXTERNAL_COORDINATOR")) {
+                    return StatusParticipationMinistry.EXTERNAL_COORDINATOR;
+                }
+            }
         }
         return StatusParticipationMinistry.MEMBER;
     }
