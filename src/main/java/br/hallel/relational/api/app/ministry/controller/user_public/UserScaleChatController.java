@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
+import br.hallel.relational.api.app.ministry.dto.ScaleChatInfoResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantUserResponse;
 import br.hallel.relational.api.app.ministry.service.ScaleChatParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +30,15 @@ public class UserScaleChatController {
     }
 
     @GetMapping("/exists/{scale-id}")
+    @Operation(summary = "Verify existence of scale chat", description = "Route to verify if had created some chat for scale")
     public ResponseEntity<Boolean> verifyIfScaleChatExists(@PathVariable("scale-id") UUID scaleId) {
         return ResponseEntity.ok().body(this.scaleChatParticipantService.verifyIfScaleChatExists(scaleId));
+    }
+
+    @GetMapping("/info/{scale-id}")
+    @Operation(summary = "Get the important infos of scale chat")
+    public ResponseEntity<ScaleChatInfoResponse> getScaleChatInfo(@PathVariable("scale-id") UUID scaleId) {
+        return ResponseEntity.ok().body(this.scaleChatParticipantService.getInfoOfScaleChat(scaleId));
     }
 
 }

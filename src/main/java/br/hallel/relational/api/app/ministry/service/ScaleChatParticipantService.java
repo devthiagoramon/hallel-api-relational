@@ -1,16 +1,19 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatInfoResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantUserResponse;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatParticipantRepository;
+import br.hallel.relational.api.app.user.model.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -68,7 +72,18 @@ public class ScaleChatParticipantService {
 
     public Boolean verifyIfScaleChatExists(UUID scaleId) {
         log.info("Verifying scale chat of scale {} existence", scaleId);
-        List<ScaleChatParticipant> participants = scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_Id(scaleId);
+        List<ScaleChatParticipant> participants = scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_Id(
+                scaleId);
         return !participants.isEmpty();
+    }
+
+    public ScaleChatInfoResponse getInfoOfScaleChat(UUID scaleId) {
+        log.info("Listing info scale chat of scale {}", scaleId);
+        List<ScaleChatParticipant> participantsChat = scaleChatParticipantRepository.listParticipantsOfScale(
+                scaleId);
+        List<User> participants = participantsChat.stream()
+                .map(participant -> participant.getMemberEventScale().getMemberMinistry().getUser()).toList();
+        EventShortResponse eventShortResponse = eventScaleRepository.findScaleByIdWithInfos(scaleId).getEvento();
+        return new ScaleChatInfoResponse(scaleId, eventShortResponse, participants);
     }
 }
