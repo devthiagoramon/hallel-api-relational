@@ -51,6 +51,6 @@ public class Ministry {
             joinColumns = @JoinColumn(name = "ministry_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> membersMinistry;
+    private List<MemberMinistry> membersMinistry;
 
 }
