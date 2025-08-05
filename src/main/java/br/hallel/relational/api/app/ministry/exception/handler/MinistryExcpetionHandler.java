@@ -85,4 +85,11 @@ public class MinistryExcpetionHandler {
 
     }
 
+    @ExceptionHandler(value = ScaleChatParticipantNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> scaleChatParticipantNotFoundException(ScaleChatParticipantNotFoundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
 }

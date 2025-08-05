@@ -17,7 +17,8 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
     select scp from ScaleChatParticipant scp
     JOIN fetch scp.memberEventScale mes
     join fetch mes.memberMinistry mm
-    join fetch mm.user
+    join fetch mm.user u
+    join fetch u.devicesUser
 """)
     List<ScaleChatParticipant> listParticipantsOfScale(@Param("scaleId") UUID eventScaleId);
 }

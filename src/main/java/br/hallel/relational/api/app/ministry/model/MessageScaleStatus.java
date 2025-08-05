@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Table(name = "message_scale_status")
@@ -27,6 +28,14 @@ public class MessageScaleStatus {
     @JoinColumn(name = "recipíent_chat_id")
     private ScaleChatParticipant chatParticipant;
 
+    @Column(name = "status")
+    private MessageScaleDeliveryStatus status;
 
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt;
 
+    public MessageScaleStatus(ScaleChatMessage message, ScaleChatParticipant chatParticipant) {
+        this.message = message;
+        this.chatParticipant = chatParticipant;
+    }
 }

@@ -45,4 +45,12 @@ public class ScaleChatMessage {
         this.scale = scale;
         this.memberMinistry = memberMinistry;
     }
+
+    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberMinistry, String content,
+                            ScaleMessageType contentType) {
+        this.scale = scale;
+        this.memberMinistry = memberMinistry;
+        this.content = content;
+        this.contentType = contentType;
+    }
 }
