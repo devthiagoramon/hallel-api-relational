@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -14,11 +15,20 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
     List<ScaleChatParticipant> findScaleChatParticipantsByEventScale_Id(UUID eventScaleId);
 
     @Query("""
-    select scp from ScaleChatParticipant scp
-    JOIN fetch scp.memberEventScale mes
-    join fetch mes.memberMinistry mm
-    join fetch mm.user u
-    join fetch u.devicesUser
-""")
+                select scp from ScaleChatParticipant scp
+                JOIN fetch scp.memberEventScale mes
+                join fetch mes.memberMinistry mm
+                join fetch mm.user u
+                join fetch u.devicesUser
+            """)
     List<ScaleChatParticipant> listParticipantsOfScale(@Param("scaleId") UUID eventScaleId);
+
+
+    @Query("""
+                select scp from ScaleChatParticipant scp
+                JOIN fetch scp.memberEventScale mes
+                join fetch mes.memberMinistry mm
+                join fetch mm.user u
+            """)
+    Optional<ScaleChatParticipant> listByIdWithUserInfo(@Param("scaleChatParticipantId") UUID scaleChatParticipantId);
 }

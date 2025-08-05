@@ -106,6 +106,11 @@ public class JwtTokenProvider {
         return null;
     }
 
+    public String getSubject(String token) {
+        DecodedJWT decodedJWT = decodedToken(token);
+        return decodedJWT.getSubject();
+    }
+
     public boolean validateToken(String token){
         DecodedJWT decodedJWT = decodedToken(token);
         try {

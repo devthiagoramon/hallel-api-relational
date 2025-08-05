@@ -1,5 +1,8 @@
 package br.hallel.relational.api.app.global.service.google;
 
+import br.hallel.relational.api.app.global.exception.DeleteImageBucketException;
+import br.hallel.relational.api.app.global.exception.EditImageBucketException;
+import br.hallel.relational.api.app.global.exception.SendImageBucketException;
 import com.google.cloud.storage.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,11 +24,15 @@ public class GoogleBucketService {
         this.bucketName = bucketName;
     }
 
-    public String sendImageToBucket(MultipartFile file, String fileName) throws
-            IOException {
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).setContentType(file.getContentType()).build();
-        Blob blob = storage.create(blobInfo, file.getBytes());
-        return blob.getMediaLink();
+    public String sendFileToBucket(MultipartFile file, String fileName) {
+        try {
+
+            BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).setContentType(file.getContentType()).build();
+            Blob blob = storage.create(blobInfo, file.getBytes());
+            return blob.getMediaLink();
+        } catch (IOException e) {
+            throw new SendImageBucketException("Error saving file in bucket");
+        }
     }
 
     public String getImageToBucket(String fileName) throws IOException {
@@ -37,29 +44,25 @@ public class GoogleBucketService {
         return blob.getMediaLink();
     }
 
-    public String updateImageOfBucket(MultipartFile file, String fileName) throws IOException {
+    public String updateFileOfBucket(MultipartFile file, String fileName) {
         BlobId blobId = BlobId.of(bucketName, fileName);
-
-
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType(file.getContentType())
                 .build();
-
         try {
-
             Blob blob = storage.create(blobInfo, file.getBytes());
             return blob.getMediaLink();
-        } catch (StorageException e) {
-
-            throw new IOException("Erro ao atualizar o arquivo no Google Cloud Storage", e);
-        } catch (Exception e) {
-
-            throw new IOException("Erro inesperado ao tentar atualizar o arquivo", e);
+        } catch (StorageException | IOException e) {
+            throw new EditImageBucketException("Error saving file in bucket");
         }
     }
 
     public Boolean deleteImageOfBucket(String fileName) throws IOException {
-        BlobId blobId = BlobId.of(bucketName, fileName);
-        return storage.delete(blobId);
+        try {
+            BlobId blobId = BlobId.of(bucketName, fileName);
+            return storage.delete(blobId);
+        } catch (StorageException e) {
+            throw new DeleteImageBucketException("Erro removing file in bucket");
+        }
     }
 }

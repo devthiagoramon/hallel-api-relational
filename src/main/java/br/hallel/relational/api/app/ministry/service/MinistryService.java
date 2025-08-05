@@ -94,17 +94,14 @@ public class MinistryService implements MinistryInterface {
                 this.ministryRepository.save(ministryMapped);
         String imageUrl = null;
 
-        try {
-            imageUrl = googleBucketService.sendImageToBucket(
-                    image, GoogleBucketUtils.getImageName(
-                            ministry.getId()
-                                    .toString(), Ministry.class.getSimpleName(), "image"
-                    )
-            );
-        } catch (IOException e) {
-            log.info("Image Url Response: " + image);
-            throw new RuntimeException(e);
-        }
+
+        imageUrl = googleBucketService.sendFileToBucket(
+                image, GoogleBucketUtils.getImageName(
+                        ministry.getId()
+                                .toString(), Ministry.class.getSimpleName(), "image"
+                )
+        );
+
         ministry.setImage(imageUrl);
         log.info("Ministry Response: " + ministry.toString());
 
@@ -176,20 +173,18 @@ public class MinistryService implements MinistryInterface {
 
         if (image != null) {
             log.info("has image");
-            try {
-                String imageUrl = googleBucketService.updateImageOfBucket(
-                        image,
-                        GoogleBucketUtils.getImageName(
-                                ministry.getId().toString(),
-                                Ministry.class.getSimpleName(),
-                                "image"
-                        )
-                );
-                ministry.setImage(imageUrl);
-                log.info("image Url Response: " + imageUrl);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+
+            String imageUrl = googleBucketService.updateFileOfBucket(
+                    image,
+                    GoogleBucketUtils.getImageName(
+                            ministry.getId().toString(),
+                            Ministry.class.getSimpleName(),
+                            "image"
+                    )
+            );
+            ministry.setImage(imageUrl);
+            log.info("image Url Response: " + imageUrl);
+
         }
         List<RoleMinistry> roleMinistryList = roleMinistryRepository.findAll();
 
@@ -302,7 +297,8 @@ public class MinistryService implements MinistryInterface {
         List<MemberMinistry> membersMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(ministryId);
         for (MemberMinistry memberMinistry : membersMinistries) {
             if (memberMinistry.getUser().getId().equals(userId)) {
-                List<String> rolesString = memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription).toList();
+                List<String> rolesString = memberMinistry.getMinistryRoles().stream().map(RoleMinistry::getDescription)
+                        .toList();
 
                 if (rolesString.contains("COORDINATOR")) {
                     return true;
@@ -317,7 +313,6 @@ public class MinistryService implements MinistryInterface {
         }
         return false;
     }
-
 
 
     public StatusParticipationMinistry listStatusParticipationInMinistry(UUID ministryId, UUID userId) {

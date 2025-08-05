@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.user.service;
 
-import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
@@ -8,7 +7,6 @@ import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificationRepository;
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
@@ -121,25 +118,21 @@ public class UserService implements UserInterface {
         User user = this.getUserById(idUser);
 
         String imageUrl = "";
-        try {
-
-            if (user.getFileImageUrl() != null) {
-                imageUrl = this.bucketService.updateImageOfBucket(fileImageUrl,
-                        GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                );
-            } else {
-                imageUrl = this.bucketService.sendImageToBucket(
-                        fileImageUrl,
-                        GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
-                );
-            }
-            user.setFileImageUrl(imageUrl);
-            this.userRepository.save(user);
-            log.info("Image Profile Updated successfully!");
-            return userMapper.userEditProfileToResponse(user);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (user.getFileImageUrl() != null) {
+            imageUrl = this.bucketService.updateFileOfBucket(fileImageUrl,
+                    GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
+            );
+        } else {
+            imageUrl = this.bucketService.sendFileToBucket(
+                    fileImageUrl,
+                    GoogleBucketUtils.getImageName(user.getId().toString(), User.class.getSimpleName())
+            );
         }
+        user.setFileImageUrl(imageUrl);
+        this.userRepository.save(user);
+        log.info("Image Profile Updated successfully!");
+        return userMapper.userEditProfileToResponse(user);
+
     }
 
     @Override
@@ -149,7 +142,8 @@ public class UserService implements UserInterface {
 
         if (eventScaleId != null) {
             System.out.println("EventScaleId: " + eventScaleId);
-            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByMemberMinistry_User_IdAndEventScale_Id(idUser,
+            Optional<MemberEventScale> optional = this.memberEventScaleRepository.findByMemberMinistry_User_IdAndEventScale_Id(
+                    idUser,
                     eventScaleId);
             if (optional.isPresent()) {
                 MemberEventScale member = optional.get();
@@ -248,7 +242,7 @@ public class UserService implements UserInterface {
         return lastAcess;
     }
 
-    public void sendNotificationBirthDayMessage(User user){
+    public void sendNotificationBirthDayMessage(User user) {
         System.out.println("Send Notification of Missing Users: " + user.getName());
         List<DeviceNotification> devicesUser = user.getDevicesUser();
 

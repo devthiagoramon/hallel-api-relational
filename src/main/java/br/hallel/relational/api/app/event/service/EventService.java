@@ -8,7 +8,6 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
-import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
@@ -70,26 +69,24 @@ public class EventService implements EventInterface {
 
             String imageUrl = null;
             String bannerImageUrl = null;
-            try {
-                imageUrl = bucketService.sendImageToBucket(fileImage, GoogleBucketUtils
-                        .getImageName(
-                                eventToSave.getTitle(),
-                                Event.class.getSimpleName(),
-                                "image"));
 
-                bannerImageUrl = bucketService.sendImageToBucket(fileBanner, GoogleBucketUtils
-                        .getImageName(
-                                eventToSave.getTitle(),
-                                Event.class.getSimpleName(),
-                                "banner"));
+            imageUrl = bucketService.sendFileToBucket(fileImage, GoogleBucketUtils
+                    .getImageName(
+                            eventToSave.getTitle(),
+                            Event.class.getSimpleName(),
+                            "image"));
 
-                eventToSave.setImage_url(imageUrl);
-                eventToSave.setBanner_url(bannerImageUrl);
-                log.info(eventToSave.getImage_url());
-                log.info(eventToSave.getBanner_url());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            bannerImageUrl = bucketService.sendFileToBucket(fileBanner, GoogleBucketUtils
+                    .getImageName(
+                            eventToSave.getTitle(),
+                            Event.class.getSimpleName(),
+                            "banner"));
+
+            eventToSave.setImage_url(imageUrl);
+            eventToSave.setBanner_url(bannerImageUrl);
+            log.info(eventToSave.getImage_url());
+            log.info(eventToSave.getBanner_url());
+
         }
         Event event = this.repository.save(eventToSave);
 
@@ -154,24 +151,21 @@ public class EventService implements EventInterface {
         if (img_url != null && banner_url != null) {
             log.info("has image");
             String imageUrl = null, bannerUrl = null;
-            try {
-                imageUrl = bucketService.updateImageOfBucket(
-                        img_url, GoogleBucketUtils.getImageName(
-                                event.getId()
-                                        .toString(), Ministry.class.getSimpleName(), "image"
-                        ));
-                bannerUrl = bucketService.updateImageOfBucket(
-                        banner_url, GoogleBucketUtils.getImageName(
-                                event.getId()
-                                        .toString(), Ministry.class.getSimpleName(), "banner"
-                        ));
-                event.setImage_url(imageUrl);
-                event.setBanner_url(bannerUrl);
-                log.info("image Url Response: " + imageUrl);
-                log.info("image Url Response: " + bannerUrl);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            imageUrl = bucketService.updateFileOfBucket(
+                    img_url, GoogleBucketUtils.getImageName(
+                            event.getId()
+                                    .toString(), Ministry.class.getSimpleName(), "image"
+                    ));
+            bannerUrl = bucketService.updateFileOfBucket(
+                    banner_url, GoogleBucketUtils.getImageName(
+                            event.getId()
+                                    .toString(), Ministry.class.getSimpleName(), "banner"
+                    ));
+            event.setImage_url(imageUrl);
+            event.setBanner_url(bannerUrl);
+            log.info("image Url Response: " + imageUrl);
+            log.info("image Url Response: " + bannerUrl);
+
         } else {
             event.setBanner_url(event.getBanner_url());
             event.setImage_url(event.getImage_url());
@@ -184,7 +178,8 @@ public class EventService implements EventInterface {
 
     @Override
     public Boolean deleteById(UUID id) {
-        Event event = this.repository.findById(id).orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
+        Event event = this.repository.findById(id)
+                .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
         try {
             this.bucketService.deleteImageOfBucket(event.getImage_url());
             this.bucketService.deleteImageOfBucket(event.getBanner_url());

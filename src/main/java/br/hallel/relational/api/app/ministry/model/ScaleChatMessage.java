@@ -27,7 +27,7 @@ public class ScaleChatMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_chat_sender_id")
-    private ScaleChatParticipant memberMinistry;
+    private ScaleChatParticipant memberChatSender;
 
     @Column(nullable = false, name = "content")
     private String content;
@@ -41,16 +41,22 @@ public class ScaleChatMessage {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberMinistry) {
+    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberChatSender) {
         this.scale = scale;
-        this.memberMinistry = memberMinistry;
+        this.memberChatSender = memberChatSender;
     }
 
-    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberMinistry, String content,
+    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberChatSender, String content,
                             ScaleMessageType contentType) {
         this.scale = scale;
-        this.memberMinistry = memberMinistry;
+        this.memberChatSender = memberChatSender;
         this.content = content;
+        this.contentType = contentType;
+    }
+
+    public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberChatSender, ScaleMessageType contentType) {
+        this.scale = scale;
+        this.memberChatSender = memberChatSender;
         this.contentType = contentType;
     }
 }

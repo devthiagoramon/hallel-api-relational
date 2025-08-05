@@ -64,7 +64,8 @@ public class SecurityConfig {
                                     .requestMatchers("/admin/event/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/ministry/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/user/**").hasRole("ADMIN")
-                                    .requestMatchers("/user/**").hasRole("USER");
+                                    .requestMatchers("/user/**").hasRole("USER")
+                                    .requestMatchers("/ws-scale-chat").hasRole("USER");
                         }
                 )
                 .exceptionHandling(configurer -> configurer

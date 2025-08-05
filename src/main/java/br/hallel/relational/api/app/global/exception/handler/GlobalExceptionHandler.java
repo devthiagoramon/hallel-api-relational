@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.global.exception.handler;
 
-import br.hallel.relational.api.app.global.exception.UUIDFormatException;
+import br.hallel.relational.api.app.global.exception.*;
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
 import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import org.springframework.http.HttpStatus;
@@ -33,5 +33,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionResponse> handleMaxSizeException(MaxUploadSizeExceededException exc, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
+    @ExceptionHandler(FileNullException.class)
+    public ResponseEntity<ExceptionResponse> handleFileNullException(FileNullException exc, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SendImageBucketException.class)
+    public ResponseEntity<ExceptionResponse> handleSendImageBucketException(SendImageBucketException exc, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(DeleteImageBucketException.class)
+    public ResponseEntity<ExceptionResponse> handleDeleteImageBucketException(DeleteImageBucketException exc, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(EditImageBucketException.class)
+    public ResponseEntity<ExceptionResponse> handleEditImageBucketException(EditImageBucketException exc, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
