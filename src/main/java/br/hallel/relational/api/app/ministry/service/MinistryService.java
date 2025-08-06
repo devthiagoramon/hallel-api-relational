@@ -257,12 +257,8 @@ public class MinistryService implements MinistryInterface {
     @Override
     public MinistryResponse deleteMinistryById(UUID id) {
         Ministry ministry = mapper.responseToEntity(this.getMinistryById(id));
-        try {
-            googleBucketService.deleteImageOfBucket(ministry.getImage());
-            log.info("Image deleted from bucket...");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        googleBucketService.deleteFileOfBucket(ministry.getImage());
+        log.info("Image deleted from bucket...");
         this.ministryRepository.deleteById(id);
 
         return mapper.entityMinistryToResponse(ministry);

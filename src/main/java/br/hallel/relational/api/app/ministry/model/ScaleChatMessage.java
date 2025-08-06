@@ -41,6 +41,9 @@ public class ScaleChatMessage {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Column(name = "visibility")
+    private ScaleChatMessageVisibility visibility;
+
     public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberChatSender) {
         this.scale = scale;
         this.memberChatSender = memberChatSender;

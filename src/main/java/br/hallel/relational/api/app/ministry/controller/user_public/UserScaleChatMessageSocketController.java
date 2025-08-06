@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequest;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequestEdit;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatMessage;
 import br.hallel.relational.api.app.ministry.service.ScaleChatMessageService;
@@ -14,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.UUID;
+
 @Controller
 @RequestMapping("/socket/scale/chat")
 @Tag(name = "User scale chat message", description = "Handles with real-time messaging in scale chat")
@@ -25,6 +28,16 @@ public class UserScaleChatMessageSocketController {
     @MessageMapping("/text")
     public ResponseEntity<ScaleChatMessageResponse> sendTextMessage(@Payload ScaleChatMessageRequest request){
         return ResponseEntity.ok(scaleChatMessageService.sendTextMessage(request));
+    }
+
+    @MessageMapping("/edit")
+    public ResponseEntity<ScaleChatMessageResponse> updateMessage(@Payload ScaleChatMessageRequestEdit request){
+        return ResponseEntity.ok(scaleChatMessageService.editMessage(request));
+    }
+
+    @MessageMapping("/delete")
+    public ResponseEntity<ScaleChatMessageResponse> deleteMessage(@Payload UUID messageId){
+        return ResponseEntity.ok(this.scaleChatMessageService.deleteMessage(messageId));
     }
 
 }

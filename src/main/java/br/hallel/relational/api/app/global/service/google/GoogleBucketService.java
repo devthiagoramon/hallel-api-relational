@@ -57,7 +57,7 @@ public class GoogleBucketService {
         }
     }
 
-    public Boolean deleteImageOfBucket(String fileName) throws IOException {
+    public Boolean deleteFileOfBucket(String fileName) {
         try {
             BlobId blobId = BlobId.of(bucketName, fileName);
             return storage.delete(blobId);

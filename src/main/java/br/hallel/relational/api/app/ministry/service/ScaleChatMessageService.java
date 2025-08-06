@@ -8,8 +8,8 @@ import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
-import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequest;
-import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
+import br.hallel.relational.api.app.ministry.dto.*;
+import br.hallel.relational.api.app.ministry.exception.ScaleChatMessageNotFound;
 import br.hallel.relational.api.app.ministry.exception.ScaleChatParticipantNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.MessageScaleStatusRepository;
@@ -21,9 +21,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j @Service
 @RequiredArgsConstructor
@@ -56,7 +58,6 @@ public class ScaleChatMessageService {
 
         simpMessagingTemplate.convertAndSend(destinationSocket, messageSaved);
         return getScaleChatMessageResponseAndSendNotification(senderParticipant, eventScale, otherParticipants,
-                messageSaved,
                 messageSaved);
     }
 
@@ -91,7 +92,6 @@ public class ScaleChatMessageService {
         simpMessagingTemplate.convertAndSend(destinationSocket, messageUpdateWithContent);
 
         return getScaleChatMessageResponseAndSendNotification(senderParticipant, eventScale, otherParticipants,
-                messageSaved,
                 messageUpdateWithContent);
     }
 
@@ -99,27 +99,27 @@ public class ScaleChatMessageService {
             ScaleChatParticipant senderParticipant,
             EventScale eventScale,
             List<ScaleChatParticipant> otherParticipants,
-            ScaleChatMessage messageSaved,
-            ScaleChatMessage messageUpdateWithContent) {
+            ScaleChatMessage message) {
         for (ScaleChatParticipant otherParticipant : otherParticipants) {
             messageScaleStatusRepository.save(
-                    new MessageScaleStatus(messageSaved, otherParticipant));
+                    new MessageScaleStatus(message, otherParticipant));
             sendNotificationMessageSended(
                     senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
                     otherParticipant.getMemberEventScale().getMemberMinistry().getUser()
-                            .getDevicesUser(), messageUpdateWithContent, eventScale);
+                            .getDevicesUser(), message, eventScale);
         }
 
         return new ScaleChatMessageResponse(
-                messageSaved.getId(),
+                message.getId(),
                 eventScale.getId(),
-                messageSaved.getMemberChatSender().getId(),
-                messageSaved.getMemberChatSender().getMemberEventScale().getMemberMinistry().getUser(),
-                messageSaved.getContent(),
-                messageSaved.getContentType(),
-                messageSaved.getSentAt(),
-                messageSaved.getUpdatedAt(),
-                MessageScaleDeliveryStatus.SENT
+                message.getMemberChatSender().getId(),
+                message.getMemberChatSender().getMemberEventScale().getMemberMinistry().getUser(),
+                message.getContent(),
+                message.getContentType(),
+                message.getSentAt(),
+                message.getUpdatedAt(),
+                MessageScaleDeliveryStatus.SENT,
+                message.getVisibility()
         );
     }
 
@@ -151,4 +151,73 @@ public class ScaleChatMessageService {
         return messageData;
     }
 
+    public ScaleChatMessageResponse deleteMessage(UUID messageId) {
+        log.info("Delete message with id {}", messageId);
+        ScaleChatMessage scaleChatMessage = scaleChatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new ScaleChatMessageNotFound("Message not found by id %s".formatted(messageId)));
+
+        if (scaleChatMessage.getContentType() != ScaleMessageType.TEXT) {
+            String fileName = GoogleBucketUtils.getImageName(scaleChatMessage.getId().toString(),
+                    ScaleChatMessage.class.getSimpleName());
+            googleBucketService.deleteFileOfBucket(fileName);
+        }
+
+        scaleChatMessage.setVisibility(ScaleChatMessageVisibility.DELETED);
+        scaleChatMessage.setContentType(ScaleMessageType.TEXT);
+        scaleChatMessage.setContent("Mensagem apagada");
+        ScaleChatMessage deletedMessage = scaleChatMessageRepository.save(scaleChatMessage);
+
+        String destination = "/topic/scale/chat/" + deletedMessage.getScale().getId().toString();
+
+        ScaleMessageUpdateEvent updateEvent = new ScaleMessageUpdateEvent(
+                deletedMessage.getId(),
+                ScaleMessageUpdateEventTypes.DELETE,
+                null
+        );
+
+        simpMessagingTemplate.convertAndSend(destination, updateEvent);
+
+        return new ScaleChatMessageResponse(
+                scaleChatMessage.getId(),
+                scaleChatMessage.getScale().getId(),
+                scaleChatMessage.getMemberChatSender().getId(),
+                scaleChatMessage.getMemberChatSender().getMemberEventScale().getMemberMinistry().getUser(),
+                scaleChatMessage.getContent(),
+                scaleChatMessage.getContentType(),
+                scaleChatMessage.getSentAt(),
+                scaleChatMessage.getUpdatedAt(),
+                MessageScaleDeliveryStatus.SENT,
+                scaleChatMessage.getVisibility()
+        );
+    }
+
+    public ScaleChatMessageResponse editMessage(ScaleChatMessageRequestEdit request) {
+        log.info("Edit message with id {}", request.messageId());
+        ScaleChatMessage scaleChatMessage = scaleChatMessageRepository.findById(request.messageId())
+                .orElseThrow(() -> new ScaleChatMessageNotFound(
+                        "Message not found by id %s".formatted(request.messageId())));
+
+        scaleChatMessage.setContent(request.content());
+        scaleChatMessage.setUpdatedAt(OffsetDateTime.now());
+        ScaleChatMessage messageUpdated = scaleChatMessageRepository.save(scaleChatMessage);
+        String destination = "/topic/scale/chat/" + messageUpdated.getScale().getId().toString();
+        ScaleMessageUpdateEvent updateEvent = new ScaleMessageUpdateEvent(
+                messageUpdated.getId(),
+                ScaleMessageUpdateEventTypes.UPDATE,
+                messageUpdated
+        );
+        simpMessagingTemplate.convertAndSend(destination, updateEvent);
+        return new ScaleChatMessageResponse(
+                scaleChatMessage.getId(),
+                scaleChatMessage.getScale().getId(),
+                scaleChatMessage.getMemberChatSender().getId(),
+                scaleChatMessage.getMemberChatSender().getMemberEventScale().getMemberMinistry().getUser(),
+                scaleChatMessage.getContent(),
+                scaleChatMessage.getContentType(),
+                scaleChatMessage.getSentAt(),
+                scaleChatMessage.getUpdatedAt(),
+                MessageScaleDeliveryStatus.SENT,
+                scaleChatMessage.getVisibility()
+        );
+    }
 }

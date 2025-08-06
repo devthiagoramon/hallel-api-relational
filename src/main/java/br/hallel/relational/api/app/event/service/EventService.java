@@ -180,13 +180,11 @@ public class EventService implements EventInterface {
     public Boolean deleteById(UUID id) {
         Event event = this.repository.findById(id)
                 .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
-        try {
-            this.bucketService.deleteImageOfBucket(event.getImage_url());
-            this.bucketService.deleteImageOfBucket(event.getBanner_url());
-            log.info("Image and banner deleted from bucket...");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+        this.bucketService.deleteFileOfBucket(event.getImage_url());
+        this.bucketService.deleteFileOfBucket(event.getBanner_url());
+        log.info("Image and banner deleted from bucket...");
+
         this.repository.deleteById(id);
         return true;
     }
