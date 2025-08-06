@@ -75,7 +75,7 @@ public class AuthController {
         return authService.validateToken(token);
     }
 
-    @PostMapping("/sing-up")
+    @PostMapping("/sign-up")
     public TokenDTO singUp(@RequestBody SingUpRequest singUpRequest) {
         return authService.singUp(singUpRequest);
     }

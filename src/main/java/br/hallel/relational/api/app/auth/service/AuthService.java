@@ -75,7 +75,7 @@ public class AuthService {
     public TokenDTO singUp(
             SingUpRequest request
     ) {
-
+        log.info("Creating user in system...");
         List<Role> rolesBD = roleRepository.findAll();
         Role userRole = rolesBD.stream()
                 .filter(role -> role.getDescription().equals("USER"))
@@ -87,7 +87,7 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setDateBirth(new Date());
+        user.setDateBirth(null);
         user.setRoles(Set.of(userRole));
         user.setPushNotification(false);
         if (userRepository.
