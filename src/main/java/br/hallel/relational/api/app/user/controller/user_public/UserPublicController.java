@@ -28,25 +28,6 @@ public class UserPublicController {
     private final UserService userService;
     private final MemberEventScaleService memberEventScaleService;
 
-    @PutMapping("/edit-profile/{idUser}")
-    @Operation(
-            summary = "Edit Infos User Profile by User ID"
-    )
-    public ResponseEntity<UserProfileResponseWithToken> editProfile(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestBody UserEditProfileDTO userDto) {
-        return ResponseEntity.ok(userService.editProfile(idUser, userDto));
-    }
-
-    @PatchMapping("/edit-profile/image/{idUser}")
-    @Operation(
-            summary = "Edit Image In User Profile by User Id"
-    )
-    public ResponseEntity<UserProfileResponse> editImageProfile(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestPart(name = "file") MultipartFile fileImage) {
-        return ResponseEntity.ok(userService.editImageProfile(idUser, fileImage));
-    }
 
     @GetMapping("/profile/{idUser}")
     @Operation(
