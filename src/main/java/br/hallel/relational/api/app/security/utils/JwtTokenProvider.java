@@ -131,4 +131,18 @@ public class JwtTokenProvider {
     }
 
 
+    public boolean validateTokenOfAdmin(String token) {
+        DecodedJWT decodedJWT = decodedToken(token);
+        try {
+            if (decodedJWT.getExpiresAt().before(new Date())) {
+                return false;
+            }
+            if (!decodedJWT.getClaim("roles").asList(String.class).contains("ADMIN")) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            throw new InvalidJwtAuthenticationException("Expired or invalid JWT token!");
+        }
+    }
 }

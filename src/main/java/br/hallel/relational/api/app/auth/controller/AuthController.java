@@ -69,10 +69,17 @@ public class AuthController {
     }
 
     @GetMapping("/validate-token")
+    @Operation(summary = "Validate user token", description = "Verify the expiration of token of user")
     public boolean validateToken(@RequestParam(name = "token") String token) {
-        System.out.println("VALIDATE REALIZADO!!!");
         userService.registerLastActivity(null, token);
         return authService.validateToken(token);
+    }
+
+    @GetMapping("/validate-token-admin")
+    @Operation(summary = "Validate admin token", description = "Verify authorities and expiration token of admin")
+    public boolean validateTokenAdmin(@RequestParam(name = "token") String token) {
+
+        return authService.validateTokenOfAdmin(token);
     }
 
     @PostMapping("/sign-up")
@@ -94,6 +101,17 @@ public class AuthController {
         return authService.validateTokenAdmin(token, code);
     }
 
+    @GetMapping("/validate-admin-access-web/{validationCode}")
+    @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
+    public Boolean validateAdminAccessWeb(@RequestParam(name = "token") String token, @PathVariable("validationCode") String code){
+        return authService.validateTokenAdminWeb(token, code);
+    }
+
+    @GetMapping("/verify-admin-access-web/{token}")
+    @Operation(summary = "Verify code of administrator in web", description = "This routes handles the web administrator login attempt, sending to adm email with token and url")
+    public TokenAdminResponse verifyAdminAccessWeb(@PathVariable("token") String token){
+        return authService.verifyIfTokenIsAdminWeb(token);
+    }
 
     @PostMapping("/google/mobile")
     public ResponseEntity<GoogleOAuthResponse> authenticateGoogleMobile(@RequestBody Map<String, String> body) {

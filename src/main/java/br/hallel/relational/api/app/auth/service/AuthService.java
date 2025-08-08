@@ -17,6 +17,7 @@ import br.hallel.relational.api.app.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -39,13 +40,15 @@ public class AuthService {
     private RoleRepository roleRepository;
 
     private final TokenAdminValidationCode tokenAdminValidationCode = new TokenAdminValidationCode();
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
     private UserRoleRepository userRoleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElseThrow(() -> new AuthRequestException("User not found"));
 
@@ -122,7 +125,8 @@ public class AuthService {
 
         if (isAdmin) {
             String code = tokenAdminValidationCode.generateCode();
-            User user = this.userRepository.findByToken(token).orElseThrow(() -> new AuthRequestException("User not found with this token"));
+            User user = this.userRepository.findByToken(token)
+                    .orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
             return new TokenAdminResponse(tokenAdmin, code);
 
@@ -136,7 +140,38 @@ public class AuthService {
         return tokenAdminValidationCode.validateToken(tokenAdmin, code);
     }
 
+    public TokenAdminResponse verifyIfTokenIsAdminWeb(String token) {
+        log.info("Verifying if admin token is valid and verifying the admin...");
+        boolean isAdmin = jwtTokenProvider.verifyAdminRoleExisting(token);
+
+        if (isAdmin) {
+            String code = tokenAdminValidationCode.generateCode();
+            User user = this.userRepository.findByToken(token)
+                    .orElseThrow(() -> new AuthRequestException("User not found with this token"));
+            String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
+            log.info("http://localhost:8080/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+            return new TokenAdminResponse(tokenAdmin, code);
+        }
+        return null;
+    }
+
+    public Boolean validateTokenAdminWeb(String tokenAdmin, String code) {
+        log.info("Validating if admin token and code is valid...");
+        Boolean isValid = tokenAdminValidationCode.validateToken(tokenAdmin, code);
+        String destination = "/queue/auth/admin/" + code;
+        if (isValid) {
+            simpMessagingTemplate.convertAndSend(destination, true);
+        } else {
+            simpMessagingTemplate.convertAndSend(destination, false);
+        }
+        return isValid;
+    }
+
     public boolean validateToken(String token) {
         return jwtTokenProvider.validateToken(token);
+    }
+
+    public boolean validateTokenOfAdmin(String token) {
+        return jwtTokenProvider.validateTokenOfAdmin(token);
     }
 }
