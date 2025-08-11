@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,4 +43,10 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             WHERE e.id = :eventId
             """)
     Optional<Event> listByIdWithMinistryResponse(@Param("eventId") UUID id);
+
+    @Query("""
+    SELECT e FROM Event e
+    WHERE e.date > :date
+    """)
+    Page<Event> findAllUpcomingEvents( @Param("date") Date date, Pageable pageable);
 }

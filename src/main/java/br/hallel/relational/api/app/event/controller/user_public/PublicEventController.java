@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,11 +27,18 @@ public class PublicEventController {
 
     // ** CONSULTAS DE EVENTOS **
     @GetMapping("/list-all")
-    public ResponseEntity<List<EventResponse>> getAllEvents(
+    public ResponseEntity<Page<EventResponse>> getAllEvents(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(this.eventService.listAllEvents(page, size));
+    }
+
+    @GetMapping("/list-upcoming")
+    public ResponseEntity<Page<EventResponse>> getAllEventsUpcoming(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(this.eventService.listAllUpcomingEvents(page, size));
     }
 
     @GetMapping("/get/{id}")
@@ -52,13 +61,14 @@ public class PublicEventController {
         }
         return ResponseEntity.ok(events);
     }
+
     @GetMapping("/list-all/by-title")
     public ResponseEntity<List<EventResponse>> getAllEventsByTitle(
             @RequestParam(name = "title") String title,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(this.eventService.listEventsByTitle(title,page ,size ));
+        return ResponseEntity.ok(this.eventService.listEventsByTitle(title, page, size));
     }
 
     @GetMapping("/list-all/date-exp")

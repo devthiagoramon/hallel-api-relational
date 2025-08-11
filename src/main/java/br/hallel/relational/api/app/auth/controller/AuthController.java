@@ -50,7 +50,6 @@ public class AuthController {
     @Autowired
     private final JwtTokenProvider jwtService;
     private static final String CLIENT_ID = "1060759694626-c98qb76632sh0ocgm908006ap7gfvur1.apps.googleusercontent.com";
-    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
 
     @PostMapping("/login")

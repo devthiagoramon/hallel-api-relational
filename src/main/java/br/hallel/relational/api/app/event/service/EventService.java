@@ -21,7 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -99,19 +99,13 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public List<EventResponse> listAllEvents(int page,
+    public Page<EventResponse> listAllEvents(int page,
                                              int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-
-        List<EventResponse> listResponse =
-                eventsPagination.stream()
-                        .map(event -> mapper.entityToResponse(event))
-                        .collect(Collectors.toList());
-
         log.info("Listing events...");
-        return listResponse;
+        return eventsPagination.map(mapper::entityToResponse);
     }
 
     @Override
@@ -242,5 +236,11 @@ public class EventService implements EventInterface {
 
     public List<EventSimpleResponse> listAllEventsByMinistryId(UUID ministryId) {
         return this.ministryRepository.findAllEventsByMinistryId(ministryId);
+    }
+
+    public Page<EventResponse> listAllUpcomingEvents(int page, int size) {
+        log.info("Listing upcoming events by actual date");
+        Pageable pageable = PageRequest.of(page, size);
+        return this.repository.findAllUpcomingEvents(new Date(), pageable).map(mapper::entityToResponse);
     }
 }

@@ -1,15 +1,18 @@
 package br.hallel.relational.api.app.ministry.repository;
 
+import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventSimpleResponse;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.model.Ministry;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,4 +42,5 @@ public interface MinistryRepository extends JpaRepository<Ministry, UUID> {
 
 
     List<Ministry> findAllByTitleContainingIgnoreCaseOrderByTitle(String title);
+
 }
