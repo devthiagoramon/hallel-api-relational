@@ -62,4 +62,6 @@ public class Event {
     @JsonIgnore
     private List<EventScale> scales;
 
+
+
 }

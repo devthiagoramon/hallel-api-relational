@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.user.service;
 
-import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
@@ -8,7 +7,6 @@ import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificationRepository;
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
