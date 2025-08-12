@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
@@ -122,4 +123,14 @@ public class UserEventService {
                 ))
                 .toList();
     }
+
+    public EventParticipationResponse addFunctionUserInEvent(UUID eventParticipationID, UserFunctionInEvent function) {
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(eventParticipationID).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + eventParticipationID + " does not exist.")
+        );
+        eventParticipation.setUserFunctionInEvent(function);
+        eventParticipationRepository.save(eventParticipation);
+        return new EventParticipationResponse().toEventParticipation(eventParticipation);
+    }
+
 }
