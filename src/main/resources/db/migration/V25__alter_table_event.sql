@@ -1,0 +1,2 @@
+ALTER TABLE events
+    ADD COLUMN has_ended BOOLEAN NOT NULL DEFAULT false;

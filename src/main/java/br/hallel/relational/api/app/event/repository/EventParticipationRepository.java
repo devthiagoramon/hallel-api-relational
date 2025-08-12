@@ -5,8 +5,14 @@ import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface EventParticipationRepository extends JpaRepository<EventParticipation, UUID> {
     boolean existsByUserAndEvent(User user, Event event);
+
+    List<EventParticipation> findAllByEvent_Id(UUID eventId);
+
+    List<EventParticipation> findAllByUser_Id(UUID userId);
+
 }

@@ -64,6 +64,7 @@ public class EventService implements EventInterface {
         }
         log.info(eventDTO.ministryIds().toString());
         Event eventToSave = mapper.dtoToEntity(eventDTO);
+        eventToSave.setHasEnded(false);
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
 

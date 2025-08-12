@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
+import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
@@ -15,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,11 +52,7 @@ public class UserEventService {
         eventParticipation.setHasParticipated(false);
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
-        return new EventParticipationResponse(
-                participationSaved.getId(), participationSaved.getUser(), participationSaved.getEvent(),
-                participationSaved.getStatusPaymentEventParticipation(), participationSaved.getHasParticipated(),
-                participationSaved.getUserFunctionInEvent()
-        );
+        return new EventParticipationResponse().toEventParticipation(participationSaved);
     }
 
     public boolean leaveTheEvent(UUID eventID) {
@@ -85,28 +83,14 @@ public class UserEventService {
 
         EventParticipation updated = eventParticipationRepository.save(participation);
 
-        return new EventParticipationResponse(
-                updated.getId(),
-                updated.getUser(),
-                updated.getEvent(),
-                updated.getStatusPaymentEventParticipation(),
-                updated.getHasParticipated(),
-                updated.getUserFunctionInEvent()
-        );
+        return new EventParticipationResponse().toEventParticipation(updated);
     }
 
     public EventParticipationResponse getParticipationById(UUID participationId) {
         EventParticipation participation = eventParticipationRepository.findById(participationId)
                 .orElseThrow(() -> new EventIllegalArumentException("Participation with id " + participationId + " not found."));
 
-        return new EventParticipationResponse(
-                participation.getId(),
-                participation.getUser(),
-                participation.getEvent(),
-                participation.getStatusPaymentEventParticipation(),
-                participation.getHasParticipated(),
-                participation.getUserFunctionInEvent()
-        );
+        return new EventParticipationResponse().toEventParticipation(participation);
     }
 
     public List<EventParticipationResponse> getAllParticipations() {
@@ -115,13 +99,31 @@ public class UserEventService {
         return participations.stream()
                 .map(participation -> new EventParticipationResponse(
                         participation.getId(),
-                        participation.getUser(),
-                        participation.getEvent(),
+                        participation.getUser().getId(),
+                        participation.getEvent().getId(),
                         participation.getStatusPaymentEventParticipation(),
                         participation.getHasParticipated(),
                         participation.getUserFunctionInEvent()
                 ))
                 .toList();
+    }
+
+    public List<UserInEventInfosResponse> getAllParticipationsByEventId(UUID eventId) {
+        List<EventParticipation> participations = eventParticipationRepository.findAllByEvent_Id(eventId);
+        List<UserInEventInfosResponse> users = new ArrayList<>();
+        for (EventParticipation participation : participations) {
+            users.add(new UserInEventInfosResponse().toResponse(participation, users.size()));
+        }
+        return users;
+    }
+
+    public List<UserInEventInfosResponse> getAllUserParticipationByUserId(UUID userId) {
+        List<EventParticipation> participations = eventParticipationRepository.findAllByUser_Id(userId);
+        List<UserInEventInfosResponse> users = new ArrayList<>();
+        for (EventParticipation participation : participations) {
+            users.add(new UserInEventInfosResponse().toResponse(participation, users.size()));
+        }
+        return users;
     }
 
     public EventParticipationResponse addFunctionUserInEvent(UUID eventParticipationID, UserFunctionInEvent function) {

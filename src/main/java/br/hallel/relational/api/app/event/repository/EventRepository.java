@@ -49,4 +49,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     WHERE e.date > :date
     """)
     Page<Event> findAllUpcomingEvents( @Param("date") Date date, Pageable pageable);
+
+
+    List<Event> findByDateBeforeAndHasEndedFalse(Date dateBefore);
 }

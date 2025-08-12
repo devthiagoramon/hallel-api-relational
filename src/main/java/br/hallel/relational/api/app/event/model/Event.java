@@ -62,4 +62,7 @@ public class Event {
     @JsonIgnore
     private List<EventScale> scales;
 
+    @Column(name = "has_ended", nullable = false)
+    private Boolean hasEnded = false;
+
 }

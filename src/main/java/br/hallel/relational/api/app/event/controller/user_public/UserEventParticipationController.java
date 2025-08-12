@@ -2,6 +2,8 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
+import br.hallel.relational.api.app.event.dto.ParticipationListResponse;
+import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
 import br.hallel.relational.api.app.event.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,10 +46,28 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "List all participations")
-    @GetMapping("/participation")
-    public ResponseEntity<List<EventParticipationResponse>> getAllParticipations() {
+    @Operation(summary = "List all participations in all Events")
+    @GetMapping("/participations")
+    public ResponseEntity<ParticipationListResponse> getAllParticipations() {
         List<EventParticipationResponse> responses = userEventService.getAllParticipations();
+        return ResponseEntity.ok(
+                new ParticipationListResponse(responses, responses.size())
+        );
+    }
+
+    @Operation(summary = "List all participations by Event Id")
+    @GetMapping("/participation/by-event/{eventId}")
+    public ResponseEntity<List<UserInEventInfosResponse>>
+    getAllParticipationsByEventId(@PathVariable(name = "eventId") UUID eventId) {
+        List<UserInEventInfosResponse> responses = userEventService.getAllParticipationsByEventId(eventId);
+        return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "List all participations by User Id")
+    @GetMapping("/participation/by-user/{userId}")
+    public ResponseEntity<List<UserInEventInfosResponse>>
+    getAllParticipationsByUserId(@PathVariable(name = "userId") UUID eventId) {
+        List<UserInEventInfosResponse> responses = userEventService.getAllUserParticipationByUserId(eventId);
         return ResponseEntity.ok(responses);
     }
 
