@@ -63,7 +63,7 @@ public class MemberEventScaleService {
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
                 .orElseThrow(() -> new EventScaleNotFoundException(
                         "Event scale with id %s not found".formatted(eventScaleId)));
-        List<MemberMinistry> memberMinistries = memberMinistryRepository.findAllById(memberMinistryIds);
+        List<MemberMinistry> memberMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(eventScale.getMinistry().getId());
         if (memberMinistries.size() != memberMinistryIds.size()) {
             log.info("IDS SIZE: {}", memberMinistryIds.size());
             log.info("IDS MEMBERSS FOUND: {}", memberMinistries.size());
