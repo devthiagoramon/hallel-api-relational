@@ -20,6 +20,7 @@ public record EventDTO(
         double local_event_longitude,
         double local_event_latitude,
         Boolean isImportant,
-        List<UUID> ministryIds
+        List<UUID> ministryIds,
+        String value
 ) {
 }

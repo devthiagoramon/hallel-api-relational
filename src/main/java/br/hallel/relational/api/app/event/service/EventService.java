@@ -8,6 +8,7 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.global.utils.NumberUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
@@ -63,8 +64,14 @@ public class EventService implements EventInterface {
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
         log.info(eventDTO.ministryIds().toString());
+        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.value());
         Event eventToSave = mapper.dtoToEntity(eventDTO);
+
         eventToSave.setHasEnded(false);
+
+        eventToSave.setValue(value);
+        eventToSave.setIsImportant(eventDTO.isImportant());
+
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
 
