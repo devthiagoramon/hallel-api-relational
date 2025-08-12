@@ -1,0 +1,41 @@
+package br.hallel.relational.api.app.event.model;
+
+import br.hallel.relational.api.app.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.UUID;
+
+@Table(name = "event_participation")
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+public class EventParticipation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusPaymentEventParticipation statusPaymentEventParticipation;
+
+    @Column(nullable = false)
+    private Boolean hasParticipated;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "user_function_in_event")
+    private UserFunctionInEvent userFunctionInEvent;
+
+}
