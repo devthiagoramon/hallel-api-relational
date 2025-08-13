@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.EventType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -60,5 +61,23 @@ public class Event {
 
     @Column(name = "has_ended", nullable = false)
     private Boolean hasEnded = false;
+
+    @Column(name = "its_free", nullable = true)
+    private Boolean itsFree = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = true)
+    private EventType eventType;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "retreat_schedule",
+            joinColumns = @JoinColumn(name = "retreat_id")
+    )
+    @Column(name = "activity")
+    private List<String> schedule;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventTransaction> transactions;
 
 }

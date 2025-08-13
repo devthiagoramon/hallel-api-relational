@@ -12,7 +12,9 @@ CREATE TABLE events
     image_url             TEXT             NOT NULL,
     banner_url            TEXT             NOT NULL,
     is_important          BOOLEAN          NOT NULL DEFAULT false,
-    value                 DOUBLE PRECISION NOT NULL DEFAULT 0.0
+    value                 DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    event_type            TEXT DEFAULT 'GERAL',
+    schedule              TEXT[]
 );
 
 

@@ -64,7 +64,8 @@ public class EventService implements EventInterface {
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
         log.info(eventDTO.ministryIds().toString());
-        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.value());
+        Double value = eventDTO.itsFree() ? 0
+                : NumberUtils.extrairEConverterParaDouble(eventDTO.value());
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
         eventToSave.setHasEnded(false);
@@ -251,4 +252,6 @@ public class EventService implements EventInterface {
         Pageable pageable = PageRequest.of(page, size);
         return this.repository.findAllUpcomingEvents(new Date(), pageable).map(mapper::entityToResponse);
     }
+
+
 }

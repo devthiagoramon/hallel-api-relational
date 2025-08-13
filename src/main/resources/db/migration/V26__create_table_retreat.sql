@@ -1,31 +1,17 @@
-CREATE TABLE retreat
-(
-    id       UUID PRIMARY KEY,
-    schedule TEXT[],
-    CONSTRAINT fk_event FOREIGN KEY (id) REFERENCES "events" (id) ON DELETE CASCADE
-);
+ALTER TABLE "events"
+ ADD COLUMN its_free boolean DEFAULT TRUE;
 
-CREATE TABLE retreat_transaction
+CREATE TABLE event_transaction
 (
     id               UUID PRIMARY KEY,
-    retreat_id       UUID           NOT NULL,
+    event_id       UUID           NOT NULL,
     description      TEXT           NOT NULL,
     transaction_type VARCHAR(50)    NOT NULL,
     value            NUMERIC(10, 2) NOT NULL,
-    CONSTRAINT fk_retreat FOREIGN KEY (retreat_id) REFERENCES retreat (id) ON DELETE CASCADE
+    CONSTRAINT fk_retreat FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE
 );
 
-
-INSERT INTO retreat (id, schedule)
-VALUES ('a1b2c3d4-e5f6-7890-ab12-cdef34567890',
-        ARRAY[
-            '08:00 - Morning Prayer',
-        '10:00 - Group Reflection',
-        '15:00 - Adoration',
-        '19:00 - Praise and Worship'
-            ]);
-
-INSERT INTO retreat_transaction (id, description, retreat_id, transaction_type, value)
+INSERT INTO event_transaction (id, description, event_id, transaction_type, value)
 VALUES ('f8f17f59-b7b4-4bb6-9b91-4eaa64b8c6c2',
         'Pagamento da inscrição',
         'a1b2c3d4-e5f6-7890-ab12-cdef34567890',

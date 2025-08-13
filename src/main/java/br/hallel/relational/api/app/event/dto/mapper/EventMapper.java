@@ -46,6 +46,10 @@ public abstract class EventMapper {
 
     @Mapping(target = "scales", ignore = true)
     @Mapping(target = "hasEnded", ignore = true)
+    @Mapping(target = "eventType", ignore = true)
+    @Mapping(target = "schedule", ignore = true)
+    @Mapping(target = "transactions", ignore = true)
+    @Mapping(target = "itsFree", ignore = true)
     public abstract Event responseToEntity(EventResponse eventResponse);
 
     @Mapping(target = "id", ignore = true)
@@ -54,6 +58,10 @@ public abstract class EventMapper {
     @Mapping(target = "image_url", ignore = true)
     @Mapping(target = "scales", ignore = true)
     @Mapping(target = "hasEnded", ignore = true)
+    @Mapping(target = "eventType", ignore = true)
+    @Mapping(target = "schedule", ignore = true)
+    @Mapping(target = "transactions", ignore = true)
+    @Mapping(target = "itsFree", ignore = true)
     public abstract Event dtoToEntity(EventDTO event);
 
     @Mapping(target = "ministries", ignore = true)

@@ -1,0 +1,23 @@
+package br.hallel.relational.api.app.event.dto;
+
+import br.hallel.relational.api.app.event.model.TransactionType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class EventTransactionResponse {
+
+    private UUID id;
+    private String description;
+    private double value;
+    private TransactionType transactionType;
+    private UUID eventId;
+
+}

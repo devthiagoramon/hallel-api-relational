@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.EventType;
+import br.hallel.relational.api.app.event.model.EventTransaction;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -21,6 +23,10 @@ public record EventDTO(
         double local_event_latitude,
         Boolean isImportant,
         List<UUID> ministryIds,
-        String value
-) {
+        String value,
+        EventType eventType,
+        List<String> schedule,
+        Boolean itsFree,
+        List<EventTransaction> eventTransactions
+        ) {
 }
