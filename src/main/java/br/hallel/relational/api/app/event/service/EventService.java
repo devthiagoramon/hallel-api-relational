@@ -62,22 +62,23 @@ public class EventService implements EventInterface {
                                 MultipartFile fileImage,
                                 MultipartFile fileBanner) {
         log.info("Creating event...");
-        if (eventDTO.title() == null
-                || eventDTO.description() == null
-                || eventDTO.date() == null) {
+        if (eventDTO.getTitle() == null
+                || eventDTO.getDescription() == null
+                || eventDTO.getDate() == null) {
 
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
-        log.info(eventDTO.ministryIds().toString());
-        Double value = eventDTO.itsFree() ? 0
-                : NumberUtils.extrairEConverterParaDouble(eventDTO.value());
+        log.info(eventDTO.getMinistryIds().toString());
+        eventDTO.setItsFree(true);
+        Double value = eventDTO.getItsFree() ? 0
+                : NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
         eventToSave.setHasEnded(false);
-        eventToSave.setEventType(eventDTO.eventType());
+        eventToSave.setEventType(eventDTO.getEventType());
 
         eventToSave.setValue(value);
-        eventToSave.setIsImportant(eventDTO.isImportant());
+        eventToSave.setIsImportant(eventDTO.getIsImportant());
 
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
@@ -105,7 +106,7 @@ public class EventService implements EventInterface {
         }
         Event event = this.repository.save(eventToSave);
 
-        for (UUID ministryId : eventDTO.ministryIds()) {
+        for (UUID ministryId : eventDTO.getMinistryIds()) {
             log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
             eventScaleService.createScale(event, ministryId);
         }
@@ -145,20 +146,21 @@ public class EventService implements EventInterface {
         Event event = this.repository.findById(id).
                 orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
-        if (!eventDTO.date().equals(event.getDate())) {
-            this.eventScaleService.editEventDate(event.getId(), eventDTO.date());
+        if (!eventDTO.getDate().equals(event.getDate())) {
+            this.eventScaleService.editEventDate(event.getId(), eventDTO.getDate());
         }
         event.setId(id);
-        event.setTitle(eventDTO.title());
-        event.setDescription(eventDTO.description());
-        event.setDate(eventDTO.date());
-        event.setLocal_event_name(eventDTO.local_event_name());
-        event.setLocal_event_latitude(eventDTO.local_event_latitude());
-        event.setLocal_event_longitude(eventDTO.local_event_longitude());
-        event.setIsImportant(eventDTO.isImportant());
-        event.setEventType(eventDTO.eventType());
-        Double value = eventDTO.itsFree() ? 0
-                : NumberUtils.extrairEConverterParaDouble(eventDTO.value());
+        event.setTitle(eventDTO.getTitle());
+        event.setDescription(eventDTO.getDescription());
+        event.setDate(eventDTO.getDate());
+        event.setLocal_event_name(eventDTO.getLocal_event_name());
+        event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
+        event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
+        event.setIsImportant(eventDTO.getIsImportant());
+        event.setEventType(eventDTO.getEventType());
+        event.setItsFree(true);
+        Double value = eventDTO.getItsFree() ? 0
+                : NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
         event.setValue(value);
 
         if (img_url != null && banner_url != null) {
@@ -194,11 +196,11 @@ public class EventService implements EventInterface {
         Event event = this.repository.findById(id)
                 .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
 
+        log.info("Image and banner deleted from bucket...");
+        this.repository.deleteById(id);
+
         this.bucketService.deleteFileOfBucket(event.getImage_url());
         this.bucketService.deleteFileOfBucket(event.getBanner_url());
-        log.info("Image and banner deleted from bucket...");
-
-        this.repository.deleteById(id);
         return true;
     }
 

@@ -52,8 +52,7 @@ public class Event {
     @Column(name = "value", nullable = false)
     private Double value = 0.0;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "event_id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     @ToString.Exclude
     @JsonBackReference
     @JsonIgnore
@@ -71,13 +70,17 @@ public class Event {
 
     @ElementCollection
     @CollectionTable(
-            name = "retreat_schedule",
-            joinColumns = @JoinColumn(name = "retreat_id")
+            name = "event_schedule",
+            joinColumns = @JoinColumn(name = "event_id")
     )
     @Column(name = "activity")
     private List<String> schedule;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventTransaction> transactions;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<EventParticipation> participations;
 
 }
