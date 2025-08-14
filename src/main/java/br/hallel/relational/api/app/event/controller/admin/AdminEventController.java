@@ -1,8 +1,6 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
-import br.hallel.relational.api.app.event.dto.EventDTO;
-import br.hallel.relational.api.app.event.dto.EventResponse;
-import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -54,4 +52,28 @@ public class AdminEventController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/create/transaction")
+    public ResponseEntity<EventTransactionResponse> create(@RequestBody EventTransactionDTO dto) {
+        return ResponseEntity.ok(eventService.addTransaction(dto));
+    }
+
+    @GetMapping("/transaction/list-all/by-event/{eventId}")
+    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEvent(@PathVariable UUID eventId) {
+        return ResponseEntity.ok(eventService.listAllTransactionsByEvent(eventId));
+    }
+    @GetMapping("/transaction/by-id/{eventId}")
+    public ResponseEntity<EventTransactionResponse> findTransactionById(@PathVariable UUID eventId) {
+        return ResponseEntity.ok(eventService.findTransactionById(eventId));
+    }
+
+    @PutMapping("/transaction/edit/{id}")
+    public ResponseEntity<EventTransactionResponse> updateTransaction(@PathVariable UUID id, @RequestBody EventTransactionDTO dto) {
+        return ResponseEntity.ok(eventService.updateTransaction(id, dto));
+    }
+
+    @DeleteMapping("/transaction/delete/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable UUID id) {
+        eventService.deleteTransaction(id);
+        return ResponseEntity.noContent().build();
+    }
 }

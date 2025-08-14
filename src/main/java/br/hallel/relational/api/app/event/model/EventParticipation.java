@@ -38,4 +38,6 @@ public class EventParticipation {
     @Column(nullable = false, name = "user_function_in_event")
     private UserFunctionInEvent userFunctionInEvent;
 
+    @Column(name = "amount_paid")
+    private Double amountPaid;
 }

@@ -3,9 +3,13 @@ package br.hallel.relational.api.app.event.service;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
+import br.hallel.relational.api.app.event.exception.EventNotFoundException;
+import br.hallel.relational.api.app.event.exception.EventTransactionNotFoundException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
+import br.hallel.relational.api.app.event.model.EventTransaction;
 import br.hallel.relational.api.app.event.repository.EventRepository;
+import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.NumberUtils;
@@ -42,7 +46,8 @@ public class EventService implements EventInterface {
     private MinistryRepository ministryRepository;
     @Autowired
     private EventScaleService eventScaleService;
-
+    @Autowired
+    private EventTransactionRepository eventTransactionRepository;
 
     private final EventMapper mapper;
     private final MinistryMapper ministryMapper;
@@ -253,5 +258,52 @@ public class EventService implements EventInterface {
         return this.repository.findAllUpcomingEvents(new Date(), pageable).map(mapper::entityToResponse);
     }
 
+    public EventTransactionResponse addTransaction(EventTransactionDTO dto) {
+        Event event = this.repository.findById(dto.eventID()).orElseThrow(
+                () -> new EventNotFoundException("Event id %s not found".formatted(dto.eventID()))
+        );
 
+        EventTransaction eventTransaction = new EventTransaction();
+        eventTransaction.setDesciption(dto.desciption());
+        eventTransaction.setTransactionType(dto.transactionType());
+        eventTransaction.setDateTransaction(dto.dateTransaction());
+        eventTransaction.setValue(dto.value());
+        eventTransaction.setEvent(event);
+        EventTransaction save = this.eventTransactionRepository.save(eventTransaction);
+        return new EventTransactionResponse().toResponse(save);
+    }
+
+    public List<EventTransactionResponse> listAllTransactionsByEvent(UUID eventId) {
+        return eventTransactionRepository.findByEventId(eventId)
+                .stream()
+                .map(tx -> new EventTransactionResponse().toResponse(tx))
+                .toList();
+    }
+
+    public EventTransactionResponse findTransactionById(UUID transactionId) {
+        EventTransaction transaction = eventTransactionRepository.findById(transactionId).orElseThrow(
+                () -> new EventTransactionNotFoundException("Transaction id %s not found".formatted(transactionId.toString()))
+        );
+        return new EventTransactionResponse().toResponse(transaction);
+    }
+
+    public EventTransactionResponse updateTransaction(UUID id, EventTransactionDTO dto) {
+        EventTransaction transaction = eventTransactionRepository.findById(id)
+                .orElseThrow(() -> new EventTransactionNotFoundException("Transaction not found"));
+
+        transaction.setDesciption(dto.desciption());
+        transaction.setTransactionType(dto.transactionType());
+        transaction.setDateTransaction(dto.dateTransaction());
+        transaction.setValue(dto.value());
+
+        EventTransaction saved = eventTransactionRepository.save(transaction);
+        return new EventTransactionResponse().toResponse(saved);
+    }
+
+    public void deleteTransaction(UUID id) {
+        if (!eventTransactionRepository.existsById(id)) {
+            throw new EventTransactionNotFoundException("Transaction not found");
+        }
+        eventTransactionRepository.deleteById(id);
+    }
 }

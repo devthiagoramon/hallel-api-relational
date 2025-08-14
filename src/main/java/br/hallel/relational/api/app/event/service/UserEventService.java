@@ -4,11 +4,10 @@ import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
 import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
-import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
+import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
+import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -17,8 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -29,6 +28,7 @@ public class UserEventService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final EventParticipationRepository eventParticipationRepository;
+    private final EventTransactionRepository eventTransactionRepository;
 
     public EventParticipationResponse joinTheEvent(EventParticipationDTO dto) {
 
@@ -48,26 +48,60 @@ public class UserEventService {
         eventParticipation.setUser(user);
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.userFunctionInEvent());
-        eventParticipation.setStatusPaymentEventParticipation(dto.statusPaymentEventParticipation());
         eventParticipation.setHasParticipated(false);
+        eventParticipation.setAmountPaid(dto.amountPaid());
+
+        EventTransaction transaction = null;
+        if (!event.getItsFree()) {
+            if (eventParticipation.getAmountPaid() != null && eventParticipation.getAmountPaid() >= event.getValue()) {
+                eventParticipation.setAmountPaid(event.getValue());
+                eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+
+                transaction = new EventTransaction();
+                transaction.setEvent(event);
+                transaction.setValue(eventParticipation.getAmountPaid());
+                transaction.setDateTransaction(new Date());
+                transaction.setTransactionType(TransactionType.ENTRADA);
+                transaction.setDesciption("Pagamento do Participante " +
+                        user.getName() + " para o Evento " + event.getTitle());
+            } else {
+                eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+            }
+        } else {
+            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+        }
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
+        if (transaction != null) {
+            eventTransactionRepository.save(transaction);
+        }
+
+
         return new EventParticipationResponse().toEventParticipation(participationSaved);
     }
 
-    public boolean leaveTheEvent(UUID eventID) {
-        Optional<EventParticipation> optional = this.eventParticipationRepository.findById(eventID);
-        if (optional.isEmpty()) {
-            throw new EventIllegalArumentException("Participation Event with id " + eventID + " does not exist.");
-        }
-        this.eventParticipationRepository.delete(optional.get());
+    public boolean leaveTheEvent(UUID participationId) {
+        EventParticipation participation = eventParticipationRepository.findById(participationId)
+                .orElseThrow(() -> new EventIllegalArumentException(
+                        "Participation Event with id " + participationId + " does not exist."
+                ));
+
+        List<EventTransaction> transactions =
+                eventTransactionRepository.findAllByEvent_Id(participation.getEvent().getId());
+        transactions.stream()
+                .filter(t -> t.getDesciption().contains(participation.getUser().getName()))
+                .forEach(eventTransactionRepository::delete);
+
+        eventParticipationRepository.delete(participation);
         return true;
     }
 
     public EventParticipationResponse editParticipationEvent(UUID participationId, EventParticipationDTO dto) {
 
         EventParticipation participation = eventParticipationRepository.findById(participationId)
-                .orElseThrow(() -> new EventIllegalArumentException("Participation with id " + participationId + " does not exist."));
+                .orElseThrow(() -> new EventIllegalArumentException(
+                        "Participation with id " + participationId + " does not exist."
+                ));
 
         if (dto.statusPaymentEventParticipation() != null) {
             participation.setStatusPaymentEventParticipation(dto.statusPaymentEventParticipation());
@@ -81,8 +115,27 @@ public class UserEventService {
             participation.setUserFunctionInEvent(dto.userFunctionInEvent());
         }
 
-        EventParticipation updated = eventParticipationRepository.save(participation);
+        if (dto.amountPaid() != null) {
+            participation.setAmountPaid(dto.amountPaid());
 
+            if (dto.amountPaid() >= participation.getEvent().getValue()) {
+                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+
+                EventTransaction transaction = new EventTransaction();
+                transaction.setEvent(participation.getEvent());
+                transaction.setValue(dto.amountPaid());
+                transaction.setDateTransaction(new Date());
+                transaction.setTransactionType(TransactionType.ENTRADA);
+                transaction.setDesciption("Pagamento atualizado do Participante " +
+                        participation.getUser().getName() +
+                        " para o Evento " + participation.getEvent().getTitle());
+                eventTransactionRepository.save(transaction);
+            } else {
+                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+            }
+        }
+
+        EventParticipation updated = eventParticipationRepository.save(participation);
         return new EventParticipationResponse().toEventParticipation(updated);
     }
 

@@ -10,6 +10,6 @@ public record EventParticipationDTO(
         UUID eventID,
         StatusPaymentEventParticipation statusPaymentEventParticipation,
         Boolean hasParticipated,
-        UserFunctionInEvent userFunctionInEvent
-) {
+        UserFunctionInEvent userFunctionInEvent,
+        Double amountPaid) {
 }

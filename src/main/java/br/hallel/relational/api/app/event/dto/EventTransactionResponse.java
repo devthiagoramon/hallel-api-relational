@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventTransaction;
 import br.hallel.relational.api.app.event.model.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +20,15 @@ public class EventTransactionResponse {
     private double value;
     private TransactionType transactionType;
     private UUID eventId;
+
+    public EventTransactionResponse toResponse(EventTransaction eventTransaction) {
+        return new EventTransactionResponse(
+                eventTransaction.getId(),
+                eventTransaction.getDesciption(),
+                eventTransaction.getValue(),
+                eventTransaction.getTransactionType(),
+                eventTransaction.getEvent().getId()
+        );
+    }
 
 }

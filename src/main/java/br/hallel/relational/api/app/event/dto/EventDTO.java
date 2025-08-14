@@ -26,7 +26,6 @@ public record EventDTO(
         String value,
         EventType eventType,
         List<String> schedule,
-        Boolean itsFree,
-        List<EventTransaction> eventTransactions
+        Boolean itsFree
         ) {
 }
