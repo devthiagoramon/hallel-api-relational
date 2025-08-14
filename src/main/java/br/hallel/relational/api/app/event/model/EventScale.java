@@ -28,7 +28,8 @@ public class EventScale {
     private Date date;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "event_id")
+    @JoinColumn(name = "event_id", nullable = false)
+    @JsonManagedReference
     private Event event;
 
     @ManyToOne(fetch = FetchType.EAGER)

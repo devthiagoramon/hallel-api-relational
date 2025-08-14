@@ -10,9 +10,9 @@ CREATE TABLE event_participation
     has_participated                   BOOLEAN     NOT NULL,
     user_function_in_event             VARCHAR(20) NOT NULL,
     CONSTRAINT fk_event_participation_user FOREIGN KEY (user_id)
-        REFERENCES "user" (id),
+        REFERENCES "user"(id),
     CONSTRAINT fk_event_participation_event FOREIGN KEY (event_id)
-        REFERENCES "events" (id)
+        REFERENCES events(id) ON DELETE CASCADE
 
 );
 

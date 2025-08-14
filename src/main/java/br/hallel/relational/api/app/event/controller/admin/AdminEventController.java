@@ -41,6 +41,7 @@ public class AdminEventController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Map<String, Object>> deleteEvent(@PathVariable(name = "id") UUID id) {
+        this.eventService.getEventById(id);
         boolean deleted = this.eventService.deleteById(id);
 
         Map<String, Object> response = new HashMap<>();

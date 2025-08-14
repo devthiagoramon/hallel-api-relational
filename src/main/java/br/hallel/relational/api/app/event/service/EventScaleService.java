@@ -22,6 +22,7 @@ import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import br.hallel.relational.api.app.user.model.User;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,14 +92,16 @@ public class EventScaleService implements ScaleInterface {
         devicesCoordinador.forEach(device -> {
             fcmSenderService.sendNotification(device.getFcmToken(),
                     "Escala do ministério %s".formatted(ministry.getTitle()),
-                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
+                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(
+                            eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
                     eventScaleNotificationTemplate(ministry.getCoordinator(), ministry, eventScale));
         });
         List<DeviceNotification> devicesViceCoordinador = ministry.getViceCoordinator().getDevicesUser();
         devicesViceCoordinador.forEach(device -> {
             fcmSenderService.sendNotification(device.getFcmToken(),
                     "Escala do ministério %s".formatted(ministry.getTitle()),
-                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
+                    "Você foi convidado para a escala do evento %s para o dia %s, verifique o aplicativo para aceitar ou recusar sua participação".formatted(
+                            eventScale.getEvent().getTitle(), formatter.format(eventScale.getDate())),
                     eventScaleNotificationTemplate(ministry.getViceCoordinator(), ministry, eventScale));
         });
     }
@@ -110,7 +113,7 @@ public class EventScaleService implements ScaleInterface {
         map.put("action", "invite_scale");
         map.put("eventScaleId", eventScale.getId().toString());
         map.put("ministryId", ministry.getId().toString());
-    
+
         return map;
     }
 
@@ -279,6 +282,15 @@ public class EventScaleService implements ScaleInterface {
     public void deleteScaleWithDeletingEvent(UUID idEvento) {
 
     }
+
+    public void deleteScale(UUID idScale) {
+        log.info("Deleting escala ministerio {}...", idScale);
+        EventScale eventScale = this.eventScaleRepository.findById(idScale)
+                .orElseThrow(() -> new EventScaleNotFoundException("Event scale not found"));
+        this.eventScaleRepository.delete(eventScale);
+
+    }
+
 
     @Override
     public EventScaleWithRepertoriesResponse addAndRemoveRepertoryInScale(UUID eventScaleId,

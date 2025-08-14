@@ -69,15 +69,15 @@ public class EventService implements EventInterface {
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
         log.info(eventDTO.getMinistryIds().toString());
-        eventDTO.setItsFree(true);
-        Double value = eventDTO.getItsFree() ? 0
-                : NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
+        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
+        boolean itsFreeValue = value == 0;
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
         eventToSave.setHasEnded(false);
         eventToSave.setEventType(eventDTO.getEventType());
 
         eventToSave.setValue(value);
+        eventToSave.setItsFree(itsFreeValue);
         eventToSave.setIsImportant(eventDTO.getIsImportant());
 
         if ((fileImage != null && !(fileImage.isEmpty()))
@@ -195,7 +195,6 @@ public class EventService implements EventInterface {
     public Boolean deleteById(UUID id) {
         Event event = this.repository.findById(id)
                 .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
-
         log.info("Image and banner deleted from bucket...");
         this.repository.deleteById(id);
 

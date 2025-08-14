@@ -1,4 +1,4 @@
-ALTER TABLE "events"
+ALTER TABLE events
  ADD COLUMN its_free boolean DEFAULT TRUE;
 
 CREATE TABLE event_transaction
@@ -8,7 +8,7 @@ CREATE TABLE event_transaction
     description      TEXT           NOT NULL,
     transaction_type VARCHAR(50)    NOT NULL,
     value            NUMERIC(10, 2) NOT NULL,
-    CONSTRAINT fk_retreat FOREIGN KEY (event_id) REFERENCES "events" (id) ON DELETE CASCADE
+    CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 );
 
 INSERT INTO event_transaction (id, description, event_id, transaction_type, value)
