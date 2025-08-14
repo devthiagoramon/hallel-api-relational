@@ -74,6 +74,7 @@ public class EventService implements EventInterface {
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
         eventToSave.setHasEnded(false);
+        eventToSave.setEventType(eventDTO.eventType());
 
         eventToSave.setValue(value);
         eventToSave.setIsImportant(eventDTO.isImportant());
@@ -155,6 +156,10 @@ public class EventService implements EventInterface {
         event.setLocal_event_latitude(eventDTO.local_event_latitude());
         event.setLocal_event_longitude(eventDTO.local_event_longitude());
         event.setIsImportant(eventDTO.isImportant());
+        event.setEventType(eventDTO.eventType());
+        Double value = eventDTO.itsFree() ? 0
+                : NumberUtils.extrairEConverterParaDouble(eventDTO.value());
+        event.setValue(value);
 
         if (img_url != null && banner_url != null) {
             log.info("has image");
