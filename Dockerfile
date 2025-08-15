@@ -27,7 +27,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 # Copia o arquivo JAR do estágio de build.
-COPY --from=build /app/build/libs/hallel-evento-api.jar ./app.jar
+COPY --from=build /app/build/libs/*.jar ./app.jar
 
 # Expõe a porta que sua aplicação usa (padrão do Spring Boot é 8080).
 EXPOSE 8080
