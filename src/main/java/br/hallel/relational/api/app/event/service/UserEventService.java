@@ -8,11 +8,14 @@ import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.payment.dto.PixChargeRequest;
+import br.hallel.relational.api.app.payment.service.PixService;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,9 +32,9 @@ public class UserEventService {
     private final EventRepository eventRepository;
     private final EventParticipationRepository eventParticipationRepository;
     private final EventTransactionRepository eventTransactionRepository;
+    private final PixService pixService;
 
     public EventParticipationResponse joinTheEvent(EventParticipationDTO dto) {
-
         Event event = this.eventRepository.findById(dto.eventID()).orElseThrow(
                 () -> new EventIllegalArumentException("Event with id " + dto.eventID() + " does not exist.")
         );
@@ -50,34 +53,32 @@ public class UserEventService {
         eventParticipation.setUserFunctionInEvent(dto.userFunctionInEvent());
         eventParticipation.setHasParticipated(false);
         eventParticipation.setAmountPaid(dto.amountPaid());
+        String qrCodeImage = null;
 
-        EventTransaction transaction = null;
         if (!event.getItsFree()) {
-            if (eventParticipation.getAmountPaid() != null && eventParticipation.getAmountPaid() >= event.getValue()) {
-                eventParticipation.setAmountPaid(event.getValue());
-                eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
 
-                transaction = new EventTransaction();
-                transaction.setEvent(event);
-                transaction.setValue(eventParticipation.getAmountPaid());
-                transaction.setDateTransaction(new Date());
-                transaction.setTransactionType(TransactionType.ENTRADA);
-                transaction.setDesciption("Pagamento do Participante " +
-                        user.getName() + " para o Evento " + event.getTitle());
+
+            PixChargeRequest pixRequest = new PixChargeRequest(
+                    "sua_chave_pix_aqui",
+                    String.valueOf(event.getValue())
+            );
+            JSONObject pixResponse = this.pixService.pixGenerateQrCode(pixRequest);
+            if (pixResponse != null) {
+                eventParticipation.setPixTxid(pixResponse.getString("txid"));
+                qrCodeImage = pixResponse.getJSONObject("pix").getString("imagemQrcode");
             } else {
-                eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+
+                throw new RuntimeException("Falha ao gerar QR Code Pix.");
             }
         } else {
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
         }
 
+
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
-        if (transaction != null) {
-            eventTransactionRepository.save(transaction);
-        }
 
-
-        return new EventParticipationResponse().toEventParticipation(participationSaved);
+        return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeImage);
     }
 
     public boolean leaveTheEvent(UUID participationId) {
@@ -136,14 +137,14 @@ public class UserEventService {
         }
 
         EventParticipation updated = eventParticipationRepository.save(participation);
-        return new EventParticipationResponse().toEventParticipation(updated);
+        return new EventParticipationResponse().toEventParticipation(updated, null);
     }
 
     public EventParticipationResponse getParticipationById(UUID participationId) {
         EventParticipation participation = eventParticipationRepository.findById(participationId)
                 .orElseThrow(() -> new EventIllegalArumentException("Participation with id " + participationId + " not found."));
 
-        return new EventParticipationResponse().toEventParticipation(participation);
+        return new EventParticipationResponse().toEventParticipation(participation, null);
     }
 
     public List<EventParticipationResponse> getAllParticipations() {
@@ -156,7 +157,8 @@ public class UserEventService {
                         participation.getEvent().getId(),
                         participation.getStatusPaymentEventParticipation(),
                         participation.getHasParticipated(),
-                        participation.getUserFunctionInEvent()
+                        participation.getUserFunctionInEvent(),
+                        null
                 ))
                 .toList();
     }
@@ -185,7 +187,7 @@ public class UserEventService {
         );
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
-        return new EventParticipationResponse().toEventParticipation(eventParticipation);
+        return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
     }
 
 }

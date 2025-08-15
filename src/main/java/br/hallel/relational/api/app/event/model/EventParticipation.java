@@ -40,4 +40,7 @@ public class EventParticipation {
 
     @Column(name = "amount_paid")
     private Double amountPaid;
+
+    @Column(name = "pix_txid")
+    private String pixTxid;
 }

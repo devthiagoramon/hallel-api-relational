@@ -60,7 +60,7 @@ public class SecurityConfig {
                                     .requestMatchers("/auth/**").permitAll()
                                     .requestMatchers("/error").permitAll()
                                     .requestMatchers("/public/**").permitAll()
-
+                                    .requestMatchers("/payment/pix/**").permitAll()
                                     .requestMatchers("/admin/event/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/ministry/**").hasRole("ADMIN")
                                     .requestMatchers("/admin/user/**").hasRole("ADMIN")

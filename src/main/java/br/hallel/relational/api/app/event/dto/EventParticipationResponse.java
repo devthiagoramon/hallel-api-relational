@@ -26,10 +26,12 @@ public class EventParticipationResponse {
 
     private UserFunctionInEvent userFunctionInEvent;
 
-    public EventParticipationResponse toEventParticipation(EventParticipation response) {
+    private String qrCode;
+
+    public EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
 
         return new EventParticipationResponse(response.getId(), response.getUser().getId(), response.getEvent().getId(),
                 response.getStatusPaymentEventParticipation(), response.getHasParticipated(),
-                response.getUserFunctionInEvent());
+                response.getUserFunctionInEvent(), qrCode);
     }
 }
