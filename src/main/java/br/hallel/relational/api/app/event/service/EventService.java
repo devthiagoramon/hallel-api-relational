@@ -79,6 +79,9 @@ public class EventService implements EventInterface {
         eventToSave.setValue(value);
         eventToSave.setItsFree(itsFreeValue);
         eventToSave.setIsImportant(eventDTO.getIsImportant());
+        eventToSave.setImage_url("");
+        eventToSave.setBanner_url("");
+        Event event = this.repository.save(eventToSave);
 
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
@@ -88,23 +91,23 @@ public class EventService implements EventInterface {
 
             imageUrl = bucketService.sendFileToBucket(fileImage, GoogleBucketUtils
                     .getImageName(
-                            eventToSave.getTitle(),
+                            eventToSave.getId().toString(),
                             Event.class.getSimpleName(),
                             "image"));
 
             bannerImageUrl = bucketService.sendFileToBucket(fileBanner, GoogleBucketUtils
                     .getImageName(
-                            eventToSave.getTitle(),
+                            eventToSave.getId().toString(),
                             Event.class.getSimpleName(),
                             "banner"));
 
-            eventToSave.setImage_url(imageUrl);
-            eventToSave.setBanner_url(bannerImageUrl);
+            event.setImage_url(imageUrl);
+            event.setBanner_url(bannerImageUrl);
             log.info(eventToSave.getImage_url());
             log.info(eventToSave.getBanner_url());
 
         }
-        Event event = this.repository.save(eventToSave);
+        event = this.repository.save(eventToSave);
 
         for (UUID ministryId : eventDTO.getMinistryIds()) {
             log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
@@ -158,29 +161,29 @@ public class EventService implements EventInterface {
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
-        event.setItsFree(true);
-        Double value = eventDTO.getItsFree() ? 0
-                : NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
+        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
+        boolean itsFreeValue = value == 0;
+        event.setItsFree(itsFreeValue);
         event.setValue(value);
-
-        if (img_url != null && banner_url != null) {
-            log.info("has image");
-            String imageUrl = null, bannerUrl = null;
+        if (img_url != null ){
+            log.info("Editing image {}", img_url.getOriginalFilename());
+            String imageUrl = null;
             imageUrl = bucketService.updateFileOfBucket(
                     img_url, GoogleBucketUtils.getImageName(
-                            event.getId()
-                                    .toString(), Ministry.class.getSimpleName(), "image"
-                    ));
-            bannerUrl = bucketService.updateFileOfBucket(
-                    banner_url, GoogleBucketUtils.getImageName(
-                            event.getId()
-                                    .toString(), Ministry.class.getSimpleName(), "banner"
+                            event.getId().toString()
+                            , Ministry.class.getSimpleName(), "image"
                     ));
             event.setImage_url(imageUrl);
+        }
+        if (banner_url != null) {
+            log.info("Editing banner {}", banner_url.getOriginalFilename());
+            String bannerUrl = null;
+            bannerUrl = bucketService.updateFileOfBucket(
+                    banner_url, GoogleBucketUtils.getImageName(
+                            event.getId().toString()
+                            , Ministry.class.getSimpleName(), "banner"
+                    ));
             event.setBanner_url(bannerUrl);
-            log.info("image Url Response: " + imageUrl);
-            log.info("image Url Response: " + bannerUrl);
-
         } else {
             event.setBanner_url(event.getBanner_url());
             event.setImage_url(event.getImage_url());
@@ -288,7 +291,8 @@ public class EventService implements EventInterface {
 
     public EventTransactionResponse findTransactionById(UUID transactionId) {
         EventTransaction transaction = eventTransactionRepository.findById(transactionId).orElseThrow(
-                () -> new EventTransactionNotFoundException("Transaction id %s not found".formatted(transactionId.toString()))
+                () -> new EventTransactionNotFoundException(
+                        "Transaction id %s not found".formatted(transactionId.toString()))
         );
         return new EventTransactionResponse().toResponse(transaction);
     }
