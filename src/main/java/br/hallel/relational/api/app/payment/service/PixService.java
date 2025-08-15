@@ -39,8 +39,6 @@ public class PixService {
     private Credentials credentials;
 
     public JSONObject pixCreateEVP() {
-        Credentials credentials = new Credentials();
-
         JSONObject options = configuringJsonObject();
         try {
             EfiPay efi = new EfiPay(options);
@@ -83,8 +81,6 @@ public class PixService {
     }
 
     public JSONObject pixCreateCharge(String chave, String valor) {
-        Credentials credentials = new Credentials();
-
         JSONObject options = configuringJsonObject();
 
         HashMap<String, String> params = new HashMap<String, String>();
