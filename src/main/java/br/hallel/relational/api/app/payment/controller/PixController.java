@@ -21,7 +21,7 @@ public class PixController {
     @GetMapping("/configuration")
     public String configurarWebhookPix() {
         String chavePix = "5c044047-176f-4a97-b331-0eb6d9aba6da";
-        String webhookUrl = "https://hallel-evento-api.com/payment/pix/webhook";
+        String webhookUrl = "https://hallel-api.onrender.com/payment/pix/configuration";
 
         try {
             pixService.pixConfigurarWebhook(chavePix, webhookUrl);
