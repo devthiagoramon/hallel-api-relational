@@ -35,6 +35,8 @@ public class PixService {
     private EventParticipationRepository eventParticipationRepository;
     @Autowired
     private EventTransactionRepository eventTransactionRepository;
+    @Autowired
+    private Credentials credentials;
 
     public JSONObject pixCreateEVP() {
         Credentials credentials = new Credentials();
@@ -114,14 +116,11 @@ public class PixService {
     }
 
     private JSONObject configuringJsonObject() {
-        Credentials credentials = new Credentials();
-
         JSONObject options = new JSONObject();
-        options.put("client_id", credentials.getClientId());
-        options.put("client_secret", credentials.getClientSecret());
-        options.put("certificate", credentials.getCertificate());
-        options.put("sandbox", credentials.isSandbox());
-
+        options.put("client_id", this.credentials.getClientId());
+        options.put("client_secret", this.credentials.getClientSecret());
+        options.put("certificate", this.credentials.getCertificate());
+        options.put("sandbox", this.credentials.isSandbox());
         return options;
     }
 

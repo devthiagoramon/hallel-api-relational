@@ -68,5 +68,12 @@ springdoc:
     path: "/swagger-ui.html"
     enabled: true
 
-
+pix:
+  client:
+    id: ${PIX_CLIENT_ID}
+    secret: ${PIX_CLIENT_SECRET}
+  certificate:
+    path: ${PIX_CERTIFICATE_PATH}
+  sandbox: ${PIX_SANDBOX}
+  debug: ${PIX_DEBUG}
 
