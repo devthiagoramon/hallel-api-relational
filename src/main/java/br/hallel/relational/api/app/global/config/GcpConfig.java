@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 @Configuration
 public class GcpConfig {
@@ -24,7 +23,7 @@ public class GcpConfig {
     @PostConstruct
     public void init() throws Exception {
         InputStream inputStream = getClass().getClassLoader()
-                                            .getResourceAsStream("crypto-avatar.json");
+                .getResourceAsStream("crypto-avatar.json");
         if (inputStream == null) {
             throw new RuntimeException("Arquivo de credenciais não encontrado no resources!");
         }
@@ -51,10 +50,9 @@ public class GcpConfig {
     @Bean
     public Storage storage() throws IOException {
         return StorageOptions.newBuilder()
-                             .setCredentials(GoogleCredentials.fromStream(Objects.requireNonNull(getClass().getClassLoader()
-                                                                                                           .getResourceAsStream("crypto-avatar.json"))))
-                             .build().getService();
-
+                .setCredentials(GoogleCredentials.getApplicationDefault())
+                .build()
+                .getService();
     }
 
 }
