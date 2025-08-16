@@ -15,6 +15,10 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -115,9 +119,34 @@ public class PixService {
         JSONObject options = new JSONObject();
         options.put("client_id", this.credentials.getClientId());
         options.put("client_secret", this.credentials.getClientSecret());
-        options.put("certificate", this.credentials.getCertificateContent());
+
+        try {
+            // Salva o conteúdo em um arquivo temporário e obtém o caminho
+            String certificatePath = createTempCertificateFile(this.credentials.getCertificateContent());
+            options.put("certificate", certificatePath);
+        } catch (IOException e) {
+            // Trata o erro de criação de arquivo
+            System.err.println("Erro ao criar arquivo de certificado temporário: " + e.getMessage());
+            return null; // Retorna nulo para indicar falha
+        }
+
         options.put("sandbox", this.credentials.isSandbox());
         return options;
+    }
+
+    private String createTempCertificateFile(String content) throws IOException {
+        // Cria um arquivo temporário com o sufixo .p12
+        File tempFile = File.createTempFile("hallel-certificado", ".p12");
+
+        // Garante que o arquivo seja deletado quando a aplicação for fechada
+        tempFile.deleteOnExit();
+
+        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+            // Escreve o conteúdo do certificado no arquivo
+            fos.write(content.getBytes(StandardCharsets.ISO_8859_1));
+        }
+
+        return tempFile.getAbsolutePath();
     }
 
     public void processWebhookNotification(PixWebhookPayloadDTO payload) {

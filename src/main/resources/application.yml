@@ -73,7 +73,7 @@ pix:
     id: ${PIX_CLIENT_ID}
     secret: ${PIX_CLIENT_SECRET}
   certificate:
-    path: ${PIX_CERTIFICATE_PATH}
+    content: ${PIX_CERTIFICATE_CONTENT}
   sandbox: ${PIX_SANDBOX}
   debug: ${PIX_DEBUG}
-
+}
