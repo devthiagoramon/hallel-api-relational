@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -142,8 +142,9 @@ public class PixService {
         tempFile.deleteOnExit();
 
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-            // Escreve o conteúdo do certificado no arquivo
-            fos.write(content.getBytes(StandardCharsets.ISO_8859_1));
+            // CORREÇÃO: Decodifica a string Base64 para bytes binários
+            byte[] decodedBytes = Base64.getDecoder().decode(content);
+            fos.write(decodedBytes);
         }
 
         return tempFile.getAbsolutePath();
