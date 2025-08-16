@@ -76,4 +76,3 @@ pix:
     content: ${PIX_CERTIFICATE_CONTENT}
   sandbox: ${PIX_SANDBOX}
   debug: ${PIX_DEBUG}
-}
