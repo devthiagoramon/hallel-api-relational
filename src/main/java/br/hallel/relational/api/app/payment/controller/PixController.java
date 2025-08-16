@@ -1,8 +1,13 @@
 package br.hallel.relational.api.app.payment.controller;
 
+import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
+import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.payment.dto.PixChargeRequest;
 import br.hallel.relational.api.app.payment.dto.PixWebhookPayloadDTO;
 import br.hallel.relational.api.app.payment.service.PixService;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,26 +16,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/payment/pix")
 public class PixController {
     @Autowired
     private PixService pixService;
+    @Autowired
+    private EventTransactionRepository eventTransactionRepository;
 
-    @GetMapping("/configuration")
-    public String configurarWebhookPix() {
-        String chavePix = "5c044047-176f-4a97-b331-0eb6d9aba6da";
-        String webhookUrl = "https://hallel-api.onrender.com/payment/pix/configuration";
-
-        try {
-            pixService.pixConfigurarWebhook(chavePix, webhookUrl);
-            return "Webhook configurado com sucesso!";
-        } catch (Exception e) {
-            return "Erro ao configurar o webhook: " + e.getMessage();
-        }
-    }
-
+    @Autowired
+    private EventParticipationRepository eventParticipationRepository;
 
     @PostMapping("/create-key")
     public ResponseEntity createPixEVP() {
@@ -73,4 +70,47 @@ public class PixController {
                 .body("Erro ao listar pagamentos do dia");
     }
 
+    @PostMapping("/webhook")
+    public ResponseEntity<String> receivePixWebhook(@RequestBody String payload) {
+        System.out.println("Webhook Pix recebido. Conteúdo: " + payload);
+
+        try {
+            JSONObject json = new JSONObject(payload);
+
+            if (json.has("eventos")) {
+                for (Object eventObject : json.getJSONArray("eventos")) {
+                    JSONObject event = (JSONObject) eventObject;
+                    if (event.has("pix")) {
+                        JSONObject pix = event.getJSONObject("pix");
+                        String txid = pix.getString("txid");
+                        String status = pix.getString("status");
+
+                        Optional<EventParticipation> optionalParticipation = eventParticipationRepository.findByPixTxid(txid);
+
+                        if (optionalParticipation.isPresent()) {
+                            EventParticipation participation = optionalParticipation.get();
+
+                            // Verifica se o status do pagamento é 'CONCLUIDO'
+                            if ("CONCLUIDO".equals(status)) {
+                                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO); // Atualiza para PAGO
+                                participation.setHasParticipated(true); // Opcional, se a participação for confirmada
+                                eventParticipationRepository.save(participation);
+                                System.out.println("Participação do evento atualizada para PAGO. Txid: " + txid);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            System.err.println("Erro ao processar o JSON do webhook: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Erro ao processar JSON.");
+        } catch (Exception e) {
+            System.err.println("Erro inesperado no webhook: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Erro interno no servidor.");
+        }
+
+        return ResponseEntity.ok("Webhook recebido com sucesso.");
+    }
 }
+
