@@ -11,8 +11,8 @@ public class Credentials {
     @Value("${pix.client.secret}")
     private String clientSecret;
 
-    @Value("${pix.certificate.path}")
-    private String certificate;
+    @Value("${pix.certificate.content}")
+    private String certificateContent;
 
     @Value("${pix.sandbox}")
     private boolean sandbox;
@@ -40,12 +40,12 @@ public class Credentials {
         this.clientSecret = clientSecret;
     }
 
-    public String getCertificate() {
-        return certificate;
+    public String getCertificateContent() {
+        return certificateContent;
     }
 
-    public void setCertificate(String certificate) {
-        this.certificate = certificate;
+    public void setCertificateContent(String certificateContent) {
+        this.certificateContent = certificateContent;
     }
 
     public boolean isSandbox() {

@@ -115,7 +115,7 @@ public class PixService {
         JSONObject options = new JSONObject();
         options.put("client_id", this.credentials.getClientId());
         options.put("client_secret", this.credentials.getClientSecret());
-        options.put("certificate", this.credentials.getCertificate());
+        options.put("certificate", this.credentials.getCertificateContent());
         options.put("sandbox", this.credentials.isSandbox());
         return options;
     }
