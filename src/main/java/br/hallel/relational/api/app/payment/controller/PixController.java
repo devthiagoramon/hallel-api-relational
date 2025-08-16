@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.payment.dto.PixChargeRequest;
-import br.hallel.relational.api.app.payment.dto.PixWebhookPayloadDTO;
 import br.hallel.relational.api.app.payment.service.PixService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,12 +41,6 @@ public class PixController {
         return ResponseEntity.status(HttpStatus.CREATED).body(jsonObject.toString());
     }
 
-    public ResponseEntity<Void> receivePixWebhook(@RequestBody PixWebhookPayloadDTO payload) {
-
-        System.out.println("Recebi webhook PIX: " + payload);
-        pixService.processWebhookNotification(payload);
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/status/{txid}")
     public ResponseEntity<String> checkPixStatus(@PathVariable String txid) {
@@ -70,7 +63,7 @@ public class PixController {
                 .body("Erro ao listar pagamentos do dia");
     }
 
-    @PostMapping("/webhook")
+    @PostMapping("/configuration")
     public ResponseEntity<String> receivePixWebhook(@RequestBody String payload) {
         System.out.println("Webhook Pix recebido. Conteúdo: " + payload);
 
@@ -90,10 +83,9 @@ public class PixController {
                         if (optionalParticipation.isPresent()) {
                             EventParticipation participation = optionalParticipation.get();
 
-                            // Verifica se o status do pagamento é 'CONCLUIDO'
                             if ("CONCLUIDO".equals(status)) {
-                                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO); // Atualiza para PAGO
-                                participation.setHasParticipated(true); // Opcional, se a participação for confirmada
+                                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+                                participation.setHasParticipated(true);
                                 eventParticipationRepository.save(participation);
                                 System.out.println("Participação do evento atualizada para PAGO. Txid: " + txid);
                             }
@@ -113,4 +105,3 @@ public class PixController {
         return ResponseEntity.ok("Webhook recebido com sucesso.");
     }
 }
-
