@@ -30,7 +30,12 @@ public class PixController {
 
     @PostMapping("/create-key")
     public ResponseEntity createPixEVP() {
+        String webhookUrl = "https://hallel-api.onrender.com/payment/pix/configuration";
         JSONObject jsonObject = this.pixService.pixCreateEVP();
+        String chaveCriada = jsonObject.getString("chave");
+        this.pixService.pixConfigurarWebhook(chaveCriada, webhookUrl);
+
+
         return ResponseEntity.status(HttpStatus.CREATED).body(jsonObject.toString());
     }
 
