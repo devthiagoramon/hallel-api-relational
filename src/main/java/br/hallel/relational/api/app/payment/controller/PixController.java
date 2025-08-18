@@ -63,6 +63,18 @@ public class PixController {
                 .body("Erro ao listar pagamentos do dia");
     }
 
+    @PostMapping("/webhook/configure")
+    public ResponseEntity<String> configureWebhook(@RequestParam String chavePix) {
+        String webhookUrl = "https://hallel-api.onrender.com/payment/pix/configuration";
+        JSONObject response = pixService.pixConfigurarWebhook(chavePix, webhookUrl);
+
+        if (response != null) {
+            return ResponseEntity.ok("Webhook configurado com sucesso.");
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro ao configurar o webhook.");
+    }
+
     @PostMapping("/configuration")
     public ResponseEntity<String> receivePixWebhook(@RequestBody String payload) {
         System.out.println("Webhook Pix recebido. Conteúdo: " + payload);
@@ -70,25 +82,26 @@ public class PixController {
         try {
             JSONObject json = new JSONObject(payload);
 
+            // A documentação da Efí mostra que o evento vem como uma lista
             if (json.has("eventos")) {
                 for (Object eventObject : json.getJSONArray("eventos")) {
                     JSONObject event = (JSONObject) eventObject;
-                    if (event.has("pix")) {
+
+                    // Aqui você deve verificar o nome do evento, que é "pix.received"
+                    if ("pix.received".equals(event.getString("nome"))) {
+                        // O objeto "pix" está dentro do objeto "pix" que está no evento
                         JSONObject pix = event.getJSONObject("pix");
                         String txid = pix.getString("txid");
-                        String status = pix.getString("status");
 
                         Optional<EventParticipation> optionalParticipation = eventParticipationRepository.findByPixTxid(txid);
-
                         if (optionalParticipation.isPresent()) {
                             EventParticipation participation = optionalParticipation.get();
 
-                            if ("CONCLUIDO".equals(status)) {
-                                participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
-                                participation.setHasParticipated(true);
-                                eventParticipationRepository.save(participation);
-                                System.out.println("Participação do evento atualizada para PAGO. Txid: " + txid);
-                            }
+                            // O status de pagamento já é confirmado pela própria notificação.
+                            participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+                            participation.setHasParticipated(true);
+                            eventParticipationRepository.save(participation);
+                            System.out.println("Participação do evento atualizada para PAGO. Txid: " + txid);
                         }
                     }
                 }
