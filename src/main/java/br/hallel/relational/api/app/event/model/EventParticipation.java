@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Table(name = "event_participation")
@@ -43,4 +44,7 @@ public class EventParticipation {
 
     @Column(name = "pix_txid")
     private String pixTxid;
+
+    @Column(name = "paid_date")
+    private OffsetDateTime paidDate;
 }

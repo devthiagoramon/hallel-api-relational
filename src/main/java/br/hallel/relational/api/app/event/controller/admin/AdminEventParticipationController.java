@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
+import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/public/event")
 @RequiredArgsConstructor
-@Tag(name = "Events", description = "Events User Participation part for Admin")
+@Tag(name = "Admin events - User participation", description = "Events User Participation part for Admin")
 public class AdminEventParticipationController {
 
     private final UserEventService userEventService;
@@ -28,6 +29,15 @@ public class AdminEventParticipationController {
             @PathVariable UUID participationId,
             @Valid @RequestParam UserFunctionInEvent userFunctionInEvent) {
         EventParticipationResponse response = userEventService.addFunctionUserInEvent(participationId, userFunctionInEvent);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Edit event participation")
+    @PutMapping("/edit/participation/{participationId}")
+    public ResponseEntity<EventParticipationResponse> editParticipation(
+            @PathVariable UUID participationId,
+            @Valid @RequestBody EventParticipationDTO dto) {
+        EventParticipationResponse response = userEventService.editParticipationEvent(participationId, dto);
         return ResponseEntity.ok(response);
     }
 }

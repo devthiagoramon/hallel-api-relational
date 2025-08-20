@@ -1,8 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
-import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
-import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -18,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -34,12 +29,12 @@ public class UserEventService {
     private final EventTransactionRepository eventTransactionRepository;
     private final PixService pixService;
 
-    public EventParticipationResponse joinTheEvent(EventParticipationDTO dto) {
-        Event event = this.eventRepository.findById(dto.eventID()).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + dto.eventID() + " does not exist.")
+    public EventParticipationResponse joinTheEvent(EventParticipateDTO dto) {
+        Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
         );
-        User user = this.userRepository.findById(dto.userID()).orElseThrow(
-                () -> new UserNotFoundException("User with id " + dto.userID() + " does not exist.")
+        User user = this.userRepository.findById(dto.getUserId()).orElseThrow(
+                () -> new UserNotFoundException("User with id " + dto.getUserId() + " does not exist.")
         );
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
@@ -50,35 +45,35 @@ public class UserEventService {
         EventParticipation eventParticipation = new EventParticipation();
         eventParticipation.setUser(user);
         eventParticipation.setEvent(event);
-        eventParticipation.setUserFunctionInEvent(dto.userFunctionInEvent());
+        eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
-        eventParticipation.setAmountPaid(dto.amountPaid());
-        String qrCodeImage = null;
-
-        if (!event.getItsFree()) {
-            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
-
-
-            PixChargeRequest pixRequest = new PixChargeRequest(
-                    "sua_chave_pix_aqui",
-                    String.valueOf(event.getValue())
-            );
-            JSONObject pixResponse = this.pixService.pixGenerateQrCode(pixRequest);
-            if (pixResponse != null) {
-                eventParticipation.setPixTxid(pixResponse.getString("txid"));
-                qrCodeImage = pixResponse.getJSONObject("pix").getString("imagemQrcode");
-            } else {
-
-                throw new RuntimeException("Falha ao gerar QR Code Pix.");
-            }
-        } else {
-            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
-        }
+        eventParticipation.setAmountPaid(0.01);
+//        String qrCodeImage = null;
+//
+//        if (!event.getItsFree()) {
+//            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+//
+//
+//            PixChargeRequest pixRequest = new PixChargeRequest(
+//                    "sua_chave_pix_aqui",
+//                    String.valueOf(event.getValue())
+//            );
+//            JSONObject pixResponse = this.pixService.pixGenerateQrCode(pixRequest);
+//            if (pixResponse != null) {
+//                eventParticipation.setPixTxid(pixResponse.getString("txid"));
+//                qrCodeImage = pixResponse.getJSONObject("pix").getString("imagemQrcode");
+//            } else {
+//
+//                throw new RuntimeException("Falha ao gerar QR Code Pix.");
+//            }
+//        } else {
+//            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+//        }
 
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
 
-        return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeImage);
+        return new EventParticipationResponse().toEventParticipation(participationSaved, null);
     }
 
     public boolean leaveTheEvent(UUID participationId) {
@@ -190,4 +185,15 @@ public class UserEventService {
         return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
     }
 
+    public UserEventStatus getStatusParticipationOfEvent(UUID userId, UUID eventId) {
+        Optional<EventParticipation> eventParticipation = eventParticipationRepository.findById(eventId);
+        if (eventParticipation.isEmpty()) {
+            return new UserEventStatus(userId, UserEventStatusTypes.NAO_PARTICIPA, null);
+        }
+        EventParticipation participation = eventParticipation.get();
+        if (participation.getPaidDate() == null){
+            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, null);
+        }
+        return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, participation.getPaidDate());
+    }
 }
