@@ -12,12 +12,14 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class MercadoPagoClient {
 
+    @Value("${mercadopago.access.token}")
     private String accessToken = "APP_USR-1199359181048411-081921-fbdca99980d31c83bf2f7b61add671b8-2640484802";
 
     @PostConstruct
