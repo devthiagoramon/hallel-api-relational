@@ -1,8 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
-import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
-import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -24,10 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -41,26 +36,26 @@ public class UserEventService {
     private final EventTransactionRepository eventTransactionRepository;
     private final MercadoPagoClient mercadoPagoClient;
 
-    public EventParticipationResponse joinTheEvent(EventParticipationDTO dto) {
-        Event event = this.eventRepository.findById(dto.eventID()).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + dto.eventID() + " does not exist.")
+    public EventParticipationResponse joinTheEvent(EventParticipateDTO dto) {
+        Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
         );
-        User user = this.userRepository.findById(dto.userID()).orElseThrow(
-                () -> new UserNotFoundException("User with id " + dto.userID() + " does not exist.")
+        User user = this.userRepository.findById(dto.getUserId()).orElseThrow(
+                () -> new UserNotFoundException("User with id " + dto.getUserId() + " does not exist.")
         );
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
         if (alreadyParticipating) {
-            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", dto.userID(), dto.eventID());
+            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", dto.getUserId(),
+                    dto.getEventId());
             throw new EventIllegalArumentException("User already participating in this event.");
         }
 
         EventParticipation eventParticipation = new EventParticipation();
         eventParticipation.setUser(user);
         eventParticipation.setEvent(event);
-        eventParticipation.setUserFunctionInEvent(dto.userFunctionInEvent());
+        eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
-        eventParticipation.setAmountPaid(dto.amountPaid());
 
         String qrCodeBase64 = null;
 
@@ -97,7 +92,7 @@ public class UserEventService {
                     eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 
-                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.userID(), eventParticipation.getPixTxid());
+                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.getUserId(), eventParticipation.getPixTxid());
                 } else {
                     log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
                     throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
@@ -114,6 +109,7 @@ public class UserEventService {
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
         return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
+
     }
 
     public boolean leaveTheEvent(UUID participationId) {
@@ -225,4 +221,15 @@ public class UserEventService {
         return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
     }
 
+    public UserEventStatus getStatusParticipationOfEvent(UUID userId, UUID eventId) {
+        Optional<EventParticipation> eventParticipation = eventParticipationRepository.findById(eventId);
+        if (eventParticipation.isEmpty()) {
+            return new UserEventStatus(userId, UserEventStatusTypes.NAO_PARTICIPA, null);
+        }
+        EventParticipation participation = eventParticipation.get();
+        if (participation.getPaidDate() == null){
+            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, null);
+        }
+        return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, participation.getPaidDate());
+    }
 }

@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.controller.user_public;
 
-import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
-import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
-import br.hallel.relational.api.app.event.dto.ParticipationListResponse;
-import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,16 +15,16 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/public/event")
+@RequestMapping("/user/event")
 @RequiredArgsConstructor
-@Tag(name = "Events", description = "Events User Participation part for public")
+@Tag(name = "Events - User participation", description = "Events User Participation part for public")
 public class UserEventParticipationController {
 
     private final UserEventService userEventService;
 
     @Operation(summary = "Join an event")
     @PostMapping("/join")
-    public ResponseEntity<EventParticipationResponse> joinEvent(@Valid @RequestBody EventParticipationDTO dto) {
+    public ResponseEntity<EventParticipationResponse> joinEvent(@RequestBody EventParticipateDTO dto) {
         EventParticipationResponse response = userEventService.joinTheEvent(dto);
         return ResponseEntity.ok(response);
     }
@@ -71,13 +68,11 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Edit event participation")
-    @PutMapping("/edit/participation/{participationId}")
-    public ResponseEntity<EventParticipationResponse> editParticipation(
-            @PathVariable UUID participationId,
-            @Valid @RequestBody EventParticipationDTO dto) {
-        EventParticipationResponse response = userEventService.editParticipationEvent(participationId, dto);
-        return ResponseEntity.ok(response);
+    @GetMapping("/participation/status")
+    @Operation(summary = "List user participation status in event")
+    public ResponseEntity<UserEventStatus> getParticipationStatus(@RequestParam(name = "userId") UUID userId, @RequestParam(name = "eventId") UUID eventId) {
+        return ResponseEntity.ok(this.userEventService.getStatusParticipationOfEvent(userId, eventId));
     }
+
 
 }

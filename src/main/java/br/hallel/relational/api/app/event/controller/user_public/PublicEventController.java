@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/public/event")
 @RequiredArgsConstructor
-@Tag(name = "Events", description = "Events part for public")
+@Tag(name = "Events - Public", description = "Events part for public")
 public class PublicEventController {
 
     @Autowired
