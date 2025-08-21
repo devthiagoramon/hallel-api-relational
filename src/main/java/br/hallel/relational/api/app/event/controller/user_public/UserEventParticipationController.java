@@ -1,7 +1,9 @@
 package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.service.UserEventService;
+import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,11 +23,15 @@ import java.util.UUID;
 public class UserEventParticipationController {
 
     private final UserEventService userEventService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "Join an event")
     @PostMapping("/join")
-    public ResponseEntity<EventParticipationResponse> joinEvent(@RequestBody EventParticipateDTO dto) {
-        EventParticipationResponse response = userEventService.joinTheEvent(dto);
+    public ResponseEntity<EventParticipationResponse> joinEvent(
+            @RequestHeader("Authorization") String authorizationHeader, @RequestBody EventParticipateDTO dto) {
+
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        EventParticipationResponse response = userEventService.joinTheEvent(userId, dto);
         return ResponseEntity.ok(response);
     }
 
@@ -70,8 +76,19 @@ public class UserEventParticipationController {
 
     @GetMapping("/participation/status")
     @Operation(summary = "List user participation status in event")
-    public ResponseEntity<UserEventStatus> getParticipationStatus(@RequestParam(name = "userId") UUID userId, @RequestParam(name = "eventId") UUID eventId) {
+    public ResponseEntity<UserEventStatus> getParticipationStatus(
+            @RequestHeader("Authorization") String authorizationHeader, @RequestParam(name = "eventId") UUID eventId) {
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
         return ResponseEntity.ok(this.userEventService.getStatusParticipationOfEvent(userId, eventId));
+    }
+
+    @GetMapping("/participation/object")
+    @Operation(summary = "Get user participation object")
+    public ResponseEntity<EventParticipation> getParticipationObject(
+            @RequestHeader("Authorization") String authorizationHeader, @RequestParam(name = "eventId") UUID eventId) {
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(userEventService.getUserParticipationInEventByUserId(userId, eventId));
+
     }
 
 

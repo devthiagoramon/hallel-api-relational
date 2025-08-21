@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MercadoPagoClient {
 
-    @Value("${mercadopago.access.token}")
+    //@Value("${mercadopago.access.token}")
     private String accessToken = "APP_USR-1199359181048411-081921-fbdca99980d31c83bf2f7b61add671b8-2640484802";
 
     @PostConstruct

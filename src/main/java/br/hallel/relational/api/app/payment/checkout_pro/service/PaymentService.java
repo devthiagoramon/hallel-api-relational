@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentService {
 
-    public PaymentService(@Value("${mercadopago.access.token}") String accessToken) {
-        MercadoPagoConfig.setAccessToken(accessToken);
+    public PaymentService() {
+        MercadoPagoConfig.setAccessToken("");
     }
 
     public Payment createPixPayment(CreateChargeRequest dto) throws MPException, MPApiException {

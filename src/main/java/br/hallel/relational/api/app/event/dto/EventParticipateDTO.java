@@ -12,6 +12,5 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventParticipateDTO {
-    UUID userId;
     UUID eventId;
 }

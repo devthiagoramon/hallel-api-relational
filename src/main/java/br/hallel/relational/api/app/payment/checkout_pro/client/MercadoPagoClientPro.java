@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class MercadoPagoClientPro {
-    @Value("${mercadopago.access.token}")
-    private String accessToken;
-    @Value("${mercadopago.notification.url}")
-    private String notificationUrl;
+    //@Value("${mercadopago.access.token}")
+    private String accessToken = "";
+    //@Value("${mercadopago.notification.url}")
+    private String notificationUrl = "";
 
     @PostConstruct
     public void init() {

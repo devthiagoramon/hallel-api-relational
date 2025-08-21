@@ -11,9 +11,7 @@ firebase:
       token: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
       url: https://fcm.googleapis.com/v1/projects/hallel-messaging/messages:send
 spring:
-  profile:
-    activate:
-      local
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -69,8 +67,3 @@ springdoc:
     enabled: true
 
 
-mercadopago:
-  access:
-    token: APP_USR-4412350564763788-081922-689e87cb5fb18c915fbed095df954488-2640484802
-  notification:
-    url: mercadopago.notification.url=${MERCADOPAGO_NOTIFICATION_URL}
