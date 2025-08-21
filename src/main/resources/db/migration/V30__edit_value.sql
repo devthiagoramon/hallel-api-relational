@@ -1,0 +1,1 @@
+UPDATE "events" SET value = 0.01, its_free = true WHERE id = '310572e6-0ff1-4f4f-93db-c24e1862caf3';

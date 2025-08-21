@@ -8,16 +8,22 @@ import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
-import br.hallel.relational.api.app.payment.dto.PixChargeRequest;
-import br.hallel.relational.api.app.payment.service.PixService;
+
+import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,13 +32,14 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class UserEventService {
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final EventParticipationRepository eventParticipationRepository;
     private final EventTransactionRepository eventTransactionRepository;
-    private final PixService pixService;
+    private final MercadoPagoClient mercadoPagoClient;
 
     public EventParticipationResponse joinTheEvent(EventParticipationDTO dto) {
         Event event = this.eventRepository.findById(dto.eventID()).orElseThrow(
@@ -44,6 +51,7 @@ public class UserEventService {
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
         if (alreadyParticipating) {
+            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", dto.userID(), dto.eventID());
             throw new EventIllegalArumentException("User already participating in this event.");
         }
 
@@ -53,32 +61,59 @@ public class UserEventService {
         eventParticipation.setUserFunctionInEvent(dto.userFunctionInEvent());
         eventParticipation.setHasParticipated(false);
         eventParticipation.setAmountPaid(dto.amountPaid());
-        String qrCodeImage = null;
 
-        if (!event.getItsFree()) {
-            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+        String qrCodeBase64 = null;
 
+        if (!event.getItsFree() || event.getValue() > 0) {
+            try {
+                String fullName = user.getName();
+                String firstName = "";
+                String lastName = "";
 
-            PixChargeRequest pixRequest = new PixChargeRequest(
-                    "sua_chave_pix_aqui",
-                    String.valueOf(event.getValue())
-            );
-            JSONObject pixResponse = this.pixService.pixGenerateQrCode(pixRequest);
-            if (pixResponse != null) {
-                eventParticipation.setPixTxid(pixResponse.getString("txid"));
-                qrCodeImage = pixResponse.getJSONObject("pix").getString("imagemQrcode");
-            } else {
+                if (fullName != null && !fullName.isEmpty()) {
+                    String[] names = fullName.split(" ");
+                    if (names.length > 0) {
+                        firstName = names[0];
+                    }
+                    if (names.length > 1) {
+                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
+                    }
+                }
+                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
+                        BigDecimal.valueOf(event.getValue()),
+                        event.getTitle(),
+                        user.getEmail(),
+                        firstName,
+                        lastName,
+                        user.getCpf()
+                );
 
-                throw new RuntimeException("Falha ao gerar QR Code Pix.");
+                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
+
+                // Verificação de segurança adicional para evitar NPE
+                if (payment != null && payment.getPointOfInteraction() != null &&
+                        payment.getPointOfInteraction().getTransactionData() != null) {
+                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
+                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+
+                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.userID(), eventParticipation.getPixTxid());
+                } else {
+                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
+                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
+                }
+
+            } catch (MPException | MPApiException e) {
+                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
             }
         } else {
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
         }
 
-
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
-
-        return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeImage);
+        log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
+        return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
     }
 
     public boolean leaveTheEvent(UUID participationId) {

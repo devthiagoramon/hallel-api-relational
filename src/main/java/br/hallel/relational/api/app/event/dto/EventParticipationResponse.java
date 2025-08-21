@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.UUID;
 
+@Builder
 @AllArgsConstructor
 @Getter
 @Setter
@@ -28,10 +29,15 @@ public class EventParticipationResponse {
 
     private String qrCode;
 
-    public EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
-
-        return new EventParticipationResponse(response.getId(), response.getUser().getId(), response.getEvent().getId(),
-                response.getStatusPaymentEventParticipation(), response.getHasParticipated(),
-                response.getUserFunctionInEvent(), qrCode);
+    public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
+        return EventParticipationResponse.builder()
+                .id(response.getId())
+                .userId(response.getUser().getId())
+                .eventId(response.getEvent().getId())
+                .statusPaymentEventParticipation(response.getStatusPaymentEventParticipation())
+                .hasParticipated(response.getHasParticipated())
+                .userFunctionInEvent(response.getUserFunctionInEvent())
+                .qrCode(qrCode)
+                .build();
     }
 }
