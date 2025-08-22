@@ -71,6 +71,9 @@ springdoc:
 
 mercadopago:
   access:
-    token: APP_USR-4412350564763788-081922-689e87cb5fb18c915fbed095df954488-2640484802
+    token: APP_USR-1199359181048411-081921-fbdca99980d31c83bf2f7b61add671b8-2640484802
   notification:
-    url: mercadopago.notification.url=${MERCADOPAGO_NOTIFICATION_URL}
+    #PROD
+    #url: mercadopago.notification.url=${MERCADOPAGO_NOTIFICATION_URL}
+    #LOCAL
+    url:
