@@ -20,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class JwtTokenProvider {
@@ -34,55 +35,56 @@ public class JwtTokenProvider {
 
     @PostConstruct
     protected void init() {
-        secretKey = Base64.getEncoder()
-                          .encodeToString(secretKey.getBytes());
         algorithm = Algorithm.HMAC256(secretKey.getBytes());
 
     }
 
-    public TokenDTO createAccessToken(String username, List<String> roles) {
+    public TokenDTO createAccessToken(UUID userId, String username, List<String> roles) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTimeInMiliseconds);
-        var accessToken = getAccessToken(username, roles, now, expiration);
-        var refreshToken = getRefreshToken(username, roles, now);
+        var accessToken = getAccessToken(userId, username, roles, now, expiration);
+        var refreshToken = getRefreshToken(userId, username, roles, now);
         return new TokenDTO(username, true, now, expiration, accessToken, refreshToken);
     }
 
-    public TokenDTO refreshToken(String refreshToken){
+    public TokenDTO refreshToken(String refreshToken) {
         if (refreshToken.contains("Bearer ")) refreshToken = refreshToken.substring("Bearer ".length());
         JWTVerifier verifier = JWT.require(algorithm).build();
         DecodedJWT decodedJWT = verifier.verify(refreshToken);
         String username = decodedJWT.getSubject();
         List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
-        return createAccessToken(username, roles);
+        UUID userId = UUID.fromString(decodedJWT.getClaim("userId").asString());
+        return createAccessToken(userId, username, roles);
     }
 
 
-    private String getAccessToken(String username, List<String> roles,
+    private String getAccessToken(UUID userId, String username, List<String> roles,
                                   Date now, Date expiration) {
         String issuerUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                                                      .build()
-                                                      .toUriString();
+                .build()
+                .toUriString();
         return JWT.create()
-                  .withClaim("roles", roles)
-                  .withIssuedAt(now)
-                  .withExpiresAt(expiration)
-                  .withSubject(username)
-                  .withIssuer(issuerUrl)
-                  .sign(algorithm).strip();
+                .withClaim("roles", roles)
+                .withIssuedAt(now)
+                .withExpiresAt(expiration)
+                .withSubject(username)
+                .withIssuer(issuerUrl)
+                .withClaim("userId", userId.toString())
+                .sign(algorithm);
 
     }
 
-    private String getRefreshToken(String username,
+    private String getRefreshToken(UUID userId, String username,
                                    List<String> roles, Date now) {
         Date expirationRefreshToken = new Date(now.getTime() + expirationTimeInMiliseconds * 3);
 
         return JWT.create()
-                  .withClaim("roles", roles)
-                  .withIssuedAt(now)
-                  .withExpiresAt(expirationRefreshToken)
-                  .withSubject(username)
-                  .sign(algorithm).strip();
+                .withClaim("roles", roles)
+                .withIssuedAt(now)
+                .withExpiresAt(expirationRefreshToken)
+                .withSubject(username)
+                .withClaim("userId", userId.toString())
+                .sign(algorithm);
     }
 
     public Authentication getAuthentication(String token) {
@@ -106,12 +108,17 @@ public class JwtTokenProvider {
         return null;
     }
 
+    public UUID getUserId(String token) {
+        DecodedJWT decodedJWT = decodedToken(token);
+        return UUID.fromString(decodedJWT.getClaim("userId").asString());
+    }
+
     public String getSubject(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         return decodedJWT.getSubject();
     }
 
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         try {
             if (decodedJWT.getExpiresAt().before(new Date())) {
@@ -124,7 +131,7 @@ public class JwtTokenProvider {
 
     }
 
-    public boolean verifyAdminRoleExisting(String token){
+    public boolean verifyAdminRoleExisting(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
         return roles.contains("ADMIN");
@@ -147,7 +154,7 @@ public class JwtTokenProvider {
     }
 
     public List<String> listRolesOfUser(String token) {
-        DecodedJWT  decodedJWT = decodedToken(token);
+        DecodedJWT decodedJWT = decodedToken(token);
         return decodedJWT.getClaim("roles").asList(String.class);
     }
 }

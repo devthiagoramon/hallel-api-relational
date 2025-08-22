@@ -29,4 +29,5 @@ public class UserInEventInfosResponse {
                 dto.getUser().getName(), dto.getEvent().getTitle(), dto.getUser().getEmail(),
                 dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), quantity);
     }
+
 }

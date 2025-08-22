@@ -22,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -36,17 +39,17 @@ public class UserEventService {
     private final EventTransactionRepository eventTransactionRepository;
     private final MercadoPagoClient mercadoPagoClient;
 
-    public EventParticipationResponse joinTheEvent(EventParticipateDTO dto) {
+    public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
         );
-        User user = this.userRepository.findById(dto.getUserId()).orElseThrow(
-                () -> new UserNotFoundException("User with id " + dto.getUserId() + " does not exist.")
+        User user = this.userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
         );
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
         if (alreadyParticipating) {
-            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", dto.getUserId(),
+            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", userId,
                     dto.getEventId());
             throw new EventIllegalArumentException("User already participating in this event.");
         }
@@ -59,53 +62,55 @@ public class UserEventService {
 
         String qrCodeBase64 = null;
 
-        if (!event.getItsFree() || event.getValue() > 0) {
-            try {
-                String fullName = user.getName();
-                String firstName = "";
-                String lastName = "";
-
-                if (fullName != null && !fullName.isEmpty()) {
-                    String[] names = fullName.split(" ");
-                    if (names.length > 0) {
-                        firstName = names[0];
-                    }
-                    if (names.length > 1) {
-                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
-                    }
-                }
-                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
-                        BigDecimal.valueOf(event.getValue()),
-                        event.getTitle(),
-                        user.getEmail(),
-                        firstName,
-                        lastName,
-                        user.getCpf()
-                );
-
-                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
-
-                // Verificação de segurança adicional para evitar NPE
-                if (payment != null && payment.getPointOfInteraction() != null &&
-                        payment.getPointOfInteraction().getTransactionData() != null) {
-                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
-                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
-                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
-
-                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.getUserId(), eventParticipation.getPixTxid());
-                } else {
-                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
-                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
-                }
-
-            } catch (MPException | MPApiException e) {
-                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
-                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
-            }
-        } else {
-            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
-        }
-
+//        if (!event.getItsFree() || event.getValue() > 0) {
+//            try {
+//                String fullName = user.getName();
+//                String firstName = "";
+//                String lastName = "";
+//
+//                if (fullName != null && !fullName.isEmpty()) {
+//                    String[] names = fullName.split(" ");
+//                    if (names.length > 0) {
+//                        firstName = names[0];
+//                    }
+//                    if (names.length > 1) {
+//                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
+//                    }
+//                }
+//                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
+//                        BigDecimal.valueOf(event.getValue()),
+//                        event.getTitle(),
+//                        user.getEmail(),
+//                        firstName,
+//                        lastName,
+//                        user.getCpf()
+//                );
+//
+//                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
+//
+//                // Verificação de segurança adicional para evitar NPE
+//                if (payment != null && payment.getPointOfInteraction() != null &&
+//                        payment.getPointOfInteraction().getTransactionData() != null) {
+//                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+//                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
+//                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+//
+//                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.getUserId(),
+//                            eventParticipation.getPixTxid());
+//                } else {
+//                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
+//                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
+//                }
+//
+//            } catch (MPException | MPApiException e) {
+//                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+//                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
+//            }
+//        } else {
+//            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+//        }
+        eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+        eventParticipation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
         return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
@@ -173,7 +178,8 @@ public class UserEventService {
 
     public EventParticipationResponse getParticipationById(UUID participationId) {
         EventParticipation participation = eventParticipationRepository.findById(participationId)
-                .orElseThrow(() -> new EventIllegalArumentException("Participation with id " + participationId + " not found."));
+                .orElseThrow(() -> new EventIllegalArumentException(
+                        "Participation with id " + participationId + " not found."));
 
         return new EventParticipationResponse().toEventParticipation(participation, null);
     }
@@ -213,23 +219,32 @@ public class UserEventService {
     }
 
     public EventParticipationResponse addFunctionUserInEvent(UUID eventParticipationID, UserFunctionInEvent function) {
-        EventParticipation eventParticipation = this.eventParticipationRepository.findById(eventParticipationID).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + eventParticipationID + " does not exist.")
-        );
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(eventParticipationID)
+                .orElseThrow(
+                        () -> new EventIllegalArumentException(
+                                "Event with id " + eventParticipationID + " does not exist.")
+                );
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
         return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
     }
 
     public UserEventStatus getStatusParticipationOfEvent(UUID userId, UUID eventId) {
-        Optional<EventParticipation> eventParticipation = eventParticipationRepository.findById(eventId);
+        Optional<EventParticipation> eventParticipation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,
+                eventId);
         if (eventParticipation.isEmpty()) {
             return new UserEventStatus(userId, UserEventStatusTypes.NAO_PARTICIPA, null);
         }
         EventParticipation participation = eventParticipation.get();
-        if (participation.getPaidDate() == null){
+        if (participation.getPaidDate() == null) {
             return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, null);
         }
         return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, participation.getPaidDate());
+    }
+
+    public EventParticipation getUserParticipationInEventByUserId(UUID userId, UUID eventId) {
+        return eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
+                .orElseThrow(() -> new EventIllegalArumentException(
+                        "Event with id " + eventId + " or user with id " + userId + " does not exist."));
     }
 }

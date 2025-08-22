@@ -92,6 +92,7 @@ public class UserService implements UserInterface {
         User userUpdated = userRepository.save(user);
         log.info("Profile Updated successfully!");
         TokenDTO newToken = jwtTokenProvider.createAccessToken(
+                userUpdated.getId(),
                 userUpdated.getEmail(),
                 userUpdated.getRoles().stream().map(Role::getDescription).toList()
         );

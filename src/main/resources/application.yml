@@ -11,9 +11,6 @@ firebase:
       token: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
       url: https://fcm.googleapis.com/v1/projects/hallel-messaging/messages:send
 spring:
-  profile:
-    activate:
-      local
   jpa:
     hibernate:
       ddl-auto: none

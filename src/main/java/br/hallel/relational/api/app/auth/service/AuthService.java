@@ -53,7 +53,7 @@ public class AuthService {
                     .orElseThrow(() -> new AuthRequestException("User not found"));
 
             var tokenResponse = new TokenDTO();
-            tokenResponse = jwtTokenProvider.createAccessToken(loginRequest.getEmail(),
+            tokenResponse = jwtTokenProvider.createAccessToken(user.getId(), loginRequest.getEmail(),
                     user.getRoles().stream().map(Role::getDescription)
                             .toList());
             user.setToken(tokenResponse.getAccessToken());
@@ -100,7 +100,7 @@ public class AuthService {
 
         var tokenResponse = new TokenDTO();
         log.info("Antes do token...");
-        tokenResponse = jwtTokenProvider.createAccessToken(request.getEmail(), user.getRoles()
+        tokenResponse = jwtTokenProvider.createAccessToken(user.getId(), request.getEmail(), user.getRoles()
                 .stream()
                 .map(Role::getDescription)
                 .toList());

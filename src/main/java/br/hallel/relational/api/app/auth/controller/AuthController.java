@@ -102,13 +102,14 @@ public class AuthController {
 
     @GetMapping("/validate-admin-access-web/{validationCode}")
     @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
-    public Boolean validateAdminAccessWeb(@RequestParam(name = "token") String token, @PathVariable("validationCode") String code){
+    public Boolean validateAdminAccessWeb(@RequestParam(name = "token") String token,
+                                          @PathVariable("validationCode") String code) {
         return authService.validateTokenAdminWeb(token, code);
     }
 
     @GetMapping("/verify-admin-access-web/{token}")
     @Operation(summary = "Verify code of administrator in web", description = "This routes handles the web administrator login attempt, sending to adm email with token and url")
-    public TokenAdminResponse verifyAdminAccessWeb(@PathVariable("token") String token){
+    public TokenAdminResponse verifyAdminAccessWeb(@PathVariable("token") String token) {
         return authService.verifyIfTokenIsAdminWeb(token);
     }
 
@@ -171,7 +172,7 @@ public class AuthController {
                     user_member.setPushNotification(false);
                     return this.userRepository.save(user_member);
                 });
-                TokenDTO jwt = jwtService.createAccessToken(user.getEmail(), user.getRoles()
+                TokenDTO jwt = jwtService.createAccessToken(user.getId(), user.getEmail(), user.getRoles()
                         .stream()
                         .map(Role::getDescription)
                         .toList());
