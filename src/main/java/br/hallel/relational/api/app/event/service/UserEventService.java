@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -233,13 +234,32 @@ public class UserEventService {
         Optional<EventParticipation> eventParticipation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,
                 eventId);
         if (eventParticipation.isEmpty()) {
-            return new UserEventStatus(userId, UserEventStatusTypes.NAO_PARTICIPA, null);
+            return new UserEventStatus(userId, UserEventStatusTypes.NAO_PARTICIPA,
+                    StatusPaymentEventParticipation.NAO_PAGO, null);
         }
         EventParticipation participation = eventParticipation.get();
         if (participation.getPaidDate() == null) {
-            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, null);
+            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, StatusPaymentEventParticipation.PENDENTE, null);
         }
-        return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, participation.getPaidDate());
+        return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, StatusPaymentEventParticipation.PAGO,
+                participation.getPaidDate());
+    }
+
+    public List<UserEventStatus> getStatusPayementParticipationOfEvent(UUID eventId, StatusPaymentEventParticipation status) {
+        List<EventParticipation> allByEventIdAndStatusPaymentEventParticipation =
+                this.eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
+
+        if(allByEventIdAndStatusPaymentEventParticipation.isEmpty()){
+            throw new EventIllegalArumentException("The list of status "+status+ " is empty");
+        }
+
+        return allByEventIdAndStatusPaymentEventParticipation.stream()
+                .map(participation -> new UserEventStatus(
+                        participation.getId(),
+                        UserEventStatusTypes.PARTICIPANTE,
+                        participation.getStatusPaymentEventParticipation(),
+                        participation.getPaidDate()
+                )).collect(Collectors.toList());
     }
 
     public EventParticipation getUserParticipationInEventByUserId(UUID userId, UUID eventId) {

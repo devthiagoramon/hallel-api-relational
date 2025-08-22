@@ -1,7 +1,9 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,10 +62,28 @@ public class AdminEventController {
         return ResponseEntity.ok(eventService.addTransaction(dto));
     }
 
+    @GetMapping("/transaction/list-all")
+    public ResponseEntity<List<EventTransactionResponse>> listAllTransaction() {
+        return ResponseEntity.ok(eventService.listAllTransactions());
+    }
+
+   @GetMapping("/transaction/get/{transactionId}")
+    public ResponseEntity<EventTransactionResponse> getTransactionById(@PathVariable(name = "transactionId") UUID transactionId) {
+        return ResponseEntity.ok(eventService.getTransactionById(transactionId));
+    }
+
     @GetMapping("/transaction/list-all/by-event/{eventId}")
     public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(eventService.listAllTransactionsByEvent(eventId));
     }
+
+    @GetMapping("/transaction-type/list-all/by-event/{eventId}")
+    @Operation(summary = "List all transactions by event ID and Transaction Type (ENTRADA or SAIDA)")
+    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEventAndTransactionType(@PathVariable UUID eventId,
+                                                                                                       @RequestParam TransactionType type) {
+        return ResponseEntity.ok(eventService.listAllTransactionsByEventAndTransactionType(eventId, type));
+    }
+
     @GetMapping("/transaction/by-id/{eventId}")
     public ResponseEntity<EventTransactionResponse> findTransactionById(@PathVariable UUID eventId) {
         return ResponseEntity.ok(eventService.findTransactionById(eventId));
@@ -79,4 +99,5 @@ public class AdminEventController {
         eventService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
     }
+
 }

@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.service.UserEventService;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,6 +81,14 @@ public class UserEventParticipationController {
             @RequestHeader("Authorization") String authorizationHeader, @RequestParam(name = "eventId") UUID eventId) {
         UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
         return ResponseEntity.ok(this.userEventService.getStatusParticipationOfEvent(userId, eventId));
+    }
+
+    @GetMapping("/participation/list-all/by-payment-status")
+    @Operation(summary = "List user participation payment status in event")
+    public ResponseEntity<List<UserEventStatus>> getPaymentStatus(
+            @RequestParam(name = "eventId") UUID eventId,
+            @RequestParam(name = "paymentStatus")StatusPaymentEventParticipation status) {
+        return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status));
     }
 
     @GetMapping("/participation/object")

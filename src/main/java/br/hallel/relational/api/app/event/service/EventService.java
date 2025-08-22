@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
+import br.hallel.relational.api.app.event.EventType;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
@@ -8,6 +9,7 @@ import br.hallel.relational.api.app.event.exception.EventTransactionNotFoundExce
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventTransaction;
+import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
@@ -124,6 +126,19 @@ public class EventService implements EventInterface {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
         log.info("Listing events...");
+        return eventsPagination.map(mapper::entityToResponse);
+    }
+
+    public Page<EventResponse> listAllRetreats(int page,
+                                             int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO,pageable);
+        log.info("Listing all retreats...");
+        if (eventsPagination.isEmpty()){
+            throw new EventIllegalArumentException("No Retreats created. Maybe you need create onde");
+        }
+
         return eventsPagination.map(mapper::entityToResponse);
     }
 
@@ -283,10 +298,39 @@ public class EventService implements EventInterface {
     }
 
     public List<EventTransactionResponse> listAllTransactionsByEvent(UUID eventId) {
-        return eventTransactionRepository.findByEventId(eventId)
+        this.repository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("Event id %s not found".formatted(eventId))
+        );
+
+        List<EventTransactionResponse> list = eventTransactionRepository.findByEventId(eventId)
                 .stream()
                 .map(tx -> new EventTransactionResponse().toResponse(tx))
                 .toList();
+
+        if(list.isEmpty()){
+            throw new EventIllegalArumentException("Can't find event transaction by this id "+eventId);
+        }
+
+        return list;
+    }
+    public List<EventTransactionResponse> listAllTransactionsByEventAndTransactionType(UUID eventId, TransactionType type) {
+        return eventTransactionRepository.findByEventIdAndTransactionType(eventId, type)
+                .stream()
+                .map(tx -> new EventTransactionResponse().toResponse(tx))
+                .toList();
+    }
+
+    public EventTransactionResponse getTransactionById(UUID transactionId) {
+        return new EventTransactionResponse().toResponse(
+                eventTransactionRepository.findById(transactionId).orElseThrow(
+                        () -> new EventNotFoundException("Transaction id %s not found".formatted(transactionId.toString()))
+                )
+        );
+    }
+    public List<EventTransactionResponse> listAllTransactions() {
+        return this.eventTransactionRepository.findAll().stream().map(
+                t -> new EventTransactionResponse().toResponse(t)
+        ).collect(Collectors.toList());
     }
 
     public EventTransactionResponse findTransactionById(UUID transactionId) {

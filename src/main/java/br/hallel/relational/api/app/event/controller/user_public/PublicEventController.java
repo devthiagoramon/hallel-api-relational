@@ -34,6 +34,14 @@ public class PublicEventController {
         return ResponseEntity.ok(this.eventService.listAllEvents(page, size));
     }
 
+    @GetMapping("/retreat/list-all")
+    public ResponseEntity<Page<EventResponse>> getAllRetreats(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllRetreats(page, size));
+    }
+
     @GetMapping("/list-upcoming")
     public ResponseEntity<Page<EventResponse>> getAllEventsUpcoming(
             @RequestParam(name = "page", defaultValue = "0") int page,

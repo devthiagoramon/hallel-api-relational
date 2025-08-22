@@ -14,6 +14,8 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     boolean existsByUserAndEvent(User user, Event event);
 
     List<EventParticipation> findAllByEvent_Id(UUID eventId);
+    List<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
+                                                                                 StatusPaymentEventParticipation status);
 
     List<EventParticipation> findAllByUser_Id(UUID userId);
 

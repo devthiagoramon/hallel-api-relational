@@ -103,13 +103,20 @@ public class JwtTokenProvider {
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring("Bearer ".length());
+            return bearerToken.substring("Bearer ".length()).trim();
+        }
+        return null;
+    }
+
+    public String resolveTokenString(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring("Bearer ".length()).trim();
         }
         return null;
     }
 
     public UUID getUserId(String token) {
-        DecodedJWT decodedJWT = decodedToken(token);
+        DecodedJWT decodedJWT = decodedToken(resolveTokenString(token));
         return UUID.fromString(decodedJWT.getClaim("userId").asString());
     }
 

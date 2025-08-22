@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.EventType;
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
@@ -52,4 +53,6 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
 
     List<Event> findByDateBeforeAndHasEndedFalse(Date dateBefore);
+
+    Page<Event> findAllByEventTypeOrderByTitleAsc(EventType eventType, Pageable pageable);
 }

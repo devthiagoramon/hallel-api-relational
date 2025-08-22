@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.UUID;
 
 public record EventTransactionDTO(
-        UUID id,
         String desciption,
         TransactionType transactionType,
         Double value,
