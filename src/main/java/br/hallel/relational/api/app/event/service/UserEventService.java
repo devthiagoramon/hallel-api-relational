@@ -2,29 +2,22 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
-
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
-import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
-import com.mercadopago.exceptions.MPApiException;
-import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -118,6 +111,42 @@ public class UserEventService {
 
     }
 
+    public EventPayParticipationDetails detailsPayAnEvent(UUID userId, EventParticipateDTO dto) {
+        Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
+        );
+        User user = this.userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+        );
+
+        boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
+        if (!alreadyParticipating) {
+            log.warn("Usuário ID {} não está participando do evento ID {}. Lançando exceção.", userId,
+                    dto.getEventId());
+            throw new EventIllegalArumentException("User does not participate in the event.");
+        }
+
+        EventParticipation participation = this.eventParticipationRepository.
+                findByUser_IdAndEvent_Id(userId, dto.getEventId()).orElseThrow(
+                        () -> new EventParticipationException("Not Found participation. Verify if he exists in the " +
+                                "event")
+                );
+
+        if (participation.getPixTxid() == null) {
+            throw new EventParticipationException("This user no have an pix to pay");
+        }
+
+        if(participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO){
+            throw new EventParticipationException("This user already pay the event.");
+        }
+
+        byte[] pixTxidBytes = participation.getPixTxid().getBytes();
+
+        return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes), participation.getPixTxid(),
+                event.getValue());
+    }
+
+
     public boolean leaveTheEvent(UUID participationId) {
         EventParticipation participation = eventParticipationRepository.findById(participationId)
                 .orElseThrow(() -> new EventIllegalArumentException(
@@ -177,10 +206,10 @@ public class UserEventService {
         return new EventParticipationResponse().toEventParticipation(updated, null);
     }
 
-    public EventParticipationResponse getParticipationById(UUID participationId) {
-        EventParticipation participation = eventParticipationRepository.findById(participationId)
+    public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,eventId)
                 .orElseThrow(() -> new EventIllegalArumentException(
-                        "Participation with id " + participationId + " not found."));
+                        "Participation with id " + userId + " not found."));
 
         return new EventParticipationResponse().toEventParticipation(participation, null);
     }
@@ -249,8 +278,8 @@ public class UserEventService {
         List<EventParticipation> allByEventIdAndStatusPaymentEventParticipation =
                 this.eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
 
-        if(allByEventIdAndStatusPaymentEventParticipation.isEmpty()){
-            throw new EventIllegalArumentException("The list of status "+status+ " is empty");
+        if (allByEventIdAndStatusPaymentEventParticipation.isEmpty()) {
+            throw new EventIllegalArumentException("The list of status " + status + " is empty");
         }
 
         return allByEventIdAndStatusPaymentEventParticipation.stream()

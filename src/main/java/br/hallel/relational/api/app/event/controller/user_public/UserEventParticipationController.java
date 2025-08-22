@@ -7,7 +7,6 @@ import br.hallel.relational.api.app.event.service.UserEventService;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +35,16 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/pay")
+    @Operation(summary = "Pay an Event (or retreat)")
+    public ResponseEntity<EventPayParticipationDetails> detailsPayAnEvent(
+            @RequestHeader("Authorization") String authorizationHeader, @RequestBody EventParticipateDTO dto) {
+
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(userEventService.detailsPayAnEvent(userId, dto));
+    }
+
+
     @Operation(summary = "Leave an event participation by participation ID")
     @DeleteMapping("/leave/{participationId}")
     public ResponseEntity<Void> leaveEvent(@PathVariable UUID participationId) {
@@ -44,9 +53,13 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "Get participation by ID")
-    @GetMapping("/participation/{participationId}")
-    public ResponseEntity<EventParticipationResponse> getParticipation(@PathVariable UUID participationId) {
-        EventParticipationResponse response = userEventService.getParticipationById(participationId);
+    @GetMapping("/get/participation")
+    public ResponseEntity<EventParticipationResponse> getParticipation(
+            @RequestHeader("Authorization") String authorization,
+            @RequestParam UUID eventId) {
+        EventParticipationResponse response = userEventService.getParticipationById(
+                jwtTokenProvider.getUserId(authorization), eventId
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -68,10 +81,12 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "List all participations by User Id")
-    @GetMapping("/participation/by-user/{userId}")
+    @GetMapping("/participation/by-user")
     public ResponseEntity<List<UserInEventInfosResponse>>
-    getAllParticipationsByUserId(@PathVariable(name = "userId") UUID eventId) {
-        List<UserInEventInfosResponse> responses = userEventService.getAllUserParticipationByUserId(eventId);
+    getAllParticipationsByUserId(@RequestHeader("Authorization") String authorizationHeader) {
+
+        List<UserInEventInfosResponse> responses = userEventService.
+                getAllUserParticipationByUserId(jwtTokenProvider.getUserId(authorizationHeader));
         return ResponseEntity.ok(responses);
     }
 
@@ -87,7 +102,7 @@ public class UserEventParticipationController {
     @Operation(summary = "List user participation payment status in event")
     public ResponseEntity<List<UserEventStatus>> getPaymentStatus(
             @RequestParam(name = "eventId") UUID eventId,
-            @RequestParam(name = "paymentStatus")StatusPaymentEventParticipation status) {
+            @RequestParam(name = "paymentStatus") StatusPaymentEventParticipation status) {
         return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status));
     }
 
