@@ -72,13 +72,7 @@ public class UserEventParticipationController {
         );
     }
 
-    @Operation(summary = "List all participations by Event Id")
-    @GetMapping("/participation/by-event/{eventId}")
-    public ResponseEntity<List<UserInEventInfosResponse>>
-    getAllParticipationsByEventId(@PathVariable(name = "eventId") UUID eventId) {
-        List<UserInEventInfosResponse> responses = userEventService.getAllParticipationsByEventId(eventId);
-        return ResponseEntity.ok(responses);
-    }
+
 
     @Operation(summary = "List all participations by User Id")
     @GetMapping("/participation/by-user")
@@ -99,7 +93,7 @@ public class UserEventParticipationController {
     }
 
     @GetMapping("/participation/list-all/by-payment-status")
-    @Operation(summary = "List user participation payment status in event")
+    @Operation(summary = "List user participation by payment status in event")
     public ResponseEntity<List<UserEventStatus>> getPaymentStatus(
             @RequestParam(name = "eventId") UUID eventId,
             @RequestParam(name = "paymentStatus") StatusPaymentEventParticipation status) {

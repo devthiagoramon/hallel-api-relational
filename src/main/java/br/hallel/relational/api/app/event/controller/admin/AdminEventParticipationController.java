@@ -2,16 +2,21 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
+import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -28,7 +33,8 @@ public class AdminEventParticipationController {
     public ResponseEntity<EventParticipationResponse> editUserFunction(
             @PathVariable UUID participationId,
             @Valid @RequestParam UserFunctionInEvent userFunctionInEvent) {
-        EventParticipationResponse response = userEventService.addFunctionUserInEvent(participationId, userFunctionInEvent);
+        EventParticipationResponse response = userEventService.addFunctionUserInEvent(participationId,
+                userFunctionInEvent);
         return ResponseEntity.ok(response);
     }
 
@@ -39,5 +45,14 @@ public class AdminEventParticipationController {
             @Valid @RequestBody EventParticipationDTO dto) {
         EventParticipationResponse response = userEventService.editParticipationEvent(participationId, dto);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "List all participants by Event Id")
+    @GetMapping("/participation/by-event/{eventId}")
+    public ResponseEntity<Page<UserInEventInfosResponse>>
+    getAllParticipationsByEventId(@PathVariable(name = "eventId") UUID eventId,
+                                  @RequestParam(name = "page", defaultValue = "0") int page,
+                                  @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userEventService.getAllParticipationsByEventId(eventId, PageRequest.of(page, size)));
     }
 }

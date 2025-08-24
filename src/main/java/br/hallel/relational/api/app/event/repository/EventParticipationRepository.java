@@ -4,7 +4,10 @@ import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.user.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +17,7 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     boolean existsByUserAndEvent(User user, Event event);
 
     List<EventParticipation> findAllByEvent_Id(UUID eventId);
+    Page<EventParticipation> findAllByEvent_Id(UUID eventId, Pageable pageable);
     List<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
                                                                                  StatusPaymentEventParticipation status);
 

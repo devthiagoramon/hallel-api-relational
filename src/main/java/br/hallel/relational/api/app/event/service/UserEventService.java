@@ -14,6 +14,8 @@ import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -136,13 +138,14 @@ public class UserEventService {
             throw new EventParticipationException("This user no have an pix to pay");
         }
 
-        if(participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO){
+        if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
             throw new EventParticipationException("This user already pay the event.");
         }
 
         byte[] pixTxidBytes = participation.getPixTxid().getBytes();
 
-        return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes), participation.getPixTxid(),
+        return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes),
+                participation.getPixTxid(),
                 event.getValue());
     }
 
@@ -207,7 +210,7 @@ public class UserEventService {
     }
 
     public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
-        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,eventId)
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventIllegalArumentException(
                         "Participation with id " + userId + " not found."));
 
@@ -230,13 +233,13 @@ public class UserEventService {
                 .toList();
     }
 
-    public List<UserInEventInfosResponse> getAllParticipationsByEventId(UUID eventId) {
-        List<EventParticipation> participations = eventParticipationRepository.findAllByEvent_Id(eventId);
+    public Page<UserInEventInfosResponse> getAllParticipationsByEventId(UUID eventId, Pageable pageable) {
+        Page<EventParticipation> participations = eventParticipationRepository.findAllByEvent_Id(eventId, pageable);
         List<UserInEventInfosResponse> users = new ArrayList<>();
         for (EventParticipation participation : participations) {
             users.add(new UserInEventInfosResponse().toResponse(participation, users.size()));
         }
-        return users;
+        return participations.map(part -> new UserInEventInfosResponse().toResponse(part, users.size()));
     }
 
     public List<UserInEventInfosResponse> getAllUserParticipationByUserId(UUID userId) {
@@ -268,13 +271,15 @@ public class UserEventService {
         }
         EventParticipation participation = eventParticipation.get();
         if (participation.getPaidDate() == null) {
-            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, StatusPaymentEventParticipation.PENDENTE, null);
+            return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, StatusPaymentEventParticipation.PENDENTE,
+                    null);
         }
         return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, StatusPaymentEventParticipation.PAGO,
                 participation.getPaidDate());
     }
 
-    public List<UserEventStatus> getStatusPayementParticipationOfEvent(UUID eventId, StatusPaymentEventParticipation status) {
+    public List<UserEventStatus> getStatusPayementParticipationOfEvent(UUID eventId,
+                                                                       StatusPaymentEventParticipation status) {
         List<EventParticipation> allByEventIdAndStatusPaymentEventParticipation =
                 this.eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
 
