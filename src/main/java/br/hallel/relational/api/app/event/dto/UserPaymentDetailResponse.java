@@ -1,0 +1,22 @@
+package br.hallel.relational.api.app.event.dto;
+
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@AllArgsConstructor @NoArgsConstructor
+@Getter @Setter
+public class UserPaymentDetailResponse {
+    private UUID eventId;
+    private UUID userId;
+    private double valuePaid;
+    private OffsetDateTime paymentDate;
+    private StatusPaymentEventParticipation paymentStatus;
+    private String comprovant;
+
+}

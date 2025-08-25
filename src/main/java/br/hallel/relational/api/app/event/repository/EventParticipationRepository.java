@@ -29,4 +29,8 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     Optional<EventParticipation> findByPixTxid(String pixTxid);
 
     UUID user(User user);
+
+    Optional<EventParticipation> findByMercadoPagoPaymentId(Long mercadoPagoPaymentId);
+
+    Optional<EventParticipation> findByUserAndEvent(User user, Event event);
 }

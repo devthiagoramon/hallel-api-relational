@@ -12,6 +12,8 @@ import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoP
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,8 +92,19 @@ public class UserEventService {
 //                        payment.getPointOfInteraction().getTransactionData() != null) {
 //                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
 //                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
+//                    eventParticipation.setMercadoPagoPaymentId(payment.getId());
 //                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 //
+//                        EventTransaction newTransaction = new EventTransaction();
+//                        newTransaction.setEvent(event);
+//                        newTransaction.setDesciption("Pagamento de ingresso para o evento: " + event.getTitle());
+//                        newTransaction.setTransactionType(TransactionType.ENTRADA);
+//                        newTransaction.setValue(event.getValue());
+//                        newTransaction.setDateTransaction(new Date());
+//                        newTransaction.setReceiptPaymentFileImage(null);
+//                        newTransaction.setMercadoPagoPaymentId(payment.getId());
+//                        eventTransactionRepository.save(newTransaction);
+
 //                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.getUserId(),
 //                            eventParticipation.getPixTxid());
 //                } else {
@@ -114,9 +127,9 @@ public class UserEventService {
 
     }
 
-    public EventPayParticipationDetails detailsPayAnEvent(UUID userId, EventParticipateDTO dto) {
-        Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
+    public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + eventId + " does not exist.")
         );
         User user = this.userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException("User with id " + userId + " does not exist.")
@@ -125,12 +138,12 @@ public class UserEventService {
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
         if (!alreadyParticipating) {
             log.warn("Usuário ID {} não está participando do evento ID {}. Lançando exceção.", userId,
-                    dto.getEventId());
+                    eventId);
             throw new EventIllegalArumentException("User does not participate in the event.");
         }
 
         EventParticipation participation = this.eventParticipationRepository.
-                findByUser_IdAndEvent_Id(userId, dto.getEventId()).orElseThrow(
+                findByUser_IdAndEvent_Id(userId, eventId).orElseThrow(
                         () -> new EventParticipationException("Not Found participation. Verify if he exists in the " +
                                 "event")
                 );
@@ -316,5 +329,37 @@ public class UserEventService {
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
                 null);
+    }
+
+    public UserPaymentDetailResponse getUserPaymentDetail(UUID userId, UUID eventId) {
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("Event with id " + eventId + " does not exist.")
+        );
+        this.userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+        );
+        EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
+                .orElseThrow(() -> new EventParticipationException("User not found in the event."));
+        double valuePaid = 0;
+
+        if (!event.getItsFree()) {
+            if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
+                valuePaid = participation.getAmountPaid();
+            }
+        }
+        String comprovant = "";
+
+        try {
+            if (participation.getMercadoPagoPaymentId() != null ) {
+                comprovant = mercadoPagoClient.getPixReceiptUrl(participation.getMercadoPagoPaymentId());
+            }
+        } catch (MPException e) {
+            throw new RuntimeException(e);
+        } catch (MPApiException e) {
+            throw new RuntimeException(e);
+        }
+
+        return new UserPaymentDetailResponse(eventId, userId, valuePaid, participation.getPaidDate(),
+                participation.getStatusPaymentEventParticipation(), comprovant);
     }
 }

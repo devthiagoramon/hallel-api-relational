@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,4 +20,6 @@ public interface EventTransactionRepository
     List<EventTransaction> findAllByEvent_Id(UUID eventId);
 
     List<EventTransaction> findByEventIdAndTransactionType(UUID eventId, TransactionType transactionType);
+
+    Optional<EventTransaction> findByMercadoPagoPaymentId(Long mercadoPagoPaymentId);
 }

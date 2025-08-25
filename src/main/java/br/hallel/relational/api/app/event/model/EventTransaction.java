@@ -32,8 +32,12 @@ public class EventTransaction {
 
     @Column(name = "date_transaction")
     private Date dateTransaction;
+
     @Column(name = "receipt_payment_file_image")
     private String receiptPaymentFileImage;
+
+    @Column(name = "mercadopago_payment_id")
+    private Long mercadoPagoPaymentId;
 
     @ManyToOne
     @JoinColumn(name = "event_id")

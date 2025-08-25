@@ -3,11 +3,16 @@ package br.hallel.relational.api.app.event.controller.admin;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.service.EventService;
+import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,8 +29,8 @@ import java.util.UUID;
 @Tag(name = "Admin Event", description = "Admin part for event managment")
 public class AdminEventController {
 
-    @Autowired
-    private EventService eventService;
+    private final EventService eventService;
+    private final MercadoPagoClient client;
 
     //** CRIANDO EVENTO **
     @PostMapping(value = "/create", consumes = "multipart/form-data")
@@ -100,4 +105,32 @@ public class AdminEventController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/create-pix")
+    @Operation(summary = "Create an Pix Charge" +
+            "needs the information of the customer who will make the payment")
+    public ResponseEntity<Map<String, String>> createPixPayment(@Valid @RequestBody CreatePixPaymentRequestDTO requestDTO) {
+        log.info("Creating a Pix payment...");
+        try {
+            Payment payment = client.createPixPayment(requestDTO);
+
+            String pixCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
+            String qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+
+            return ResponseEntity.ok(Map.of(
+                    "pixCode", pixCode,
+                    "qrCodeBase64", qrCodeBase64
+            ));
+        } catch (MPException | MPApiException e) {
+            log.error("Failed to create Pix payment", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to create Pix payment"));
+        }
+    }
+
+    @GetMapping("/get-balance/{eventId}")
+    @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
+    public ResponseEntity<EventBalanceResponse> getInputAndOutputBalance(
+            @PathVariable(name = "eventId") UUID eventId
+    ) {
+        return ResponseEntity.ok(this.eventService.getBalance(eventId));
+    }
 }

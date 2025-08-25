@@ -10,6 +10,8 @@ import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.payment.PaymentPointOfInteraction;
+import com.mercadopago.resources.payment.PaymentTransactionData;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,5 +70,31 @@ public class MercadoPagoClient {
         Payment payment = client.get(paymentId);
         log.info("Status do pagamento Pix obtido com sucesso: {}", payment.getStatus());
         return payment;
+    }
+
+
+    public String getPixReceiptUrl(long paymentId) throws MPException, MPApiException {
+        log.info("Buscando comprovante do pagamento Pix com ID: {}", paymentId);
+
+        // Seu método para buscar o status do pagamento
+        Payment payment = getPaymentStatus(paymentId);
+
+        // Acessando as informações de comprovante
+        if (payment != null && "approved".equals(payment.getStatus())) {
+            PaymentPointOfInteraction pointOfInteraction = payment.getPointOfInteraction();
+            if (pointOfInteraction != null) {
+                PaymentTransactionData transactionData = pointOfInteraction.getTransactionData();
+                if (transactionData != null) {
+                    String ticketUrl = transactionData.getTicketUrl();
+
+                    if (ticketUrl != null) {
+                        return ticketUrl;
+                    }
+                }
+            }
+        }
+
+        log.warn("Comprovante não encontrado ou pagamento não aprovado para o ID: {}", paymentId);
+        return null;
     }
 }

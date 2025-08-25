@@ -52,44 +52,55 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(MemberEventScaleNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleMemberEventScaleNotFoundException(MemberEventScaleNotFoundException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleNotFoundException(MemberEventScaleNotFoundException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MemberScaleAlreadyHasThatStatus.class)
-    public ResponseEntity<ExceptionResponse> handleMemberScaleAlreadyHasThatStatus(MemberScaleAlreadyHasThatStatus exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleMemberScaleAlreadyHasThatStatus(MemberScaleAlreadyHasThatStatus exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MemberEventScaleIllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleMemberEventScaleIllegalArgumentException(MemberEventScaleIllegalArgumentException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleIllegalArgumentException(MemberEventScaleIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(InviteEventScaleException.class)
-    public ResponseEntity<ExceptionResponse> handleInviteEventScaleException(InviteEventScaleException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleInviteEventScaleException(InviteEventScaleException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(EventScaleRuntimeException.class)
-    public ResponseEntity<ExceptionResponse> handleEventScaleRuntimeException(EventScaleRuntimeException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleEventScaleRuntimeException(EventScaleRuntimeException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(EventNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleEventNotFoundException(EventNotFoundException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleEventNotFoundException(EventNotFoundException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(EventTransactionNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleEventTransactionNotFoundException(EventTransactionNotFoundException exception, WebRequest request){
+    public ResponseEntity<ExceptionResponse> handleEventTransactionNotFoundException(EventTransactionNotFoundException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
-@ExceptionHandler(EventParticipationException.class)
-    public ResponseEntity<ExceptionResponse> handleEventParticipationException(EventParticipationException exception, WebRequest request){
+
+    @ExceptionHandler(EventParticipationException.class)
+    public ResponseEntity<ExceptionResponse> handleEventParticipationException(EventParticipationException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EventTransactionEmptyListException.class)
+    public ResponseEntity<ExceptionResponse> handleEventTransactionEmptyListException(EventTransactionEmptyListException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }

@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/user/event")
+@RequestMapping("/user/event/pariticpation")
 @RequiredArgsConstructor
 @Tag(name = "Events - User participation", description = "Events User Participation part for public")
 public class UserEventParticipationController {
@@ -35,15 +35,14 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/pay")
+    @GetMapping("/pay/{eventId}")
     @Operation(summary = "Pay an Event (or retreat)")
-    public ResponseEntity<EventPayParticipationDetails> detailsPayAnEvent(
-            @RequestHeader("Authorization") String authorizationHeader, @RequestBody EventParticipateDTO dto) {
+    public ResponseEntity<EventPayParticipationDetails> payAnEvent(
+            @RequestHeader("Authorization") String authorizationHeader, @PathVariable(name = "eventId") UUID eventId) {
 
         UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
-        return ResponseEntity.ok(userEventService.detailsPayAnEvent(userId, dto));
+        return ResponseEntity.ok(userEventService.payAnEvent(userId, eventId));
     }
-
 
     @Operation(summary = "Leave an event participation by participation ID")
     @DeleteMapping("/leave/{participationId}")
@@ -53,7 +52,7 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "Get participation by ID")
-    @GetMapping("/get/participation")
+    @GetMapping("/get")
     public ResponseEntity<EventParticipationResponse> getParticipation(
             @RequestHeader("Authorization") String authorization,
             @RequestParam UUID eventId) {
@@ -64,7 +63,7 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "List all participations in all Events")
-    @GetMapping("/participations")
+    @GetMapping("")
     public ResponseEntity<ParticipationListResponse> getAllParticipations() {
         List<EventParticipationResponse> responses = userEventService.getAllParticipations();
         return ResponseEntity.ok(
@@ -72,10 +71,8 @@ public class UserEventParticipationController {
         );
     }
 
-
-
     @Operation(summary = "List all participations by User Id")
-    @GetMapping("/participation/by-user")
+    @GetMapping("/by-user")
     public ResponseEntity<List<UserInEventInfosResponse>>
     getAllParticipationsByUserId(@RequestHeader("Authorization") String authorizationHeader) {
 
@@ -84,7 +81,7 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/participation/status")
+    @GetMapping("/status")
     @Operation(summary = "List user participation status in event")
     public ResponseEntity<UserEventStatus> getParticipationStatus(
             @RequestHeader("Authorization") String authorizationHeader, @RequestParam(name = "eventId") UUID eventId) {
@@ -92,7 +89,7 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(this.userEventService.getStatusParticipationOfEvent(userId, eventId));
     }
 
-    @GetMapping("/participation/list-all/by-payment-status")
+    @GetMapping("/list-all/by-payment-status")
     @Operation(summary = "List user participation by payment status in event")
     public ResponseEntity<List<UserEventStatus>> getPaymentStatus(
             @RequestParam(name = "eventId") UUID eventId,
@@ -100,7 +97,7 @@ public class UserEventParticipationController {
         return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status));
     }
 
-    @GetMapping("/participation/object")
+    @GetMapping("/object")
     @Operation(summary = "Get user participation object")
     public ResponseEntity<EventParticipation> getParticipationObject(
             @RequestHeader("Authorization") String authorizationHeader, @RequestParam(name = "eventId") UUID eventId) {
@@ -109,5 +106,13 @@ public class UserEventParticipationController {
 
     }
 
+    @GetMapping("/payment-detail/{eventId}")
+    @Operation(summary = "Get user participation object")
+    public ResponseEntity<UserPaymentDetailResponse> getDetailsOfPayment(
+            @RequestHeader("Authorization") String authorizationHeader, @PathVariable(name = "eventId") UUID eventId) {
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(this.userEventService.getUserPaymentDetail(userId, eventId));
+
+    }
 
 }

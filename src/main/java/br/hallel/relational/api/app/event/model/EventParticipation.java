@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString
 public class EventParticipation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -44,6 +43,9 @@ public class EventParticipation {
 
     @Column(name = "pix_txid")
     private String pixTxid;
+
+    @Column(name = "mercadopago_payment_id")
+    private Long mercadoPagoPaymentId;
 
     @Column(name = "paid_date")
     private OffsetDateTime paidDate;

@@ -1,15 +1,13 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.exception.EventNotFoundException;
+import br.hallel.relational.api.app.event.exception.EventTransactionEmptyListException;
 import br.hallel.relational.api.app.event.exception.EventTransactionNotFoundException;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
-import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.EventTransaction;
-import br.hallel.relational.api.app.event.model.TransactionType;
+import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
@@ -130,12 +128,12 @@ public class EventService implements EventInterface {
     }
 
     public Page<EventResponse> listAllRetreats(int page,
-                                             int size) {
+                                               int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO,pageable);
+        Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO, pageable);
         log.info("Listing all retreats...");
-        if (eventsPagination.isEmpty()){
+        if (eventsPagination.isEmpty()) {
             throw new EventIllegalArumentException("No Retreats created. Maybe you need create onde");
         }
 
@@ -180,7 +178,7 @@ public class EventService implements EventInterface {
         boolean itsFreeValue = value == 0;
         event.setItsFree(itsFreeValue);
         event.setValue(value);
-        if (img_url != null ){
+        if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
             String imageUrl = null;
             imageUrl = bucketService.updateFileOfBucket(
@@ -307,12 +305,13 @@ public class EventService implements EventInterface {
                 .map(tx -> new EventTransactionResponse().toResponse(tx))
                 .toList();
 
-        if(list.isEmpty()){
-            throw new EventIllegalArumentException("Can't find event transaction by this id "+eventId);
+        if (list.isEmpty()) {
+            throw new EventIllegalArumentException("Can't find event transaction by this id " + eventId);
         }
 
         return list;
     }
+
     public List<EventTransactionResponse> listAllTransactionsByEventAndTransactionType(UUID eventId, TransactionType type) {
         return eventTransactionRepository.findByEventIdAndTransactionType(eventId, type)
                 .stream()
@@ -327,6 +326,7 @@ public class EventService implements EventInterface {
                 )
         );
     }
+
     public List<EventTransactionResponse> listAllTransactions() {
         return this.eventTransactionRepository.findAll().stream().map(
                 t -> new EventTransactionResponse().toResponse(t)
@@ -359,5 +359,35 @@ public class EventService implements EventInterface {
             throw new EventTransactionNotFoundException("Transaction not found");
         }
         eventTransactionRepository.deleteById(id);
+    }
+
+    public EventBalanceResponse getBalance(UUID eventId) {
+        Event event = this.repository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("Event id %s not found".formatted(eventId.toString()))
+        );
+
+        List<EventTransaction> transactions = this.eventTransactionRepository.findAllByEvent_Id(eventId);
+
+        if (transactions.isEmpty()) {
+            throw new EventTransactionEmptyListException("The list in event id %s is Empty".formatted(eventId.toString()));
+        }
+
+        double inputAmount = transactions.stream()
+                .filter(t -> t.getTransactionType() == TransactionType.ENTRADA)
+                .mapToDouble(EventTransaction::getValue)
+                .sum();
+
+        double outputAmount = transactions.stream()
+                .filter(t -> t.getTransactionType() == TransactionType.SAIDA)
+                .mapToDouble(EventTransaction::getValue)
+                .sum();
+
+        double total = inputAmount - outputAmount;
+
+        if (total >= 0) {
+            return new EventBalanceResponse(eventId, event.getEventType(), total, 0.0, BalanceType.LUCRO);
+        } else {
+            return new EventBalanceResponse(eventId, event.getEventType(), 0.0, Math.abs(total), BalanceType.PREJUIZO);
+        }
     }
 }

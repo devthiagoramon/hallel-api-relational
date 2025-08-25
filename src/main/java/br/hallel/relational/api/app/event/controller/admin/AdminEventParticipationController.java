@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/public/event")
+@RequestMapping("/admin/event/participation")
 @RequiredArgsConstructor
 @Tag(name = "Admin events - User participation", description = "Events User Participation part for Admin")
 public class AdminEventParticipationController {
@@ -31,7 +31,7 @@ public class AdminEventParticipationController {
     private final UserEventService userEventService;
 
     @Operation(summary = "Edit User Function participation")
-    @PatchMapping("/participation/edit-function/{participationId}")
+    @PatchMapping("/edit-function/{participationId}")
     public ResponseEntity<EventParticipationResponse> editUserFunction(
             @PathVariable UUID participationId,
             @Valid @RequestParam UserFunctionInEvent userFunctionInEvent) {
@@ -41,7 +41,7 @@ public class AdminEventParticipationController {
     }
 
     @Operation(summary = "Edit event participation")
-    @PutMapping("/edit/participation/{participationId}")
+    @PutMapping("/edit/{participationId}")
     public ResponseEntity<EventParticipationResponse> editParticipation(
             @PathVariable UUID participationId,
             @Valid @RequestBody EventParticipationDTO dto) {
@@ -50,7 +50,7 @@ public class AdminEventParticipationController {
     }
 
     @Operation(summary = "List all participants by Event Id")
-    @GetMapping("/participation/by-event/{eventId}")
+    @GetMapping("/by-event/{eventId}")
     public ResponseEntity<Page<UserInEventInfosResponse>>
     getAllParticipationsByEventId(@PathVariable(name = "eventId") UUID eventId,
                                   @RequestParam(name = "page", defaultValue = "0") int page,
@@ -58,9 +58,12 @@ public class AdminEventParticipationController {
         return ResponseEntity.ok(userEventService.getAllParticipationsByEventId(eventId, PageRequest.of(page, size)));
     }
 
-    @PostMapping("/participation")
+    @PostMapping("/add")
     @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
-    public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto){
+    public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto) {
         return ResponseEntity.ok(userEventService.addParticipateAsAdminService(dto));
     }
+
+
+
 }
