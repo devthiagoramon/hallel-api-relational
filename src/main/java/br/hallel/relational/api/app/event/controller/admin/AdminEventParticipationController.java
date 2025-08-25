@@ -1,8 +1,10 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
+import br.hallel.relational.api.app.event.dto.EventParticipationAdmDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
 import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
 import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
+import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
 
@@ -54,5 +56,11 @@ public class AdminEventParticipationController {
                                   @RequestParam(name = "page", defaultValue = "0") int page,
                                   @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(userEventService.getAllParticipationsByEventId(eventId, PageRequest.of(page, size)));
+    }
+
+    @PostMapping("/participation")
+    @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
+    public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto){
+        return ResponseEntity.ok(userEventService.addParticipateAsAdminService(dto));
     }
 }

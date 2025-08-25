@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.EventType;
+import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;

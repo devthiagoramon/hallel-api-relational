@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
+import br.hallel.relational.api.app.event.exception.EventNotFoundException;
 import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -300,5 +301,20 @@ public class UserEventService {
         return eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventIllegalArumentException(
                         "Event with id " + eventId + " or user with id " + userId + " does not exist."));
+    }
+
+    public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
+        EventParticipation eventParticipation = new EventParticipation();
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User with id " + dto.getUserId() + " does not exist."));
+        Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
+                () -> new EventNotFoundException("Event with id " + dto.getEventId() + " does not exist."));
+        eventParticipation.setEvent(event);
+        eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
+        eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
+        eventParticipation.setUser(user);
+        eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
+        return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
+                null);
     }
 }

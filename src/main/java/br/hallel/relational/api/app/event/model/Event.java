@@ -1,6 +1,5 @@
 package br.hallel.relational.api.app.event.model;
 
-import br.hallel.relational.api.app.event.EventType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

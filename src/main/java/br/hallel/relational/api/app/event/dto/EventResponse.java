@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.EventType;
+import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
