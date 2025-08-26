@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,17 +28,19 @@ public class AdminUserController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<List<UserProfileResponse>> listAllUsers(
+    public ResponseEntity<Page<UserProfileResponse>> listAllUsers(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(userService.listAllUsers(page, size ));
     }
 
     @GetMapping("/list-all/by-name/{name}")
-    public ResponseEntity<List<UserProfileResponse>> listAllUsersByName(
+    public ResponseEntity<Page<UserProfileResponse>> listAllUsersByName(
             @PathVariable(name = "name") String name,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(userService.listAllUsersByName(name,page, size ));
     }
+
+
 }

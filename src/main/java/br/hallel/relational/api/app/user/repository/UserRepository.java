@@ -19,7 +19,13 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
-    Page<User> findAllByOrderByNameAsc(Pageable pageable);
+    @Query("""
+               SELECT u
+                FROM User u
+                            JOIN u.roles r
+                WHERE r.description = 'USER' AND SIZE(u.roles) = 1
+            """)
+    Page<User> searchAllByOrderByNameAsc(Pageable pageable);
 
     List<UserProfileResponse> findAllByNameContainingIgnoreCase(
             String name, Pageable pageable);
@@ -37,9 +43,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                     NULL
                 )
                 FROM User u
-                WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))
+                            JOIN u.roles r
+                WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')) AND r.description = 'USER' AND SIZE(u.roles) = 1
             """)
-    List<UserProfileResponse> searchUserProfilesByName(@Param("name") String name, Pageable pageable);
+    Page<UserProfileResponse> searchUserProfilesByName(@Param("name") String name, Pageable pageable);
 
 
     UUID id(UUID id);

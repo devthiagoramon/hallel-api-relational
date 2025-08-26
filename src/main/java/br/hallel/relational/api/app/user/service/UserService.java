@@ -27,7 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.*;
 import java.util.*;
 
@@ -178,33 +177,30 @@ public class UserService implements UserInterface {
 
 
     @Override
-    public List<UserProfileResponse> listAllUsers(int page, int size) {
+    public Page<UserProfileResponse> listAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = this.userRepository.findAllByOrderByNameAsc(pageable);
-        List<UserProfileResponse> response = new ArrayList<>();
-        for (User user : users) {
+        Page<User> users = this.userRepository.searchAllByOrderByNameAsc(pageable);
+        return users.map((user -> {
             LocalDateTime lastAcessLog = this.getLastAcessLog(user);
             Date date = null;
             if (lastAcessLog != null) {
                 date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
             }
-            response.add(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, date));
-        }
-        return response;
+            return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, date);
+        }));
     }
 
     @Override
-    public List<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
+    public Page<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        List<UserProfileResponse> list = this.userRepository.searchUserProfilesByName(name, pageable);
+        //
+//        if (pageResponse.isEmpty()) {
+//            throw new UserNotFoundException("User not found by name: " + name);
+//        }
 
-        if (list.isEmpty()) {
-            throw new UserNotFoundException("User not found by name: " + name);
-        }
-
-        return list;
+        return this.userRepository.searchUserProfilesByName(name, pageable);
     }
 
     @Override
@@ -239,7 +235,7 @@ public class UserService implements UserInterface {
     public LocalDateTime getLastAcessLog(User user) {
         LocalDateTime lastAcess =
                 this.lastAcessLogRepository.findLastAccessDateByUser(user);
-        System.out.println("Get Last Access: " + lastAcess + " | Name: " + user.getName());
+//        System.out.println("Get Last Access: " + lastAcess + " | Name: " + user.getName());
         return lastAcess;
     }
 

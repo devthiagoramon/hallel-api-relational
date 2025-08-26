@@ -327,6 +327,7 @@ public class UserEventService {
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
         eventParticipation.setUser(user);
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
+        eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now().atOffset(ZoneOffset.UTC) : null);
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
                 null);
     }
