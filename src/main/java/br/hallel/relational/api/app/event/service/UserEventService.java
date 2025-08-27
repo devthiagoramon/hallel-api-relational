@@ -4,16 +4,19 @@ import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
 import br.hallel.relational.api.app.event.exception.EventNotFoundException;
 import br.hallel.relational.api.app.event.exception.EventParticipationException;
+import br.hallel.relational.api.app.event.exception.PaymentRefundException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -58,69 +62,71 @@ public class UserEventService {
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
+        eventParticipation.setCommunity(dto.getCommunity());
 
         String qrCodeBase64 = null;
 
-//        if (!event.getItsFree() || event.getValue() > 0) {
-//            try {
-//                String fullName = user.getName();
-//                String firstName = "";
-//                String lastName = "";
-//
-//                if (fullName != null && !fullName.isEmpty()) {
-//                    String[] names = fullName.split(" ");
-//                    if (names.length > 0) {
-//                        firstName = names[0];
-//                    }
-//                    if (names.length > 1) {
-//                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
-//                    }
-//                }
-//                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
-//                        BigDecimal.valueOf(event.getValue()),
-//                        event.getTitle(),
-//                        user.getEmail(),
-//                        firstName,
-//                        lastName,
-//                        user.getCpf()
-//                );
-//
-//                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
-//
-//                // Verificação de segurança adicional para evitar NPE
-//                if (payment != null && payment.getPointOfInteraction() != null &&
-//                        payment.getPointOfInteraction().getTransactionData() != null) {
-//                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
-//                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
-//                    eventParticipation.setMercadoPagoPaymentId(payment.getId());
-//                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
-//
-//                        EventTransaction newTransaction = new EventTransaction();
-//                        newTransaction.setEvent(event);
-//                        newTransaction.setDesciption("Pagamento de ingresso para o evento: " + event.getTitle());
-//                        newTransaction.setTransactionType(TransactionType.ENTRADA);
-//                        newTransaction.setValue(event.getValue());
-//                        newTransaction.setDateTransaction(new Date());
-//                        newTransaction.setReceiptPaymentFileImage(null);
-//                        newTransaction.setMercadoPagoPaymentId(payment.getId());
-//                        eventTransactionRepository.save(newTransaction);
+        if (!event.getItsFree() || event.getValue() > 0) {
+            try {
+                String fullName = user.getName();
+                String firstName = "";
+                String lastName = "";
 
-//                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", dto.getUserId(),
-//                            eventParticipation.getPixTxid());
-//                } else {
-//                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
-//                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
-//                }
-//
-//            } catch (MPException | MPApiException e) {
-//                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
-//                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
-//            }
-//        } else {
-//            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
-//        }
-        eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
-        eventParticipation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
+                if (fullName != null && !fullName.isEmpty()) {
+                    String[] names = fullName.split(" ");
+                    if (names.length > 0) {
+                        firstName = names[0];
+                    }
+                    if (names.length > 1) {
+                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
+                    }
+                }
+
+                if (user.getCpf() == null || user.getCpf().isEmpty()) {
+                    throw new UserNotFoundException("User CPF is required to make the payment.");
+
+                }
+
+                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
+                        BigDecimal.valueOf(event.getValue()),
+                        event.getTitle(),
+                        user.getEmail(),
+                        firstName,
+                        lastName,
+                        user.getCpf()
+                );
+
+                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
+
+                // Verificação de segurança adicional para evitar NPE
+                if (payment != null && payment.getPointOfInteraction() != null &&
+                        payment.getPointOfInteraction().getTransactionData() != null) {
+                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
+                    eventParticipation.setMercadoPagoPaymentId(payment.getId());
+                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+
+                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", userId,
+                            eventParticipation.getPixTxid());
+                } else {
+                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
+                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
+                }
+
+            } catch (MPApiException apiException) {
+                log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
+                        apiException.getStatusCode(),
+                        apiException.getMessage(),
+                        apiException.getApiResponse());
+                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", apiException);
+            } catch (MPException | RuntimeException e) {
+                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
+            }
+        } else {
+            eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+        }
+
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
         return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
@@ -131,6 +137,7 @@ public class UserEventService {
         Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventIllegalArumentException("Event with id " + eventId + " does not exist.")
         );
+
         User user = this.userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException("User with id " + userId + " does not exist.")
         );
@@ -164,19 +171,47 @@ public class UserEventService {
     }
 
 
-    public boolean leaveTheEvent(UUID participationId) {
-        EventParticipation participation = eventParticipationRepository.findById(participationId)
+    public boolean leaveTheEvent(UUID eventId, UUID userId) {
+        this.eventRepository.findById(eventId).orElseThrow(
+                () -> new EventIllegalArumentException("Event with id " + eventId + " does not exist.")
+        );
+        this.userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+        );
+
+
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,eventId)
                 .orElseThrow(() -> new EventIllegalArumentException(
-                        "Participation Event with id " + participationId + " does not exist."
+                        "Participation Event with id " + eventId + " does not exist."
                 ));
 
-        List<EventTransaction> transactions =
-                eventTransactionRepository.findAllByEvent_Id(participation.getEvent().getId());
-        transactions.stream()
-                .filter(t -> t.getDesciption().contains(participation.getUser().getName()))
-                .forEach(eventTransactionRepository::delete);
+
+        if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
+            log.info("Participação do evento está paga. Tentando solicitar o reembolso para o pagamento de Mercado Pago ID: {}",
+                    participation.getMercadoPagoPaymentId());
+            try {
+
+                this.mercadoPagoClient.requestRefund(
+                        participation.getMercadoPagoPaymentId(),
+                        participation.getAmountPaid()
+                );
+            } catch (PaymentRefundException e) {
+
+                log.error("Falha ao solicitar o reembolso para o pagamento {} do evento {}. Motivo: {}",
+                        participation.getMercadoPagoPaymentId(), eventId, e.getMessage());
+                throw new EventIllegalArumentException("Não foi possível solicitar o reembolso. A transação foi cancelada.");
+            }
+        }
+
+        if (participation.getMercadoPagoPaymentId() != null) {
+            eventTransactionRepository.findByMercadoPagoPaymentId(participation.getMercadoPagoPaymentId())
+                    .ifPresent(eventTransactionRepository::delete);
+            log.info("Transação do evento para o pagamento {} deletada com sucesso.", participation.getMercadoPagoPaymentId());
+        }
 
         eventParticipationRepository.delete(participation);
+        log.info("Participação do usuário {} no evento {} deletada com sucesso.", userId, eventId);
+
         return true;
     }
 
@@ -197,6 +232,10 @@ public class UserEventService {
 
         if (dto.userFunctionInEvent() != null) {
             participation.setUserFunctionInEvent(dto.userFunctionInEvent());
+        }
+
+        if (dto.community() != null) {
+            participation.setCommunity(dto.community());
         }
 
         if (dto.amountPaid() != null) {
@@ -240,6 +279,7 @@ public class UserEventService {
                         participation.getUser().getId(),
                         participation.getEvent().getId(),
                         participation.getStatusPaymentEventParticipation(),
+                        participation.getCommunity(),
                         participation.getHasParticipated(),
                         participation.getUserFunctionInEvent(),
                         null
@@ -342,23 +382,23 @@ public class UserEventService {
         EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventParticipationException("User not found in the event."));
         double valuePaid = 0;
-
-        if (!event.getItsFree()) {
-            if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
-                valuePaid = participation.getAmountPaid();
-            }
-        }
         String comprovant = "";
 
-        try {
-            if (participation.getMercadoPagoPaymentId() != null ) {
-                comprovant = mercadoPagoClient.getPixReceiptUrl(participation.getMercadoPagoPaymentId());
+        if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO
+                && !event.getItsFree()) {
+            valuePaid = participation.getAmountPaid();
+
+            // Busca a transação associada para pegar o comprovante
+            if (participation.getMercadoPagoPaymentId() != null) {
+                Optional<EventTransaction> transaction =
+                        eventTransactionRepository.findByMercadoPagoPaymentId(participation.getMercadoPagoPaymentId());
+
+                if (transaction.isPresent()) {
+                    comprovant = transaction.get().getReceiptPaymentFileImage();
+                }
             }
-        } catch (MPException e) {
-            throw new RuntimeException(e);
-        } catch (MPApiException e) {
-            throw new RuntimeException(e);
         }
+
 
         return new UserPaymentDetailResponse(eventId, userId, valuePaid, participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant);

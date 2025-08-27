@@ -105,4 +105,16 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserValidationException.class)
+    public ResponseEntity<ExceptionResponse> handleUserValidationException(UserValidationException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PaymentRefundException.class)
+    public ResponseEntity<ExceptionResponse> handlePaymentRefundException(PaymentRefundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
 }

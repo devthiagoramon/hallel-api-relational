@@ -12,5 +12,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventParticipateDTO {
-    UUID eventId;
+    private UUID eventId;
+    private String community;
 }

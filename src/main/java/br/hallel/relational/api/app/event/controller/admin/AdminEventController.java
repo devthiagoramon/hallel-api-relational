@@ -120,9 +120,22 @@ public class AdminEventController {
                     "pixCode", pixCode,
                     "qrCodeBase64", qrCodeBase64
             ));
-        } catch (MPException | MPApiException e) {
-            log.error("Failed to create Pix payment", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to create Pix payment"));
+        } catch (MPApiException apiException) {
+            String apiResponseDetails = apiException.getApiResponse().getContent();
+            int statusCode = apiException.getStatusCode();
+
+            log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes da resposta: {}",
+                    statusCode,
+                    apiException.getMessage(),
+                    apiResponseDetails);
+
+            return ResponseEntity.status(statusCode).body(Map.of(
+                    "error", "Erro da API do Mercado Pago.",
+                    "details", apiResponseDetails
+            ));
+        } catch (MPException e) {
+            log.error("Erro inesperado na SDK do Mercado Pago", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Erro inesperado ao criar pagamento Pix."));
         }
     }
 

@@ -9,6 +9,7 @@ public record EventParticipationDTO(
         UUID userID,
         UUID eventID,
         StatusPaymentEventParticipation statusPaymentEventParticipation,
+        String community,
         Boolean hasParticipated,
         UserFunctionInEvent userFunctionInEvent,
         Double amountPaid) {

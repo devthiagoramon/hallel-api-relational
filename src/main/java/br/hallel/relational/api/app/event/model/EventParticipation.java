@@ -32,6 +32,9 @@ public class EventParticipation {
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
 
     @Column(nullable = false)
+    private String community;
+
+    @Column(nullable = false)
     private Boolean hasParticipated;
 
     @Enumerated(EnumType.STRING)

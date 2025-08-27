@@ -23,6 +23,8 @@ public class EventParticipationResponse {
 
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
 
+    private String community;
+
     private Boolean hasParticipated;
 
     private UserFunctionInEvent userFunctionInEvent;
@@ -35,6 +37,7 @@ public class EventParticipationResponse {
                 .userId(response.getUser().getId())
                 .eventId(response.getEvent().getId())
                 .statusPaymentEventParticipation(response.getStatusPaymentEventParticipation())
+                .community(response.getCommunity())
                 .hasParticipated(response.getHasParticipated())
                 .userFunctionInEvent(response.getUserFunctionInEvent())
                 .qrCode(qrCode)

@@ -63,7 +63,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'com.mercadopago:sdk-java:2.2.0', {
-        // Exclui a dependência que causa conflito.
+
         exclude group: 'com.google.collections', module: 'google-collections'
     }
 }

@@ -4,6 +4,7 @@ package br.hallel.relational.api.app.payment.checkout_transparent.dto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 public record CreatePixPaymentRequestDTO(
@@ -25,4 +26,5 @@ public record CreatePixPaymentRequestDTO(
 
         @NotBlank(message = "Payer CPF/CNPJ cannot be blank")
         String payerIdentificationNumber
-) {}
+) {
+}

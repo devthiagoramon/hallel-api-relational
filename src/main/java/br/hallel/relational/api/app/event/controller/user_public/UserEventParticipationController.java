@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/user/event/pariticpation")
+@RequestMapping("/user/event/participation")
 @RequiredArgsConstructor
 @Tag(name = "Events - User participation", description = "Events User Participation part for public")
 public class UserEventParticipationController {
@@ -45,9 +45,12 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "Leave an event participation by participation ID")
-    @DeleteMapping("/leave/{participationId}")
-    public ResponseEntity<Void> leaveEvent(@PathVariable UUID participationId) {
-        userEventService.leaveTheEvent(participationId);
+    @DeleteMapping("/leave/{eventId}")
+    public ResponseEntity<Void> leaveEvent(@RequestHeader("Authorization") String authorizationHeader,
+                                           @PathVariable(name = "eventId") UUID eventId) {
+
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        userEventService.leaveTheEvent(eventId, userId);
         return ResponseEntity.noContent().build();
     }
 

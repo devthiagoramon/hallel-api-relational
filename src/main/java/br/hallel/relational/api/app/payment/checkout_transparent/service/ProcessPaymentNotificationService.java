@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.payment.checkout_transparent.service;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.EventTransaction;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
@@ -15,8 +16,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -33,6 +36,7 @@ public class ProcessPaymentNotificationService {
         // 1. Busca o status completo do pagamento na API do Mercado Pago
         Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
         String paymentStatus = payment.getStatus();
+        BigDecimal amountPaid = payment.getTransactionAmount();
 
         // 2. Mapeia o status do Mercado Pago para o status da sua aplicação
         StatusPaymentEventParticipation participationStatus;
@@ -59,38 +63,38 @@ public class ProcessPaymentNotificationService {
                 break;
         }
 
-        // 3. Busca a EventTransaction no banco de dados usando o ID do pagamento do Mercado Pago
-        Optional<EventTransaction> optionalTransaction =
-                eventTransactionRepository.findByMercadoPagoPaymentId(paymentId);
+        // 3. Busca a EventParticipation no banco de dados usando o ID do pagamento
+        Optional<EventParticipation> optionalParticipation =
+                eventParticipationRepository.findByMercadoPagoPaymentId(paymentId);
 
-        if (optionalTransaction.isPresent()) {
-            EventTransaction transaction = optionalTransaction.get();
+        if (optionalParticipation.isPresent()) {
+            EventParticipation participation = optionalParticipation.get();
+            participation.setStatusPaymentEventParticipation(participationStatus);
 
-            // 4. Busca a participação do evento correspondente ao usuário e ao evento da transação
-            Optional<EventParticipation> optionalParticipation =
-                    eventParticipationRepository.findByMercadoPagoPaymentId(paymentId);
+            // 4. Se o pagamento for aprovado, cria a transação e atualiza a participação
+            if ("approved".equalsIgnoreCase(paymentStatus)) {
 
-            if (optionalParticipation.isPresent()) {
-                EventParticipation participation = optionalParticipation.get();
-                participation.setStatusPaymentEventParticipation(participationStatus);
+                // Cria a EventTransaction SOMENTE se o pagamento for aprovado
+                EventTransaction newTransaction = new EventTransaction();
+                newTransaction.setEvent(participation.getEvent());
+                newTransaction.setDesciption("Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
+                newTransaction.setTransactionType(TransactionType.ENTRADA);
+                newTransaction.setValue(Double.parseDouble(amountPaid.toString()));
+                newTransaction.setDateTransaction(new Date());
+                newTransaction.setReceiptPaymentFileImage(mercadoPagoClient.getPixReceiptUrl(paymentId));
+                newTransaction.setMercadoPagoPaymentId(payment.getId());
+                eventTransactionRepository.save(newTransaction);
 
-                // 5. Se o pagamento for aprovado, atualiza a transação com a URL do comprovante e a participação com a data de pagamento
-                if ("approved".equalsIgnoreCase(paymentStatus)) {
-                    String receiptUrl = mercadoPagoClient.getPixReceiptUrl(paymentId);
-                    transaction.setReceiptPaymentFileImage(receiptUrl);
-                    participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
-                }
+                participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
+                participation.setAmountPaid(Double.parseDouble(amountPaid.toString()));
 
-                // Salva as entidades atualizadas
-                eventTransactionRepository.save(transaction);
-                eventParticipationRepository.save(participation);
-
-                log.info("Transação e participação de evento atualizadas para: {}. Transaction ID: {}", paymentStatus, transaction.getId());
-            } else {
-                log.warn("Participação de evento não encontrada para a transação com ID: {}", transaction.getId());
+                log.info("Transação e participação de evento atualizadas para: {}. Event ID: {}", paymentStatus, participation.getEvent().getId());
             }
+
+            // Salva a entidade de participação atualizada
+            eventParticipationRepository.save(participation);
         } else {
-            log.warn("Transação de evento não encontrada para o ID de pagamento: {}", paymentId);
+            log.warn("Participação de evento não encontrada para o ID de pagamento: {}", paymentId);
         }
 
         return new ProcessNotificationResponseDTO(success, paymentStatus);
