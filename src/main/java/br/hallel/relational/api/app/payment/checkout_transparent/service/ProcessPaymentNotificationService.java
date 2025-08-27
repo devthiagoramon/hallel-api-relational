@@ -14,6 +14,7 @@ import com.mercadopago.resources.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class ProcessPaymentNotificationService {
     private final MercadoPagoClient mercadoPagoClient;
     private final EventParticipationRepository eventParticipationRepository;
     private final EventTransactionRepository eventTransactionRepository;
+    private final SimpMessagingTemplate template;
 
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
@@ -87,8 +89,10 @@ public class ProcessPaymentNotificationService {
 
                 participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
                 participation.setAmountPaid(Double.parseDouble(amountPaid.toString()));
-
                 log.info("Transação e participação de evento atualizadas para: {}. Event ID: {}", paymentStatus, participation.getEvent().getId());
+
+                template.convertAndSend("/topic/payments/approved", "Pagamento de inscrição para o evento "+participation.getEvent().getTitle()+
+                        " aprovado! ");
             }
 
             // Salva a entidade de participação atualizada

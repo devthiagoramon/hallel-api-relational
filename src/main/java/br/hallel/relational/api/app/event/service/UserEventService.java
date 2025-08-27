@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -41,6 +42,7 @@ public class UserEventService {
     private final EventParticipationRepository eventParticipationRepository;
     private final EventTransactionRepository eventTransactionRepository;
     private final MercadoPagoClient mercadoPagoClient;
+    private final SimpMessagingTemplate template;
 
     public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
@@ -106,6 +108,8 @@ public class UserEventService {
                     eventParticipation.setMercadoPagoPaymentId(payment.getId());
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 
+                    template.convertAndSend("/topic/payments/pending", "Pagamento de inscrição para o evento "+eventParticipation.getEvent().getTitle()+
+                            " em andamento! ");
                     log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", userId,
                             eventParticipation.getPixTxid());
                 } else {
