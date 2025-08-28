@@ -308,11 +308,11 @@ public class UserEventService {
         return participations.map(part -> new UserInEventInfosResponse().toResponse(part, users.size()));
     }
 
-    public List<UserInEventInfosResponse> getAllUserParticipationByUserId(UUID userId) {
+    public List<UserInEventWithEventInfosResponse> getAllUserParticipationByUserId(UUID userId) {
         List<EventParticipation> participations = eventParticipationRepository.findAllByUser_Id(userId);
-        List<UserInEventInfosResponse> users = new ArrayList<>();
+        List<UserInEventWithEventInfosResponse> users = new ArrayList<>();
         for (EventParticipation participation : participations) {
-            users.add(new UserInEventInfosResponse().toResponse(participation, users.size()));
+            users.add(new UserInEventWithEventInfosResponse().toResponse(participation));
         }
         return users;
     }
