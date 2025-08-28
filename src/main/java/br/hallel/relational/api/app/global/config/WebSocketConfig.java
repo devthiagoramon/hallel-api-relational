@@ -22,5 +22,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
         registry.addEndpoint("/ws-scale-chat").withSockJS();
         registry.addEndpoint("/ws-auth").setAllowedOrigins("http://localhost:5173").withSockJS();
+        registry.addEndpoint("/ws-payment").setAllowedOrigins("http://localhost:5173").withSockJS();
     }
 }

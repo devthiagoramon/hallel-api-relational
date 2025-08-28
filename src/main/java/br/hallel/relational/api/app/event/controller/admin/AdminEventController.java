@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +33,7 @@ public class AdminEventController {
 
     private final EventService eventService;
     private final MercadoPagoClient client;
+    private final SimpMessagingTemplate template;
 
     //** CRIANDO EVENTO **
     @PostMapping(value = "/create", consumes = "multipart/form-data")
@@ -108,14 +111,17 @@ public class AdminEventController {
     @PostMapping("/create-pix")
     @Operation(summary = "Create an Pix Charge" +
             "needs the information of the customer who will make the payment")
-    public ResponseEntity<Map<String, String>> createPixPayment(@Valid @RequestBody CreatePixPaymentRequestDTO requestDTO) {
+    public ResponseEntity<Map<String, String>> createPixPayment(@Valid @RequestBody CreatePixPaymentRequestDTO requestDTO, @RequestParam(name = "userId") UUID userId) {
         log.info("Creating a Pix payment...");
         try {
-            Payment payment = client.createPixPayment(requestDTO);
+            Payment payment = client.createPixPayment(requestDTO, userId);
 
             String pixCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
             String qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 
+            template.convertAndSend("/topic/payments/" + userId,
+                    new PaymentStatusDTO(qrCodeBase64, pixCode,
+                            StatusPaymentEventParticipation.PENDENTE));
             return ResponseEntity.ok(Map.of(
                     "pixCode", pixCode,
                     "qrCodeBase64", qrCodeBase64

@@ -98,7 +98,7 @@ public class UserEventService {
                         user.getCpf()
                 );
 
-                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO);
+                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, userId);
 
                 // Verificação de segurança adicional para evitar NPE
                 if (payment != null && payment.getPointOfInteraction() != null &&
@@ -107,9 +107,14 @@ public class UserEventService {
                     eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
                     eventParticipation.setMercadoPagoPaymentId(payment.getId());
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+                    String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
 
-                    template.convertAndSend("/topic/payments/pending", "Pagamento de inscrição para o evento "+eventParticipation.getEvent().getTitle()+
-                            " em andamento! ");
+
+                    template.convertAndSend("/topic/payments/" + user.getId(),
+                            new PaymentStatusDTO(qrCodeBase64, linkCodePayment,
+                                    StatusPaymentEventParticipation.PENDENTE));
+
+
                     log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", userId,
                             eventParticipation.getPixTxid());
                 } else {
@@ -184,14 +189,15 @@ public class UserEventService {
         );
 
 
-        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId,eventId)
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventIllegalArumentException(
                         "Participation Event with id " + eventId + " does not exist."
                 ));
 
 
         if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
-            log.info("Participação do evento está paga. Tentando solicitar o reembolso para o pagamento de Mercado Pago ID: {}",
+            log.info(
+                    "Participação do evento está paga. Tentando solicitar o reembolso para o pagamento de Mercado Pago ID: {}",
                     participation.getMercadoPagoPaymentId());
             try {
 
@@ -203,14 +209,16 @@ public class UserEventService {
 
                 log.error("Falha ao solicitar o reembolso para o pagamento {} do evento {}. Motivo: {}",
                         participation.getMercadoPagoPaymentId(), eventId, e.getMessage());
-                throw new EventIllegalArumentException("Não foi possível solicitar o reembolso. A transação foi cancelada.");
+                throw new EventIllegalArumentException(
+                        "Não foi possível solicitar o reembolso. A transação foi cancelada.");
             }
         }
 
         if (participation.getMercadoPagoPaymentId() != null) {
             eventTransactionRepository.findByMercadoPagoPaymentId(participation.getMercadoPagoPaymentId())
                     .ifPresent(eventTransactionRepository::delete);
-            log.info("Transação do evento para o pagamento {} deletada com sucesso.", participation.getMercadoPagoPaymentId());
+            log.info("Transação do evento para o pagamento {} deletada com sucesso.",
+                    participation.getMercadoPagoPaymentId());
         }
 
         eventParticipationRepository.delete(participation);
@@ -371,7 +379,8 @@ public class UserEventService {
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
         eventParticipation.setUser(user);
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
-        eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now().atOffset(ZoneOffset.UTC) : null);
+        eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now()
+                .atOffset(ZoneOffset.UTC) : null);
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
                 null);
     }

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.payment.checkout_transparent.service;
 
+import br.hallel.relational.api.app.event.dto.PaymentStatusDTO;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.EventTransaction;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
@@ -39,6 +40,7 @@ public class ProcessPaymentNotificationService {
         Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
         String paymentStatus = payment.getStatus();
         BigDecimal amountPaid = payment.getTransactionAmount();
+        String externalReferenceId = payment.getExternalReference();
 
         // 2. Mapeia o status do Mercado Pago para o status da sua aplicação
         StatusPaymentEventParticipation participationStatus;
@@ -79,7 +81,8 @@ public class ProcessPaymentNotificationService {
                 // Cria a EventTransaction SOMENTE se o pagamento for aprovado
                 EventTransaction newTransaction = new EventTransaction();
                 newTransaction.setEvent(participation.getEvent());
-                newTransaction.setDesciption("Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
+                newTransaction.setDesciption(
+                        "Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
                 newTransaction.setTransactionType(TransactionType.ENTRADA);
                 newTransaction.setValue(Double.parseDouble(amountPaid.toString()));
                 newTransaction.setDateTransaction(new Date());
@@ -89,10 +92,12 @@ public class ProcessPaymentNotificationService {
 
                 participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
                 participation.setAmountPaid(Double.parseDouble(amountPaid.toString()));
-                log.info("Transação e participação de evento atualizadas para: {}. Event ID: {}", paymentStatus, participation.getEvent().getId());
+                log.info("Transação e participação de evento atualizadas para: {}. Event ID: {}", paymentStatus,
+                        participation.getEvent().getId());
 
-                template.convertAndSend("/topic/payments/approved", "Pagamento de inscrição para o evento "+participation.getEvent().getTitle()+
-                        " aprovado! ");
+                template.convertAndSend("/topic/payments/" + externalReferenceId,
+                        new PaymentStatusDTO(null, null,
+                                StatusPaymentEventParticipation.PAGO));
             }
 
             // Salva a entidade de participação atualizada

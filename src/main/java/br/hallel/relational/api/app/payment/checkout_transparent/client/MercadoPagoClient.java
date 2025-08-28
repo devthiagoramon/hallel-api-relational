@@ -34,10 +34,10 @@ public class MercadoPagoClient {
         MercadoPagoConfig.setAccessToken(accessToken);
     }
 
-    public Payment createPixPayment(CreatePixPaymentRequestDTO dto) throws MPException, MPApiException {
+    public Payment createPixPayment(CreatePixPaymentRequestDTO dto, UUID userId) throws MPException, MPApiException {
         log.info("Criando pagamento Pix no Mercado Pago com dados: {}", dto);
 
-        String externalReference = UUID.randomUUID().toString();
+        String externalReference = userId.toString();
 
         PaymentClient client = new PaymentClient();
 
