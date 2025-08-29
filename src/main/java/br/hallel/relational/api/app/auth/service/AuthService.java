@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.auth.dto.LoginRequest;
 import br.hallel.relational.api.app.auth.dto.SingUpRequest;
 import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.AuthRequestException;
+import br.hallel.relational.api.app.email.EmailService;
 import br.hallel.relational.api.app.security.admin.TokenAdminValidationCode;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
@@ -34,15 +35,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     private final TokenAdminValidationCode tokenAdminValidationCode = new TokenAdminValidationCode();
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final EmailService emailService;
 
-    @Autowired
     private UserRoleRepository userRoleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
@@ -149,7 +148,11 @@ public class AuthService {
             User user = this.userRepository.findByToken(token)
                     .orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
-            log.info("http://localhost:8080/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+            String url = String.format("https://4c3c114eb3ba.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+
+            log.info("https://4c3c114eb3ba.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+
+            emailService.sendMail(user.getEmail(), "Url para validação!", "Url para verificação de token do Adm: "+url);
             return new TokenAdminResponse(tokenAdmin, code);
         }
         return null;

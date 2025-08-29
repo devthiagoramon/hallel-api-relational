@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.email;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,23 @@ public class EmailService {
 
     @Value("${spring.mail.username}")
     private String from;
+
+    public void sendMail(String to, String subject, String text) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, true);
+
+            mailSender.send(message);
+            System.out.println("Email enviado com sucesso!");
+        } catch (MessagingException e) {
+            System.out.println("Erro ao enviar email HTML: " + e.getMessage());
+        }
+    }
 
     public boolean sendBirthDayEmail(String to, String subject, String name, User user, LocalDate today) {
         try {
