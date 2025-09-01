@@ -212,6 +212,23 @@ public class UserService implements UserInterface {
                 user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, null);
     }
 
+    public UserEditProfileDTO editCPF(UUID idUser, String cpf) {
+
+        User user =
+                this.userRepository.findById(idUser).orElseThrow(() ->
+                        new UserNotFoundException("User not find by id: " + idUser));
+
+        if (cpf == null || cpf.isEmpty()) {
+            throw new IllegalArgumentException("CPF cannot be null or empty");
+        }
+
+        user.setCpf(cpf);
+        this.userRepository.save(user);
+
+        return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
+                user.getDateBirth(), user.getCpf());
+    }
+
     public void registerLastActivity(String email, String token) {
         User user = (email != null)
                 ? userRepository.findByEmail(email)

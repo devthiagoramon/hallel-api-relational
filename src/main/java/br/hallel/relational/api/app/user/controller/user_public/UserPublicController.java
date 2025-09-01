@@ -2,11 +2,13 @@ package br.hallel.relational.api.app.user.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.GuestInvitedEventScaleResponse;
 import br.hallel.relational.api.app.event.service.MemberEventScaleService;
+import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.dto.UserEditProfileDTO;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.dto.UserProfileResponseWithToken;
 import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,6 @@ public class UserPublicController {
 
     private final UserService userService;
     private final MemberEventScaleService memberEventScaleService;
-
 
     @GetMapping("/profile/{idUser}")
     @Operation(

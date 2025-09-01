@@ -71,4 +71,14 @@ public class UserController {
         return ResponseEntity.ok(this.tokenService.listRolesOfUser(token));
 
     }
+
+    @PatchMapping("/edit-cpf")
+    @Operation(summary = "Edit CPF User ", description = "Edit CPF user info")
+    public ResponseEntity<UserEditProfileDTO> editCPFUser(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam (name = "cpf") String cpf
+    ){
+        return ResponseEntity.ok(this.userService.editCPF(
+                tokenService.getUserId(authorizationHeader), cpf));
+    }
 }
