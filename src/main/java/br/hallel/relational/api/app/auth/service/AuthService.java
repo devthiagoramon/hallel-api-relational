@@ -150,7 +150,7 @@ public class AuthService {
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
             String url = String.format("https://4c3c114eb3ba.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
 
-            log.info("https://5ef0c47cb7a1.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+            log.info("https://ce9b18708ccf.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
 
 //            emailService.sendMail(user.getEmail(), "Url para validação!", "Url para verificação de token do Adm: "+url);
             return new TokenAdminResponse(tokenAdmin, code);
