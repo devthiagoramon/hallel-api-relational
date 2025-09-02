@@ -223,7 +223,7 @@ public class UserService implements UserInterface {
             throw new IllegalArgumentException("CPF cannot be null or empty");
         }
 
-        user.setCpf(cpf);
+        user.setCpf(cpf.replaceAll("\\D", ""));
         this.userRepository.save(user);
 
         return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),

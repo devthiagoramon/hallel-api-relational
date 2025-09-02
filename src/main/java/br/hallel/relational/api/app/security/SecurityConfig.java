@@ -85,7 +85,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeRequests) -> {
@@ -101,7 +101,8 @@ public class SecurityConfig {
                                     .requestMatchers("/admin/user/**").hasRole("ADMIN")
                                     .requestMatchers("/user/**").hasRole("USER")
                                     .requestMatchers("/ws-scale-chat").hasRole("USER")
-                                    .requestMatchers("/ws-auth/**").permitAll();
+                                    .requestMatchers("/ws-auth/**").permitAll()
+                                    .requestMatchers("/ws-payment/**").permitAll();
                         }
                 )
                 .exceptionHandling(configurer -> configurer
