@@ -9,11 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -68,20 +68,25 @@ public class UserEventParticipationController {
 
     @Operation(summary = "List all participations in all Events")
     @GetMapping("")
-    public ResponseEntity<ParticipationListResponse> getAllParticipations() {
-        List<EventParticipationResponse> responses = userEventService.getAllParticipations();
+    public ResponseEntity<ParticipationListResponse> getAllParticipations(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        Page<EventParticipationResponse> responses = userEventService.getAllParticipations(page, size);
         return ResponseEntity.ok(
-                new ParticipationListResponse(responses, responses.size())
+                new ParticipationListResponse(responses, responses.getSize())
         );
     }
 
     @Operation(summary = "List all participations by User Id")
     @GetMapping("/by-user")
-    public ResponseEntity<List<UserInEventWithEventInfosResponse>>
-    getAllParticipationsByUserId(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<Page<UserInEventWithEventInfosResponse>>
+    getAllParticipationsByUserId(@RequestHeader("Authorization") String authorizationHeader,
+                                 @RequestParam(name = "page", defaultValue = "0") int page,
+                                 @RequestParam(name = "size", defaultValue = "10") int size) {
 
         return ResponseEntity.ok(userEventService.
-                getAllUserParticipationByUserId(jwtTokenProvider.getUserId(authorizationHeader)));
+                getAllUserParticipationByUserId(jwtTokenProvider.getUserId(authorizationHeader), PageRequest.of(page, size)));
     }
 
     @GetMapping("/status")
@@ -94,10 +99,14 @@ public class UserEventParticipationController {
 
     @GetMapping("/list-all/by-payment-status")
     @Operation(summary = "List user participation by payment status in event")
-    public ResponseEntity<List<UserEventStatus>> getPaymentStatus(
+    public ResponseEntity<Page<UserEventStatus>> getPaymentStatus(
             @RequestParam(name = "eventId") UUID eventId,
-            @RequestParam(name = "paymentStatus") StatusPaymentEventParticipation status) {
-        return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status));
+            @RequestParam(name = "paymentStatus") StatusPaymentEventParticipation status,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "0") int size
+            ){
+        return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status,
+                PageRequest.of(page, size)));
     }
 
     @GetMapping("/object")

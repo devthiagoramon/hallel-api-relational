@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -282,21 +283,20 @@ public class UserEventService {
         return new EventParticipationResponse().toEventParticipation(participation, null);
     }
 
-    public List<EventParticipationResponse> getAllParticipations() {
-        List<EventParticipation> participations = eventParticipationRepository.findAll();
+    public Page<EventParticipationResponse> getAllParticipations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<EventParticipation> participations = eventParticipationRepository.findAll(pageable);
 
-        return participations.stream()
-                .map(participation -> new EventParticipationResponse(
-                        participation.getId(),
-                        participation.getUser().getId(),
-                        participation.getEvent().getId(),
-                        participation.getStatusPaymentEventParticipation(),
-                        participation.getCommunity(),
-                        participation.getHasParticipated(),
-                        participation.getUserFunctionInEvent(),
-                        null
-                ))
-                .toList();
+        return participations.map(participation -> new EventParticipationResponse(
+                participation.getId(),
+                participation.getUser().getId(),
+                participation.getEvent().getId(),
+                participation.getStatusPaymentEventParticipation(),
+                participation.getCommunity(),
+                participation.getHasParticipated(),
+                participation.getUserFunctionInEvent(),
+                null
+        ));
     }
 
     public Page<UserInEventInfosResponse> getAllParticipationsByEventId(UUID eventId, Pageable pageable) {
@@ -308,16 +308,13 @@ public class UserEventService {
         return participations.map(part -> new UserInEventInfosResponse().toResponse(part, users.size()));
     }
 
-    public List<UserInEventWithEventInfosResponse> getAllUserParticipationByUserId(UUID userId) {
-        List<EventParticipation> participations = eventParticipationRepository.findAllByUser_Id(userId);
-        List<UserInEventWithEventInfosResponse> users = new ArrayList<>();
-        for (EventParticipation participation : participations) {
-            users.add(new UserInEventWithEventInfosResponse().toResponse(participation));
-        }
-        return users;
+    public Page<UserInEventWithEventInfosResponse> getAllUserParticipationByUserId(UUID userId, Pageable pageable) {
+        Page<EventParticipation> participations = eventParticipationRepository.findAllByUser_Id(userId, pageable);
+
+        return participations.map(p -> new UserInEventWithEventInfosResponse().toResponse(p));
     }
 
-    public EventParticipationResponse addFunctionUserInEvent(UUID userId,UUID eventId, UserFunctionInEvent function) {
+    public EventParticipationResponse addFunctionUserInEvent(UUID userId, UUID eventId, UserFunctionInEvent function) {
         EventParticipation eventParticipation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId,
                         eventId)
                 .orElseThrow(
@@ -345,22 +342,23 @@ public class UserEventService {
                 participation.getPaidDate());
     }
 
-    public List<UserEventStatus> getStatusPayementParticipationOfEvent(UUID eventId,
-                                                                       StatusPaymentEventParticipation status) {
-        List<EventParticipation> allByEventIdAndStatusPaymentEventParticipation =
-                this.eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
+    public Page<UserEventStatus> getStatusPayementParticipationOfEvent(UUID eventId,
+                                                                       StatusPaymentEventParticipation status,
+                                                                       Pageable pageable) {
+        Page<EventParticipation> allByEventIdAndStatusPaymentEventParticipation =
+                this.eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status
+                        , pageable);
 
         if (allByEventIdAndStatusPaymentEventParticipation.isEmpty()) {
             throw new EventIllegalArumentException("The list of status " + status + " is empty");
         }
 
-        return allByEventIdAndStatusPaymentEventParticipation.stream()
-                .map(participation -> new UserEventStatus(
-                        participation.getId(),
-                        UserEventStatusTypes.PARTICIPANTE,
-                        participation.getStatusPaymentEventParticipation(),
-                        participation.getPaidDate()
-                )).collect(Collectors.toList());
+        return allByEventIdAndStatusPaymentEventParticipation.map(participation -> new UserEventStatus(
+                participation.getId(),
+                UserEventStatusTypes.PARTICIPANTE,
+                participation.getStatusPaymentEventParticipation(),
+                participation.getPaidDate()
+        ));
     }
 
     public EventParticipation getUserParticipationInEventByUserId(UUID userId, UUID eventId) {

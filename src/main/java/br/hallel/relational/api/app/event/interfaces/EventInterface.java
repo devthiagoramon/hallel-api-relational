@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface EventInterface {
     EventResponse create(EventDTO eventDTO, MultipartFile fileImage, MultipartFile fileBanner
     );
 
-    Page<EventResponse> listAllEvents(int page, int size);
+    Page<EventResponse> listAllEvents(Pageable pageable);
 
     EventResponseWithMinistryAssociated getEventById(UUID id);
 
@@ -26,6 +27,6 @@ public interface EventInterface {
 
     List<EventResponse> listEventsByTitleOrderByAsc(int page, int size);
     List<EventResponse> listEventsByTitle(String title, int page, int size);
-    List<EventResponse> listEventsByDateExp(int page, int size);
+    Page<EventResponse> listEventsByDateExp(Pageable pageable);
 
 }

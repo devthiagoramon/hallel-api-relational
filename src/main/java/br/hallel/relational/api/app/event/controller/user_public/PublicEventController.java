@@ -3,11 +3,13 @@ package br.hallel.relational.api.app.event.controller.user_public;
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +29,21 @@ public class PublicEventController {
 
     // ** CONSULTAS DE EVENTOS **
     @GetMapping("/list-all")
+    @Operation(summary = "Listing all Events. Important and about to happen")
     public ResponseEntity<Page<EventResponse>> getAllEvents(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(this.eventService.listAllEvents(page, size));
+        return ResponseEntity.ok(this.eventService.listAllEvents(PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/list-all/happened")
+    @Operation(summary = "List all events that have already happened")
+    public ResponseEntity<Page<EventResponse>> getAllEventsAlredyHappened(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllEventsAlreadyHappened(PageRequest.of(page, size)));
     }
 
     @GetMapping("/retreat/list-all")
@@ -39,9 +51,18 @@ public class PublicEventController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(this.eventService.listAllRetreats(page, size));
+        return ResponseEntity.ok(this.eventService.listAllRetreats(PageRequest.of(page, size)));
     }
 
+    @GetMapping("/retreat/list-all/happened")
+    @Operation(summary = "List all retreats that have already happened")
+    public ResponseEntity<Page<EventResponse>> getAllRetreatsAlreadyHappened(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllRetreatsAlreadyHappened(PageRequest.of(page, size)));
+    }
+    
     @GetMapping("/list-upcoming")
     public ResponseEntity<Page<EventResponse>> getAllEventsUpcoming(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -80,14 +101,10 @@ public class PublicEventController {
     }
 
     @GetMapping("/list-all/date-exp")
-    public ResponseEntity<List<EventResponse>> getAllEventsByDateExp(
+    public ResponseEntity<Page<EventResponse>> getAllEventsByDateExp(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        List<EventResponse> events = eventService.listEventsByDateExp(page, size);
-        if (events.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(this.eventService.listEventsByDateExp(PageRequest.of(page, size)));
     }
 }

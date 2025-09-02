@@ -184,4 +184,20 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
+  @ExceptionHandler(EventListIsEmptyException.class)
+    public ResponseEntity<ExceptionResponse> handleEventListIsEmpty(EventListIsEmptyException exception, WebRequest request) {
+      Locale locale = LocaleContextHolder.getLocale();
+      String messageKey = exception.getMessage();
+
+      String localizedMessage = messageSource.getMessage(messageKey, new Object[]{}, locale);
+
+      ExceptionResponse response = new ExceptionResponse(
+              localizedMessage,
+              new Date(),
+              request.getDescription(false)
+      );
+
+      return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
 }

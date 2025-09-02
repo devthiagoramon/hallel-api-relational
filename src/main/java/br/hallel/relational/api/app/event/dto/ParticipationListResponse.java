@@ -1,8 +1,8 @@
 package br.hallel.relational.api.app.event.dto;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public record ParticipationListResponse(
-        List<EventParticipationResponse> participations,
+        Page<EventParticipationResponse> participations,
         int total
 ) {}

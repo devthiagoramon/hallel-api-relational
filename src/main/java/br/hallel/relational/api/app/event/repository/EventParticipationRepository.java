@@ -17,15 +17,24 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     boolean existsByUserAndEvent(User user, Event event);
 
     List<EventParticipation> findAllByEvent_Id(UUID eventId);
+
     Page<EventParticipation> findAllByEvent_Id(UUID eventId, Pageable pageable);
+
     List<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
                                                                                  StatusPaymentEventParticipation status);
 
+    Page<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
+                                                                                 StatusPaymentEventParticipation status,
+                                                                                 Pageable pageable);
+
     List<EventParticipation> findAllByUser_Id(UUID userId);
+
+    Page<EventParticipation> findAllByUser_Id(UUID userId, Pageable pageable);
 
     Optional<EventParticipation> findByUser_IdAndEvent_Id(UUID userId, UUID eventId);
 
     List<EventParticipation> findByStatusPaymentEventParticipation(StatusPaymentEventParticipation statusPaymentEventParticipation);
+
     Optional<EventParticipation> findByPixTxid(String pixTxid);
 
     UUID user(User user);

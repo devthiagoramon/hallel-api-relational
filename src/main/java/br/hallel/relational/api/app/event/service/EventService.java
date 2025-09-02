@@ -2,10 +2,7 @@ package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
-import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
-import br.hallel.relational.api.app.event.exception.EventNotFoundException;
-import br.hallel.relational.api.app.event.exception.EventTransactionEmptyListException;
-import br.hallel.relational.api.app.event.exception.EventTransactionNotFoundException;
+import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventRepository;
@@ -21,15 +18,15 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -118,19 +115,69 @@ public class EventService implements EventInterface {
     }
 
     @Override
-    public Page<EventResponse> listAllEvents(int page,
-                                             int size) {
+    public Page<EventResponse> listAllEvents(Pageable pageable) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-        log.info("Listing events...");
-        return eventsPagination.map(mapper::entityToResponse);
+        Page<Event> eventsPagination = this.repository.findAllByDateGreaterThanEqualOrderByDateAsc(LocalDateTime.now(),
+                pageable);
+        if (eventsPagination.isEmpty()) {
+
+            Page<Event> allByEventTypeOrderByTitleAsc = this.repository.findAllByOrderByTitleAsc(pageable);
+            if (allByEventTypeOrderByTitleAsc.isEmpty()) {
+                throw new EventListIsEmptyException("event.list.is.empty");
+            }
+            eventsPagination = allByEventTypeOrderByTitleAsc;
+
+        }
+
+        List<Event> importantEvents = eventsPagination.stream()
+                .filter(Event::getIsImportant)
+                .toList();
+
+        List<Event> otherEvents = eventsPagination.stream()
+                .filter(event -> !event.getIsImportant())
+                .toList();
+
+        List<Event> sortedEvents = new ArrayList<>(importantEvents);
+        sortedEvents.addAll(otherEvents);
+
+        List<EventResponse> sortedEventResponses = sortedEvents.stream()
+                .map(mapper::entityToResponse)
+                .toList();
+
+        log.info("Listing all events...");
+        return new PageImpl<>(sortedEventResponses, pageable, eventsPagination.getTotalElements());
     }
 
-    public Page<EventResponse> listAllRetreats(int page,
-                                               int size) {
+    public Page<EventResponse> listAllEventsAlreadyHappened(Pageable pageable) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPagination = this.repository.findAllByHasEnded(true, pageable);
+        if (eventsPagination.isEmpty()) {
+            throw new EventListIsEmptyException("event.list.is.empty");
+        }
+        List<EventResponse> sortedEventResponses = eventsPagination.stream()
+                .map(mapper::entityToResponse)
+                .sorted(Comparator.comparing(EventResponse::getTitle)).toList();
+
+        log.info("Listing all events...");
+        return new PageImpl<>(sortedEventResponses, pageable, eventsPagination.getTotalElements());
+    }
+
+    public Page<EventResponse> listAllRetreatsAlreadyHappened(Pageable pageable) {
+
+        Page<Event> eventsPagination = this.repository.findAllByHasEndedAndEventType(true, EventType.RETIRO, pageable);
+        if (eventsPagination.isEmpty()) {
+            throw new EventListIsEmptyException("event.list.is.empty");
+        }
+        List<EventResponse> sortedEventResponses = eventsPagination.stream()
+                .map(mapper::entityToResponse)
+                .sorted(Comparator.comparing(EventResponse::getTitle)).toList();
+
+        log.info("Listing all events...");
+        return new PageImpl<>(sortedEventResponses, pageable, eventsPagination.getTotalElements());
+    }
+
+    public Page<EventResponse> listAllRetreats(Pageable pageable) {
+
         Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO, pageable);
         log.info("Listing all retreats...");
         if (eventsPagination.isEmpty()) {
@@ -148,7 +195,7 @@ public class EventService implements EventInterface {
         List<MinistryResponse> ministriesAssociated = event.getScales().stream().map((scale) -> {
             Ministry ministry = scale.getMinistry();
             return ministryMapper.entityMinistryToResponse(ministry);
-        }).collect(Collectors.toList());
+        }).toList();
         EventResponseWithMinistryAssociated eventResponse = mapper.eventToResponseWithMinistryAssociated(event);
         eventResponse.setMinistries(ministriesAssociated);
         return eventResponse;
@@ -210,7 +257,7 @@ public class EventService implements EventInterface {
     @Override
     public Boolean deleteById(UUID id) {
         Event event = this.repository.findById(id)
-                .orElseThrow(() -> new EventNotFoundException("event.id.not.found",id.toString()));
+                .orElseThrow(() -> new EventNotFoundException("event.id.not.found", id.toString()));
         log.info("Image and banner deleted from bucket...");
         this.repository.deleteById(id);
 
@@ -238,8 +285,8 @@ public class EventService implements EventInterface {
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
-                        .map(event -> mapper.entityToResponse(event))
-                        .collect(Collectors.toList());
+                        .map(mapper::entityToResponse)
+                        .toList();
         log.info("Listing events Order by title ASC...", listResponse);
         return listResponse;
 
@@ -251,22 +298,20 @@ public class EventService implements EventInterface {
         List<Event> events = this.repository.findAllByTitleContainingIgnoreCaseOrderByTitleAsc(title, pageable);
 
         return events.stream()
-                .map(event -> mapper.entityToResponse(event))
-                .collect(Collectors.toList());
+                .map(mapper::entityToResponse)
+                .toList();
     }
 
     @Override
-    public List<EventResponse> listEventsByDateExp(int page,
-                                                   int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPagination = this.repository.findAllByOrderByDateAsc(pageable);
+    public Page<EventResponse> listEventsByDateExp(Pageable pageable) {
+        Page<Event> eventsPagination = this.repository.findAllByDateGreaterThanEqualOrderByDateAsc(LocalDateTime.now(),
+                pageable);
 
-        List<EventResponse> listResponse =
-                eventsPagination.stream()
-                        .map(event -> mapper.entityToResponse(event))
-                        .collect(Collectors.toList());
-        log.info("Listing events Order By Data expiration...", listResponse);
-        return listResponse;
+        if (eventsPagination.isEmpty()) {
+            throw new EventListIsEmptyException("event.list.is.empty");
+        }
+
+        return eventsPagination.map(mapper::entityToResponse);
 
     }
 
@@ -330,7 +375,7 @@ public class EventService implements EventInterface {
     public List<EventTransactionResponse> listAllTransactions() {
         return this.eventTransactionRepository.findAll().stream().map(
                 t -> new EventTransactionResponse().toResponse(t)
-        ).collect(Collectors.toList());
+        ).toList();
     }
 
     public EventTransactionResponse findTransactionById(UUID transactionId) {

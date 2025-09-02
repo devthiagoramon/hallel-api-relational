@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +20,7 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
     Page<Event> findAllByOrderByTitleAsc(Pageable pageable);
 
-    Page<Event> findAllByOrderByDateAsc(Pageable pageable);
+    Page<Event> findAllByDateGreaterThanEqualOrderByDateAsc(LocalDateTime date, Pageable pageable);
 
     List<Event> findAllByTitleContainingIgnoreCaseOrderByTitleAsc(String title, Pageable pageable);
 
@@ -51,4 +52,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findByDateBeforeAndHasEndedFalse(Date dateBefore);
 
     Page<Event> findAllByEventTypeOrderByTitleAsc(EventType eventType, Pageable pageable);
+
+    Page<Event> findAllByHasEndedAndEventType(Boolean hasEnded, EventType type,Pageable pageable);
+    Page<Event> findAllByHasEnded(Boolean hasEnded, Pageable pageable);
 }
