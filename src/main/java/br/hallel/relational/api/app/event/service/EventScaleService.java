@@ -135,9 +135,7 @@ public class EventScaleService implements ScaleInterface {
     @Override
     public EventScaleWithInfos getEventScaleWithInfos(UUID eventScaleId, UUID userId) {
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
-                () -> new EventScaleNotFoundException(
-                        "Can't find escala with id " + eventScaleId
-                )
+                () -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString())
         );
 
         List<MemberEventScale> membersInviteds =
@@ -286,7 +284,7 @@ public class EventScaleService implements ScaleInterface {
     public void deleteScale(UUID idScale) {
         log.info("Deleting escala ministerio {}...", idScale);
         EventScale eventScale = this.eventScaleRepository.findById(idScale)
-                .orElseThrow(() -> new EventScaleNotFoundException("Event scale not found"));
+                .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", idScale.toString()));
         this.eventScaleRepository.delete(eventScale);
 
     }
@@ -299,7 +297,7 @@ public class EventScaleService implements ScaleInterface {
 
         Optional<EventScale> optionalEventScale = this.eventScaleRepository.findById(eventScaleId);
         if (optionalEventScale.isEmpty()) {
-            throw new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found");
+            throw new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString());
         }
         if (escalaRepertorioDTO.getRepertoryIdsAdd() != null) {
             escalaRepertorioDTO.getRepertoryIdsAdd().forEach(repertoryId -> {
@@ -318,7 +316,7 @@ public class EventScaleService implements ScaleInterface {
         }
 
         EventScale eventScaleUpdated = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
-                () -> new EventScaleNotFoundException("Event scale with id " + eventScaleId + " not found"));
+                () -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString()));
         return new EventScaleWithRepertoriesResponse(eventScaleUpdated.getId(), eventScaleUpdated.getMinistry().getId(),
                 eventScaleUpdated.getRepertories());
     }
@@ -327,7 +325,7 @@ public class EventScaleService implements ScaleInterface {
     public EventScaleResponse getEventScaleById(UUID id) {
         EventScale eventScale =
                 this.eventScaleRepository.findById(id).orElseThrow(() ->
-                        new EventScaleNotFoundException("Not find event scale by id " + id));
+                        new EventScaleNotFoundException("event.scale.not.found", id.toString()));
 
         return this.scaleMapper.entityToResponse(eventScale);
     }
@@ -336,8 +334,7 @@ public class EventScaleService implements ScaleInterface {
     public EventByEventScaleResponse getEventByEventScaleId(UUID id) {
         Event event = this.eventScaleRepository.findEventByEventScaleId(id);
         if (event == null) {
-            throw new EventScaleNotFoundException("Not find event by id " + id +
-                    "maybe it's wrong ");
+            throw new EventScaleNotFoundException("event.scale.not.found", id.toString());
         }
         return new EventByEventScaleResponse().toEventByEventScaleResponse(event);
     }
@@ -371,7 +368,7 @@ public class EventScaleService implements ScaleInterface {
 //            int page, int size
     ) {
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId)
-                .orElseThrow(() -> new EventScaleNotFoundException("Not find event scale by id " + eventScaleId));
+                .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString()));
 
         UUID ministryId = eventScale.getMinistry().getId();
 

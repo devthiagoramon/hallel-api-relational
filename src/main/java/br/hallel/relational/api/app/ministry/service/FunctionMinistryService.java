@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.ministry.service;
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryDTO;
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.FunctionMinistryMapper;
-import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFound;
+import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,8 @@ public class FunctionMinistryService {
 
     public FunctionMinistry getMinistryById(UUID functionMinistryId) {
         log.info("Get ministry {}", functionMinistryId);
-        return functionMinistryRepository.listById(functionMinistryId).orElseThrow(() -> new FunctionMinistryNotFound("Function ministry not found by id %s".formatted(functionMinistryId.toString())));
+        return functionMinistryRepository.listById(functionMinistryId).orElseThrow(()
+                -> new FunctionMinistryNotFoundException("function.ministry.not.found", functionMinistryId.toString()));
     }
 
     public FunctionMinistryResponse editFunctionMinistryById(UUID functionMinistryId, FunctionMinistryDTO dto) {

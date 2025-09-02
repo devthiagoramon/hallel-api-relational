@@ -34,7 +34,4 @@ public class CoordinatorMinistryController {
         return ResponseEntity.ok(this.service.listAllEventScalesByMinistryId(idMinistry));
     }
 
-
-
-
 }

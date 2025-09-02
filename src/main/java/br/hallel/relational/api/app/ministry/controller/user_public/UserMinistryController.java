@@ -26,6 +26,7 @@ public class UserMinistryController {
     public ResponseEntity<StatusParticipationMinistry> getUserStatusParticipationMinistry(@PathVariable("ministryId")
                                                                                           UUID ministryId,
                                                                                           @PathVariable("memberMinistryId") UUID memberMinistryId) {
+
         return ResponseEntity.ok().body(this.ministryService.listStatusParticipationInMinistry(ministryId, memberMinistryId));
 
     }

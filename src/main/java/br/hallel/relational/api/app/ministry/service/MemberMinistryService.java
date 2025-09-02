@@ -6,18 +6,18 @@ import br.hallel.relational.api.app.ministry.dto.MemberMinistryResponseWithFunct
 import br.hallel.relational.api.app.ministry.dto.MinistryParticipationResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
+import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.RoleMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.*;
 import br.hallel.relational.api.app.user.dto.UserShortResponse;
+import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,15 +38,15 @@ public class MemberMinistryService {
 
     private final MinistryMapper mapper;
 
-    @Autowired
+
     private UserRepository userRepository;
-    @Autowired
+
     private MinistryRepository ministryRepository;
-    @Autowired
+
     private FCMSenderService fcmSenderService;
-    @Autowired
+
     private RoleMinistryRepository roleMinistryRepository;
-    @Autowired
+
     private MinistryMemberRoleRepository ministryMemberRoleRepository;
 
 
@@ -74,7 +74,7 @@ public class MemberMinistryService {
                     ));
 
             Ministry ministry = this.ministryRepository.findById(ministryId).orElseThrow(
-                    () -> new MinistryIllegalArgumentException("Member ministry not found")
+                    () -> new MinistryNotFoundException("ministry.id.not.found", ministryId.toString())
             );
 
             List<MemberMinistryResponseWithFunctions> dtos = membersMinistry.stream()
@@ -101,7 +101,7 @@ public class MemberMinistryService {
     public MemberMinistry getMemberMinistryById(UUID memberMinistryId) {
         Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findById(memberMinistryId);
         if (memberMinistryOptional.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
+            throw new MemberMinistryRegisterNotFoundException("member.ministry.not.found");
         }
         return memberMinistryOptional.get();
     }
@@ -110,7 +110,7 @@ public class MemberMinistryService {
         Optional<MemberMinistry> memberMinistryOptional = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
                 userId, ministryId);
         if (memberMinistryOptional.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException("Member ministry not found");
+            throw new MemberMinistryRegisterNotFoundException("member.ministry.not.found");
         }
         return memberMinistryOptional.get();
     }
@@ -122,10 +122,10 @@ public class MemberMinistryService {
         log.info("Adding member {} into ministry {}", userId, ministryId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("user.id.not.found", userId.toString()));
 
         Ministry ministry = ministryRepository.findById(ministryId)
-                .orElseThrow(() -> new RuntimeException("Ministry not found"));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", ministryId.toString()));
 
         List<RoleMinistry> rolesMinistryUser = new ArrayList<>(roleMinistryRepository.findAll().stream()
                 .filter((roleMinistry1 -> roleMinistry1.getDescription().equals("MEMBER"))).toList());
@@ -180,7 +180,7 @@ public class MemberMinistryService {
         log.info("Removing member {} from ministry {}", userId, ministryId);
         MemberMinistry memberMinistry = this.memberMinistryRepository.findMemberMinistryByUser_IdAndMinistry_Id(
                         userId, ministryId)
-                .orElseThrow(() -> new MemberMinistryRegisterNotFoundException("Member ministry not found"));
+                .orElseThrow(() -> new MemberMinistryRegisterNotFoundException("member.ministry.not.found"));
         memberMinistryRepository.delete(memberMinistry);
     }
 

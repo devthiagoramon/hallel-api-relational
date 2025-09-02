@@ -2,11 +2,11 @@ package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.event.dto.AuditionNotConfirmedResponse;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
-import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFound;
+import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.MemberAuditionMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberAuditionMinistryRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,8 +14,8 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MemberAuditionMinistryService {
-    @Autowired
     private MemberAuditionMinistryRepository repository;
 
     public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberMinistryId) {
@@ -32,7 +32,7 @@ public class MemberAuditionMinistryService {
 
         MemberAuditionMinistry memberAuditionMinistry =
                 this.repository.findStatusByAuditionMinistry_IdAndMemberMinistry_Id(auditionId, memberMinistryId).orElseThrow(
-                        () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
+                        () -> new MemberAuditionMinistryNotFoundException("member.audition.ministry not found")
                 );
 
         memberAuditionMinistry.setStatus(MemberEventScaleStatus.PARTICIPANDO);
@@ -53,7 +53,7 @@ public class MemberAuditionMinistryService {
 
         MemberAuditionMinistry memberAuditionMinistry =
                 this.repository.findStatusByAuditionMinistry_IdAndMemberMinistry_Id(requestDTO.auditionId(), requestDTO.memberMinistryId()).orElseThrow(
-                        () -> new MemberAuditionMinistryNotFound("Member in Audition not found")
+                        () -> new MemberAuditionMinistryNotFoundException("member.audition.ministry not found")
                 );
         memberAuditionMinistry.setStatus(MemberEventScaleStatus.RECUSADO);
         memberAuditionMinistry.setReason_abscence(requestDTO.reason_abscence());

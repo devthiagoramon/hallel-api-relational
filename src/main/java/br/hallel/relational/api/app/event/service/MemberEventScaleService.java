@@ -61,13 +61,12 @@ public class MemberEventScaleService {
 
         log.info("Inviting users {} into scale {}", memberMinistryIds, eventScaleId);
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
-                .orElseThrow(() -> new EventScaleNotFoundException(
-                        "Event scale with id %s not found".formatted(eventScaleId)));
+                .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString()));
         List<MemberMinistry> memberMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(eventScale.getMinistry().getId());
         if (memberMinistries.size() != memberMinistryIds.size()) {
             log.info("IDS SIZE: {}", memberMinistryIds.size());
             log.info("IDS MEMBERSS FOUND: {}", memberMinistries.size());
-            throw new UserNotFoundException("Um ou mais usuários não foram encontrados.");
+            throw new UserNotFoundException("user.not.found", "");
         }
         List<MemberEventScale> invitedMembers = new ArrayList<>();
         for (MemberMinistry memberMinistry : memberMinistries) {
@@ -114,7 +113,7 @@ public class MemberEventScaleService {
     public boolean viewInvite(UUID eventScaleId, UUID userId) {
 
         this.eventScaleRepository.findById(eventScaleId).orElseThrow(
-                () -> new EventScaleNotFoundException("Event scale with id %s not found".formatted(eventScaleId))
+                () -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString())
         );
 
         log.info("Viewing invite user {} into scale {}", userId, eventScaleId);
@@ -193,7 +192,7 @@ public class MemberEventScaleService {
                 MemberEventScaleStatus.RECUSADO, eventScaleId, userId
         );
         if (memberStatus == null) {
-            throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! " + userId);
+            throw new EventScaleNotFoundException("Not found member-not-confirmed with this id! ", userId.toString());
         }
         return new MemberNotConfirmedResponse(memberStatus.getId(), memberStatus.getMemberMinistry().getUser(), memberStatus.getEventScale().getId(),
                 memberStatus.getReason_absence());
@@ -324,7 +323,7 @@ public class MemberEventScaleService {
     public GuestInvitedEventScaleResponse createGuestInvitedEventScale(GuestInvitedEventScaleDTO dto) {
 
         EventScale eventScale = this.eventScaleRepository.findById(dto.eventScaleId()).orElseThrow(
-                () -> new EventScaleNotFoundException("Event scale with id " + dto.eventScaleId() + " not found!")
+                () -> new EventScaleNotFoundException("event.scale.not.found", dto.eventScaleId().toString())
         );
         InviteEventScale invite = null;
         if (dto.inviteEventScaleId() != null) {

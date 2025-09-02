@@ -46,7 +46,7 @@ public class ScaleChatMessageService {
                 .orElseThrow(() -> new ScaleChatParticipantNotFoundException(
                         "Participant not found by id %s".formatted(dto.memberChatSenderId())));
         EventScale eventScale = scaleRepository.findById(dto.eventScaleId()).orElseThrow(
-                () -> new EventScaleNotFoundException("Scale not found by id %s".formatted(dto.eventScaleId())));
+                () -> new EventScaleNotFoundException("event.scale.not.found", dto.eventScaleId().toString()));
         List<ScaleChatParticipant> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScale(
                 dto.eventScaleId()).stream().filter(part -> !part.getId().equals(dto.memberChatSenderId())).toList();
 
@@ -73,7 +73,7 @@ public class ScaleChatMessageService {
                 .orElseThrow(() -> new ScaleChatParticipantNotFoundException(
                         "Participant not found by id %s".formatted(dto.memberChatSenderId())));
         EventScale eventScale = scaleRepository.findById(dto.eventScaleId()).orElseThrow(
-                () -> new EventScaleNotFoundException("Scale not found by id %s".formatted(dto.eventScaleId())));
+                () -> new EventScaleNotFoundException("event.scale.not.found", dto.eventScaleId().toString()));
         List<ScaleChatParticipant> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScale(
                 dto.eventScaleId()).stream().filter(part -> !part.getId().equals(dto.memberChatSenderId())).toList();
 

@@ -1,10 +1,7 @@
 package br.hallel.relational.api.app.event.service;
 
 import br.hallel.relational.api.app.event.dto.*;
-import br.hallel.relational.api.app.event.exception.EventIllegalArumentException;
-import br.hallel.relational.api.app.event.exception.EventNotFoundException;
-import br.hallel.relational.api.app.event.exception.EventParticipationException;
-import br.hallel.relational.api.app.event.exception.PaymentRefundException;
+import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
@@ -46,10 +43,10 @@ public class UserEventService {
 
     public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + dto.getEventId() + " does not exist.")
+                () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
         User user = this.userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+                () -> new UserNotFoundException("user.not.found", userId.toString())
         );
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
@@ -85,7 +82,7 @@ public class UserEventService {
                 }
 
                 if (user.getCpf() == null || user.getCpf().isEmpty()) {
-                    throw new UserNotFoundException("User CPF is required to make the payment.");
+                    throw new UserValidationException("User CPF is required to make the payment.");
 
                 }
 
@@ -144,25 +141,21 @@ public class UserEventService {
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
         Event event = this.eventRepository.findById(eventId).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + eventId + " does not exist.")
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
 
         User user = this.userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+                () -> new UserNotFoundException("user.not.found", userId.toString())
         );
 
         boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
         if (!alreadyParticipating) {
             log.warn("Usuário ID {} não está participando do evento ID {}. Lançando exceção.", userId,
                     eventId);
-            throw new EventIllegalArumentException("User does not participate in the event.");
+            throw new EventParticipationException("participation.event.not.found");
         }
 
-        EventParticipation participation = this.eventParticipationRepository.
-                findByUser_IdAndEvent_Id(userId, eventId).orElseThrow(
-                        () -> new EventParticipationException("Not Found participation. Verify if he exists in the " +
-                                "event")
-                );
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId).get();
 
         if (participation.getPixTxid() == null) {
             throw new EventParticipationException("This user no have an pix to pay");
@@ -182,16 +175,16 @@ public class UserEventService {
 
     public boolean leaveTheEvent(UUID eventId, UUID userId) {
         this.eventRepository.findById(eventId).orElseThrow(
-                () -> new EventIllegalArumentException("Event with id " + eventId + " does not exist.")
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
         this.userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+                () -> new UserNotFoundException("user.not.found", userId.toString())
         );
 
 
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
-                .orElseThrow(() -> new EventIllegalArumentException(
-                        "Participation Event with id " + eventId + " does not exist."
+                .orElseThrow(() -> new EventParticipationException(
+                        "participation.event.not.found"
                 ));
 
 
@@ -227,11 +220,18 @@ public class UserEventService {
         return true;
     }
 
-    public EventParticipationResponse editParticipationEvent(UUID participationId, EventParticipationDTO dto) {
+    public EventParticipationResponse editParticipationEvent(UUID userId, EventParticipationDTO dto) {
 
-        EventParticipation participation = eventParticipationRepository.findById(participationId)
-                .orElseThrow(() -> new EventIllegalArumentException(
-                        "Participation with id " + participationId + " does not exist."
+        eventRepository.findById(dto.eventID()).orElseThrow(
+                () -> new EventNotFoundException("event.id.not.found", dto.eventID().toString())
+        );
+        userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("user.not.found", userId.toString())
+        );
+
+        EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, dto.eventID())
+                .orElseThrow(() -> new EventParticipationException(
+                        "participation.event.not.found"
                 ));
 
         if (dto.statusPaymentEventParticipation() != null) {
@@ -276,8 +276,8 @@ public class UserEventService {
 
     public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
-                .orElseThrow(() -> new EventIllegalArumentException(
-                        "Participation with id " + userId + " not found."));
+                .orElseThrow(() -> new EventParticipationException(
+                        "participation.event.not.found"));
 
         return new EventParticipationResponse().toEventParticipation(participation, null);
     }
@@ -317,11 +317,12 @@ public class UserEventService {
         return users;
     }
 
-    public EventParticipationResponse addFunctionUserInEvent(UUID eventParticipationID, UserFunctionInEvent function) {
-        EventParticipation eventParticipation = this.eventParticipationRepository.findById(eventParticipationID)
+    public EventParticipationResponse addFunctionUserInEvent(UUID userId,UUID eventId, UserFunctionInEvent function) {
+        EventParticipation eventParticipation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId,
+                        eventId)
                 .orElseThrow(
-                        () -> new EventIllegalArumentException(
-                                "Event with id " + eventParticipationID + " does not exist.")
+                        () -> new EventParticipationException(
+                                "event.id.not.found")
                 );
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
@@ -364,16 +365,16 @@ public class UserEventService {
 
     public EventParticipation getUserParticipationInEventByUserId(UUID userId, UUID eventId) {
         return eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
-                .orElseThrow(() -> new EventIllegalArumentException(
-                        "Event with id " + eventId + " or user with id " + userId + " does not exist."));
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
     }
 
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
         EventParticipation eventParticipation = new EventParticipation();
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User with id " + dto.getUserId() + " does not exist."));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", dto.getUserId().toString()));
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
-                () -> new EventNotFoundException("Event with id " + dto.getEventId() + " does not exist."));
+                () -> new EventNotFoundException("event.id.not.found",
+                        dto.getEventId().toString()));
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
@@ -387,13 +388,14 @@ public class UserEventService {
 
     public UserPaymentDetailResponse getUserPaymentDetail(UUID userId, UUID eventId) {
         Event event = this.eventRepository.findById(eventId).orElseThrow(
-                () -> new EventNotFoundException("Event with id " + eventId + " does not exist.")
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
         this.userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException("User with id " + userId + " does not exist.")
+                () -> new UserNotFoundException("user.not.found", userId.toString())
         );
+
         EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
-                .orElseThrow(() -> new EventParticipationException("User not found in the event."));
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
         double valuePaid = 0;
         String comprovant = "";
 

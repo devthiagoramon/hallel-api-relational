@@ -10,10 +10,7 @@ import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
-import br.hallel.relational.api.app.ministry.exception.MinistryListEmptyException;
-import br.hallel.relational.api.app.ministry.exception.RoleMinistryNotFoundException;
+import br.hallel.relational.api.app.ministry.exception.*;
 import br.hallel.relational.api.app.ministry.interfaces.MinistryInterface;
 import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
@@ -32,7 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,13 +77,10 @@ public class MinistryService implements MinistryInterface {
 
         User coordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
                 .orElseThrow(() -> new UserNotFoundException(
-                        "User to add as coordinator not found by id: %s".formatted(ministryRequestDTO.getCoordinatorId()
-                                .toString())));
+                        "User to add as coordinator not found by id: {0}", ministryRequestDTO.getCoordinatorId().toString()));
         User viceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
                 .orElseThrow(() -> new UserNotFoundException(
-                        "User to add as vice-coordinator not found by id: %s".formatted(
-                                ministryRequestDTO.getViceCoordinatorId()
-                                        .toString())));
+                        "User to add as vice-coordinator not found by id: %s", ministryRequestDTO.getCoordinatorId().toString()));
         ministryMapped.setCoordinator(coordinator);
         ministryMapped.setViceCoordinator(viceCoordinator);
         Ministry ministry =
@@ -140,7 +133,7 @@ public class MinistryService implements MinistryInterface {
                         .collect(Collectors.toList());
         if (responseList.isEmpty()) {
             throw new MinistryListEmptyException(
-                    "The ministry list is empty. You should create One");
+                    "ministry.list.is.empty");
         }
         log.info("Listing ministries...", responseList);
         return responseList;
@@ -151,7 +144,7 @@ public class MinistryService implements MinistryInterface {
         log.info("Getting ministry by id" + id);
 
         Ministry ministry = this.ministryRepository.findById(id)
-                .orElseThrow(() -> new MinistryIllegalArgumentException("Ministry Id: " + id + " not found!"));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", id.toString()));
 
         log.info("Ministry Response: " + ministry.getId());
 
@@ -164,7 +157,7 @@ public class MinistryService implements MinistryInterface {
                                          MultipartFile image) {
         log.info("Updating ministry: {}", id);
         Ministry ministry = ministryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ministério não encontrado"));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", id.toString()));
 
         ministry.setTitle(ministryRequestDTO.getTitle());
         ministry.setDescription(ministryRequestDTO.getDescription());
@@ -198,7 +191,8 @@ public class MinistryService implements MinistryInterface {
                             .toList().get(0));
 
             User newCoordinator = userRepository.findById(ministryRequestDTO.getCoordinatorId())
-                    .orElseThrow(() -> new RuntimeException("Coordenador não encontrado"));
+                    .orElseThrow(() -> new CoordinatorNotFoundException("coordinator.not.found",
+                            ministryRequestDTO.getCoordinatorId().toString()));
             ministry.setCoordinator(newCoordinator);
         }
 
@@ -211,7 +205,8 @@ public class MinistryService implements MinistryInterface {
                             .toList().get(0));
 
             User newViceCoordinator = userRepository.findById(ministryRequestDTO.getViceCoordinatorId())
-                    .orElseThrow(() -> new RuntimeException("Vice Coordenador não encontrado"));
+                    .orElseThrow(() -> new CoordinatorNotFoundException("vice.coordinator.not.found",
+                            ministryRequestDTO.getViceCoordinatorId().toString()));
             ministry.setViceCoordinator(newViceCoordinator);
         }
 
@@ -225,8 +220,7 @@ public class MinistryService implements MinistryInterface {
                 userId, ministryId);
 
         if (optionalMemberMinistry.isEmpty()) {
-            throw new MemberMinistryRegisterNotFoundException(
-                    "Member Ministry Id: " + userId + " not found as member ministry!");
+            throw new MemberMinistryRegisterNotFoundException("member.ministry.not.found");
         }
         MemberMinistry oldMinistryMember = optionalMemberMinistry.get();
         memberMinistryRepository.delete(oldMinistryMember);
@@ -235,10 +229,10 @@ public class MinistryService implements MinistryInterface {
     private void addCoordinatorToMemberMinistryTable(UUID userId, UUID ministryId, RoleMinistry coordinatorLevel) {
         log.info("Adding coordinator to member ministry table...");
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", userId.toString()));
 
         Ministry ministry = ministryRepository.findById(ministryId)
-                .orElseThrow(() -> new RuntimeException("Ministry not found with id: " + ministryId));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", ministryId.toString()));
 
         MemberMinistry memberMinistrySaved = memberMinistryRepository.save(new MemberMinistry(user, ministry));
 
@@ -247,7 +241,7 @@ public class MinistryService implements MinistryInterface {
 
         RoleMinistry roleMember = rolesMinistry.stream()
                 .filter(roleMinistry -> roleMinistry.getDescription().equals("MEMBER")).findFirst()
-                .orElseThrow(() -> new RoleMinistryNotFoundException("Role ministry not found"));
+                .orElseThrow(() -> new RoleMinistryNotFoundException("role.ministry.not.found"));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
                 new MinistryMemberRoleIds(memberMinistrySaved.getId(), coordinatorLevel.getId())));
         ministryMemberRoleRepository.save(new MinistryMemberRole(
@@ -313,8 +307,7 @@ public class MinistryService implements MinistryInterface {
 
     public StatusParticipationMinistry listStatusParticipationInMinistry(UUID ministryId, UUID userId) {
         Ministry ministry = this.ministryRepository.findById(ministryId)
-                .orElseThrow(() -> new MinistryIllegalArgumentException(
-                        "Ministry not found by id %s".formatted(ministryId)));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", ministryId.toString()));
 
         if (ministry.getCoordinator().getId().equals(userId)) {
             return StatusParticipationMinistry.COORDINATOR;

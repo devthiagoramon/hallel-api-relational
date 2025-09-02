@@ -8,10 +8,7 @@ import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatInfoResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantUserResponse;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
-import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
-import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatParticipantRepository;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.transaction.Transactional;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,7 +33,7 @@ public class ScaleChatParticipantService {
     public List<ScaleChatParticipant> createScaleChat(UUID scaleId) {
         log.info("Creating scale chat of scale {}", scaleId);
         EventScale eventScale = eventScaleRepository.findById(scaleId)
-                .orElseThrow(() -> new EventScaleNotFoundException("Event scale not found by %s".formatted(scaleId)));
+                .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", scaleId.toString()));
         List<MemberEventScale> membersScale = memberEventScaleRepository.findAllByEventScale_Id(scaleId);
         List<ScaleChatParticipant> response = new ArrayList<>();
         for (MemberEventScale memberEventScale : membersScale) {

@@ -1,7 +1,12 @@
 package br.hallel.relational.api.app.ministry.exception;
 
+import lombok.Getter;
+
+@Getter
 public class RepertoryNotFoundException extends RuntimeException {
-    public RepertoryNotFoundException(String message) {
+    private final String id;
+    public RepertoryNotFoundException(String message, String id) {
         super(message);
+        this.id = id;
     }
 }

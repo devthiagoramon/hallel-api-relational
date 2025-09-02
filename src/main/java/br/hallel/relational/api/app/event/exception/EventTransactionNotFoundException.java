@@ -1,7 +1,12 @@
 package br.hallel.relational.api.app.event.exception;
 
+import lombok.Getter;
+
+@Getter
 public class EventTransactionNotFoundException extends RuntimeException {
-    public EventTransactionNotFoundException(String message) {
+    private final String id;
+    public EventTransactionNotFoundException(String message, String id) {
         super(message);
+        this.id = id;
     }
 }

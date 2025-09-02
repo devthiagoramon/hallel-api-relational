@@ -36,7 +36,7 @@ public class UserDeviceNotificationService {
                                                                         DeviceNotificationDTO deviceNotificationDTO) {
         log.info("Saving user {} device for push notification", userId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found by id %s".formatted(userId)));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", userId.toString()));
         if (user.getPushNotification() == false) user.setPushNotification(true);
         if (user.getLgpdConsent() == false) user.setLgpdConsent(true);
         if (user.getLgpdConsentDate() == null) user.setLgpdConsentDate(new Date());
@@ -78,8 +78,8 @@ public class UserDeviceNotificationService {
                 deviceNotificationId);
         UserDeviceNotification userDeviceNotification = usersDevicesByDeviceNotificationId.get(0);
         User user = userRepository.findById(userDeviceNotification.getUserDeviceNotificationId().getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found by id %s".formatted(
-                        userDeviceNotification.getUserDeviceNotificationId().getUserId())));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found",
+                        userDeviceNotification.getUserDeviceNotificationId().getUserId().toString()));
         user.setPushNotification(false);
         userRepository.save(user);
         userDeviceNotificationRepository.delete(userDeviceNotification);

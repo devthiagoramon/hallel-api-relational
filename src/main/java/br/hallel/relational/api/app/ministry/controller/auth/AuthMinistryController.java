@@ -37,7 +37,7 @@ public class AuthMinistryController {
             UUID ministryId,
             @RequestParam(name = "userId") UUID userId) {
         if (!(ministryService.validateCoordinatorOfMinistry(ministryId, userId))){
-            throw new CoordinatorNotFoundException("Can't find coordinator of ministry %s by id %s".formatted(ministryId, userId));
+            throw new CoordinatorNotFoundException("coordinator not found for this ministry", userId.toString());
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(tokenCoordinatorMinistry.createAccessToken(userId, ministryId));

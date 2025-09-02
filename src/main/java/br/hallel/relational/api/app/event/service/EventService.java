@@ -134,7 +134,7 @@ public class EventService implements EventInterface {
         Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO, pageable);
         log.info("Listing all retreats...");
         if (eventsPagination.isEmpty()) {
-            throw new EventIllegalArumentException("No Retreats created. Maybe you need create onde");
+            throw new EventIllegalArumentException("Nenhum retiro encontrado! Talvez você não tenha criado nenhum ainda...");
         }
 
         return eventsPagination.map(mapper::entityToResponse);
@@ -144,7 +144,7 @@ public class EventService implements EventInterface {
     public EventResponseWithMinistryAssociated getEventById(UUID id) {
         log.info("Getting event by id {}", id);
         Event event = this.repository.listByIdWithMinistryResponse(id)
-                .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
+                .orElseThrow(() -> new EventNotFoundException("event.id.not.found", id.toString()));
         List<MinistryResponse> ministriesAssociated = event.getScales().stream().map((scale) -> {
             Ministry ministry = scale.getMinistry();
             return ministryMapper.entityMinistryToResponse(ministry);
@@ -210,7 +210,7 @@ public class EventService implements EventInterface {
     @Override
     public Boolean deleteById(UUID id) {
         Event event = this.repository.findById(id)
-                .orElseThrow(() -> new EventIllegalArumentException("Event id %s not found".formatted(id.toString())));
+                .orElseThrow(() -> new EventNotFoundException("event.id.not.found",id.toString()));
         log.info("Image and banner deleted from bucket...");
         this.repository.deleteById(id);
 
@@ -224,7 +224,7 @@ public class EventService implements EventInterface {
         log.info("Listing evento in escala info by id {}", id);
         Optional<EventShortResponse> optional = this.repository.findByIdShort(id);
         if (optional.isEmpty()) {
-            throw new EventIllegalArumentException("Can't find event by this id");
+            throw new EventNotFoundException("event.id.not.found", id.toString());
         }
 
         return optional.get();
@@ -282,7 +282,7 @@ public class EventService implements EventInterface {
 
     public EventTransactionResponse addTransaction(EventTransactionDTO dto) {
         Event event = this.repository.findById(dto.eventID()).orElseThrow(
-                () -> new EventNotFoundException("Event id %s not found".formatted(dto.eventID()))
+                () -> new EventNotFoundException("event.id.not.found", dto.eventID().toString())
         );
 
         EventTransaction eventTransaction = new EventTransaction();
@@ -297,7 +297,7 @@ public class EventService implements EventInterface {
 
     public List<EventTransactionResponse> listAllTransactionsByEvent(UUID eventId) {
         this.repository.findById(eventId).orElseThrow(
-                () -> new EventNotFoundException("Event id %s not found".formatted(eventId))
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
 
         List<EventTransactionResponse> list = eventTransactionRepository.findByEventId(eventId)
@@ -306,7 +306,7 @@ public class EventService implements EventInterface {
                 .toList();
 
         if (list.isEmpty()) {
-            throw new EventIllegalArumentException("Can't find event transaction by this id " + eventId);
+            throw new EventTransactionEmptyListException("event.transaction.list.is.empty", eventId.toString());
         }
 
         return list;
@@ -322,7 +322,7 @@ public class EventService implements EventInterface {
     public EventTransactionResponse getTransactionById(UUID transactionId) {
         return new EventTransactionResponse().toResponse(
                 eventTransactionRepository.findById(transactionId).orElseThrow(
-                        () -> new EventNotFoundException("Transaction id %s not found".formatted(transactionId.toString()))
+                        () -> new EventTransactionNotFoundException("event.transaction.not.found", transactionId.toString())
                 )
         );
     }
@@ -335,15 +335,13 @@ public class EventService implements EventInterface {
 
     public EventTransactionResponse findTransactionById(UUID transactionId) {
         EventTransaction transaction = eventTransactionRepository.findById(transactionId).orElseThrow(
-                () -> new EventTransactionNotFoundException(
-                        "Transaction id %s not found".formatted(transactionId.toString()))
-        );
+                () -> new EventTransactionNotFoundException("event.transaction.not.found", transactionId.toString()));
         return new EventTransactionResponse().toResponse(transaction);
     }
 
     public EventTransactionResponse updateTransaction(UUID id, EventTransactionDTO dto) {
         EventTransaction transaction = eventTransactionRepository.findById(id)
-                .orElseThrow(() -> new EventTransactionNotFoundException("Transaction not found"));
+                .orElseThrow(() -> new EventTransactionNotFoundException("event.transaction.not.found", id.toString()));
 
         transaction.setDesciption(dto.desciption());
         transaction.setTransactionType(dto.transactionType());
@@ -356,20 +354,20 @@ public class EventService implements EventInterface {
 
     public void deleteTransaction(UUID id) {
         if (!eventTransactionRepository.existsById(id)) {
-            throw new EventTransactionNotFoundException("Transaction not found");
+            throw new EventTransactionNotFoundException("event.transaction.not.found", id.toString());
         }
         eventTransactionRepository.deleteById(id);
     }
 
     public EventBalanceResponse getBalance(UUID eventId) {
         Event event = this.repository.findById(eventId).orElseThrow(
-                () -> new EventNotFoundException("Event id %s not found".formatted(eventId.toString()))
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
 
         List<EventTransaction> transactions = this.eventTransactionRepository.findAllByEvent_Id(eventId);
 
         if (transactions.isEmpty()) {
-            throw new EventTransactionEmptyListException("The list in event id %s is Empty".formatted(eventId.toString()));
+            throw new EventTransactionEmptyListException("event.transaction.list.is.empty", eventId.toString());
         }
 
         double inputAmount = transactions.stream()

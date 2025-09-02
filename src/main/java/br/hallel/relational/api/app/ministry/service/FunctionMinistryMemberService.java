@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.ministry.dto.FunctionMinistryMemberResponse;
-import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFound;
+import br.hallel.relational.api.app.ministry.exception.FunctionMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.FunctionMinistry;
 import br.hallel.relational.api.app.ministry.model.FunctionMinistryMember;
@@ -10,8 +10,6 @@ import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryMemberRepository;
 import br.hallel.relational.api.app.ministry.repository.FunctionMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
-import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
-import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +35,7 @@ public class FunctionMinistryMemberService {
         MemberMinistry memberMinistry = memberMinistryRepository.findById(memberMinistryId)
                                   .orElseThrow(() -> new MemberMinistryRegisterNotFoundException("Member ministry not found by id %s".formatted(memberMinistryId)));
         FunctionMinistry functionMinistry = functionMinistryRepository.findById(functionMinistryId)
-                                                                      .orElseThrow(() -> new FunctionMinistryNotFound("Can't find function ministry id %s".formatted(functionMinistryId.toString())));
+                                                                      .orElseThrow(() -> new FunctionMinistryNotFoundException("function.ministry.not.found", functionMinistryId.toString()));
         FunctionMinistryMember save = functionMinistryMemberRepository.save(new FunctionMinistryMember(new FunctionMinistryMemberId(memberMinistryId, functionMinistryId), memberMinistry, functionMinistry));
 
         return new FunctionMinistryMemberResponse(save.getId());

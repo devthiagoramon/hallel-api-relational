@@ -10,17 +10,15 @@ import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.AuditionMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFound;
+import br.hallel.relational.api.app.ministry.exception.AuditionListIsEmptyException;
+import br.hallel.relational.api.app.ministry.exception.MemberAuditionMinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
 import br.hallel.relational.api.app.ministry.model.AuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberAuditionMinistry;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.repository.AuditionRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberAuditionMinistryRepository;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
-import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
-import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -83,8 +81,7 @@ public class AuditionService {
                             findMemberMinistryByUser_IdAndMinistry_Id(memberAuditionId, auditionDTO.getMinistry());
             if (memberMinistry.isEmpty()) {
                 throw new
-                        MemberMinistryRegisterNotFoundException
-                        ("Member ministry not registred wih id %s".formatted(memberAuditionId));
+                        MemberMinistryRegisterNotFoundException("member.ministry.not.found");
             }
             this.memberAuditionMinistryRepository.save(
                     new MemberAuditionMinistry(
@@ -107,7 +104,7 @@ public class AuditionService {
     @Transactional
     public void deleteAuditionById(UUID id) {
         AuditionMinistry entity = repository.findById(id)
-                .orElseThrow(() -> new MemberAuditionMinistryNotFound("Audition not found"));
+                .orElseThrow(() -> new MemberAuditionMinistryNotFoundException("Audition not found"));
 
         this.memberAuditionMinistryRepository.deleteAllByAuditionMinistryId(id);
         this.repository.delete(entity);
@@ -136,7 +133,7 @@ public class AuditionService {
     public List<AuditionResponse> listAllAuditionsByMinistryId(UUID ministryId) {
         List<AuditionMinistry> allByMinistryId = this.repository.findAllByMinistry_Id(ministryId);
         if (allByMinistryId.isEmpty()) {
-            throw new MinistryIllegalArgumentException("Auditions in Ministry id is empty");
+            throw new AuditionListIsEmptyException("audition.list.is.empty");
         }
 
         for (AuditionMinistry auditionMinistry : allByMinistryId) {
@@ -149,7 +146,7 @@ public class AuditionService {
     public AuditionResponse getAuditionByMinistryId(UUID ministryId) {
         AuditionMinistry ministryRes = this.repository.findByMinistry_Id(ministryId);
         if (ministryRes == null) {
-            throw new MinistryIllegalArgumentException("Auditions in Ministry id is empty");
+            throw new AuditionListIsEmptyException("audition.list.is.empty");
         }
         return this.auditionMapper.entityToResponse(ministryRes);
     }

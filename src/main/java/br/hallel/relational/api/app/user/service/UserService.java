@@ -109,7 +109,7 @@ public class UserService implements UserInterface {
     @Override
     public User getUserById(UUID idUser) {
         return this.userRepository.findById(idUser)
-                .orElseThrow(() -> new UserNotFoundException("User not find by id: " + idUser));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", idUser.toString()));
     }
 
     @Override
@@ -207,7 +207,8 @@ public class UserService implements UserInterface {
     public UserProfileResponse getUserProfileByToken(String token) {
         log.info("Get User Profile By Token {}...", token);
         User user = this.userRepository.findByToken(token)
-                .orElseThrow(() -> new UserNotFoundException("User not find by token: " + token));
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado pelo token: {0}",
+                        token.toString()));
         return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
                 user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, null);
     }
@@ -216,7 +217,7 @@ public class UserService implements UserInterface {
 
         User user =
                 this.userRepository.findById(idUser).orElseThrow(() ->
-                        new UserNotFoundException("User not find by id: " + idUser));
+                        new UserNotFoundException("user.not.found", idUser.toString()));
 
         if (cpf == null || cpf.isEmpty()) {
             throw new IllegalArgumentException("CPF cannot be null or empty");
@@ -232,9 +233,10 @@ public class UserService implements UserInterface {
     public void registerLastActivity(String email, String token) {
         User user = (email != null)
                 ? userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found by email: " + email))
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.email",
+                        email.toString()))
                 : userRepository.findByToken(token)
-                .orElseThrow(() -> new UserNotFoundException("User not found by token: " + token));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.token", token.toString()));
 
         LocalDateTime lastAccess = lastAcessLogRepository.findLastAccessDateByUser(user);
 

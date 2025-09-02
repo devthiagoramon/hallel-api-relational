@@ -57,7 +57,7 @@ public class MusicService implements MusicInterface {
     public MusicResponse getMusicById(UUID id) {
         Optional<MusicMinistry> musicOptional = this.respository.findById(id);
         if (musicOptional.isEmpty()) {
-            throw new RepertoryNotFoundException("Music Id: " + id + " not found");
+            throw new RepertoryNotFoundException("music.not.found", id.toString());
         }
         return repertoryMapper.musicEntityToResponse(musicOptional.get());
     }
@@ -83,7 +83,7 @@ public class MusicService implements MusicInterface {
         log.info("Editing music ... {}", musicMinistryId);
         Optional<MusicMinistry> musicOptional = this.respository.findById(musicMinistryId);
         if (musicOptional.isEmpty()) {
-            throw new RepertoryNotFoundException("Music Id: " + musicMinistryId + " not found");
+            throw new RepertoryNotFoundException("music.not.found", musicMinistryId.toString());
         }
 
         MusicMinistry music = musicOptional.get();

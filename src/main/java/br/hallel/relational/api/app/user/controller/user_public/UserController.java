@@ -78,6 +78,7 @@ public class UserController {
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam (name = "cpf") String cpf
     ){
+        System.out.println(tokenService.getUserId(authorizationHeader).toString());
         return ResponseEntity.ok(this.userService.editCPF(
                 tokenService.getUserId(authorizationHeader), cpf));
     }

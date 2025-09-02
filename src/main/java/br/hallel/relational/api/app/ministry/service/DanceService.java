@@ -55,7 +55,7 @@ public class DanceService implements DanceInterface {
     public DanceResponse getDanceById(UUID id) {
         Optional<DanceMinistry> danceOptional = this.repository.findById(id);
         if (danceOptional.isEmpty()) {
-            throw new RepertoryNotFoundException("Dance Id: " + id + " not found!");
+            throw new RepertoryNotFoundException("dance.not.found", id.toString());
         }
         return mapper.danceEntityToResponse(danceOptional.get());
     }
@@ -74,14 +74,15 @@ public class DanceService implements DanceInterface {
         return mapper.toListDanceResponse(this.repository.findAll());
     }
 
-    public Page<DanceResponseShort> listDancesOfMinistry(UUID ministryId, Pageable pageable){
+    public Page<DanceResponseShort> listDancesOfMinistry(UUID ministryId, Pageable pageable) {
         log.info("Listing dances of ministry of {}", ministryId);
         return this.repository.listAllDanceOfMinistry(ministryId, pageable);
     }
 
     public DanceResponseShort editDance(UUID danceId, DanceAddEditDTO dance) {
         log.info("Updating dance... {}", danceId);
-        DanceMinistry danceModel = this.repository.findById(danceId).orElseThrow(() -> new RepertoryNotFoundException("Dance Id: " + danceId + " not found!"));
+        DanceMinistry danceModel = this.repository.findById(danceId).orElseThrow(()
+                -> new RepertoryNotFoundException("dance.not.found", danceId.toString()));
         log.info("Updating dance ministry id... {}", danceModel.getMinistry().getId());
         danceModel.setName(dance.getName());
         danceModel.setDescription(dance.getDescription());

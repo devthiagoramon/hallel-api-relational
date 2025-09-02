@@ -8,6 +8,7 @@ import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
 
+import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,13 +30,16 @@ import java.util.UUID;
 public class AdminEventParticipationController {
 
     private final UserEventService userEventService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "Edit User Function participation")
-    @PatchMapping("/edit-function/{participationId}")
+    @PatchMapping("/edit-function/{eventId}")
     public ResponseEntity<EventParticipationResponse> editUserFunction(
-            @PathVariable UUID participationId,
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable(name = "eventId") UUID eventId,
             @Valid @RequestParam UserFunctionInEvent userFunctionInEvent) {
-        EventParticipationResponse response = userEventService.addFunctionUserInEvent(participationId,
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        EventParticipationResponse response = userEventService.addFunctionUserInEvent(userId, eventId,
                 userFunctionInEvent);
         return ResponseEntity.ok(response);
     }
@@ -43,9 +47,10 @@ public class AdminEventParticipationController {
     @Operation(summary = "Edit event participation")
     @PutMapping("/edit/{participationId}")
     public ResponseEntity<EventParticipationResponse> editParticipation(
-            @PathVariable UUID participationId,
+            @RequestHeader("Authorization") String authorizationHeader,
             @Valid @RequestBody EventParticipationDTO dto) {
-        EventParticipationResponse response = userEventService.editParticipationEvent(participationId, dto);
+        EventParticipationResponse response = userEventService.editParticipationEvent(
+                jwtTokenProvider.getUserId(authorizationHeader), dto);
         return ResponseEntity.ok(response);
     }
 
@@ -63,7 +68,6 @@ public class AdminEventParticipationController {
     public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto) {
         return ResponseEntity.ok(userEventService.addParticipateAsAdminService(dto));
     }
-
 
 
 }

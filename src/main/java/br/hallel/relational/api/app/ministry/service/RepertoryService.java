@@ -1,54 +1,41 @@
 package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
-
 import br.hallel.relational.api.app.ministry.dto.*;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.ListRepertoryEmptyException;
-import br.hallel.relational.api.app.ministry.exception.MinistryIllegalArgumentException;
+import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.exception.RepertoryNotFoundException;
 import br.hallel.relational.api.app.ministry.interfaces.RepertoryInterface;
 import br.hallel.relational.api.app.ministry.model.*;
-import br.hallel.relational.api.app.ministry.repository.*;
+import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.RepertoryDanceMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.RepertoryMusicMinistryRepository;
+import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
-
+@RequiredArgsConstructor
 public class RepertoryService implements RepertoryInterface {
 
-    @Autowired
     private RepertoryRepository repository;
-    @Autowired
     private EventScaleRepository scaleRepository;
-    @Autowired
     private MinistryService ministryService;
-    @Autowired
-    private DanceRepository danceRepository;
-    @Autowired
-    private MusicRespository musicRespository;
-    @Autowired
     private MinistryRepository ministryRepository;
-
-    @Autowired
     private RepertoryDanceMinistryRepository repertoryDanceMinistryRepository;
-
-    @Autowired
     private RepertoryMusicMinistryRepository repertoryMusicMinistryRepository;
 
     private final RepertoryMapper mapper;
     private final MinistryMapper ministryMapper;
-
-    public RepertoryService(RepertoryMapper repertoryMapper, MinistryMapper ministryMapper) {
-        this.mapper = repertoryMapper;
-        this.ministryMapper = ministryMapper;
-    }
 
     @Override
     public RepertoryResponse createRepertory(RepertoryRequestDTO dto) {
@@ -57,7 +44,7 @@ public class RepertoryService implements RepertoryInterface {
         RepertoryMinistry repertorioModel = new RepertoryMinistry();
 
         Ministry ministry = ministryRepository.findById(dto.getMinistryId())
-                .orElseThrow(() -> new MinistryIllegalArgumentException("Ministry not found"));
+                .orElseThrow(() -> new MinistryNotFoundException("ministry.id.not.found", dto.getMinistryId().toString()));
 
 
         repertorioModel.setMinistry(ministry);
@@ -98,7 +85,7 @@ public class RepertoryService implements RepertoryInterface {
         Optional<RepertoryMinistry> repertoryOptional = this.repository.findById(id);
 
         if (repertoryOptional.isEmpty()) {
-            throw new RepertoryNotFoundException("Repertory Id: " + id + " not found!");
+            throw new RepertoryNotFoundException("repertory.id.not.found", id.toString());
         }
         return mapper.entityToResponse(repertoryOptional.get());
     }
@@ -108,7 +95,7 @@ public class RepertoryService implements RepertoryInterface {
         Optional<RepertoryMinistry> repertoryOptional = this.repository.findById(id);
 
         if (repertoryOptional.isEmpty()) {
-            throw new RepertoryNotFoundException("Repertory Id: " + id + " not found!");
+            throw new RepertoryNotFoundException("repertory.not.found", id.toString());
         }
         RepertoryMinistry response = repertoryOptional.get();
         return new RepertoryShortResponse(
@@ -122,7 +109,7 @@ public class RepertoryService implements RepertoryInterface {
         List<RepertoryMinistry> repertoryList = this.repository.findAll();
 
         if (repertoryList.isEmpty()) {
-            throw new ListRepertoryEmptyException("No repertories found! Maybe you need to create one!");
+            throw new ListRepertoryEmptyException("repertory.list.empty");
         }
         List<RepertoryResponse> response = new ArrayList<>();
         for (RepertoryMinistry item : repertoryList) {
@@ -137,7 +124,7 @@ public class RepertoryService implements RepertoryInterface {
     public List<RepertoryShortResponse> listAllRepertoryByMinistryId(UUID ministryId) {
         List<RepertoryMinistry> allByMinistryId = this.repository.findAllByMinistry_Id(ministryId);
         if (allByMinistryId.isEmpty()) {
-            throw new ListRepertoryEmptyException("No repertories found! Maybe you need to create one!");
+            throw new ListRepertoryEmptyException("repertory.list.empty");
         }
         List<RepertoryShortResponse> response = new ArrayList<>();
         for (RepertoryMinistry item : allByMinistryId) {
@@ -229,7 +216,7 @@ public class RepertoryService implements RepertoryInterface {
         }
 
         RepertoryMinistry repertoryUpdated = this.repository.findById(repertoryMinistry.getId())
-                .orElseThrow(() -> new RepertoryNotFoundException("Repertory not found!"));
+                .orElseThrow(() -> new RepertoryNotFoundException("repertory.id.not.found", idRepertory.toString()));
         return mapper.entityToResponse(repertoryUpdated);
     }
 
@@ -252,7 +239,7 @@ public class RepertoryService implements RepertoryInterface {
         }
 
         RepertoryMinistry repertoryUpdated = this.repository.findById(repertoryMinistry.getId())
-                .orElseThrow(() -> new RepertoryNotFoundException("Repertory not found!"));
+                .orElseThrow(() -> new RepertoryNotFoundException("repertory.id.not.found", idRepertory.toString()));
         return mapper.entityToResponse(repertoryUpdated);
     }
 
@@ -267,8 +254,7 @@ public class RepertoryService implements RepertoryInterface {
     public List<MusicResponse> listMusicsByRepertoryId(UUID repertoryId) {
         List<MusicMinistry> response = this.repository.findAllMusicByRepertoryId(repertoryId);
         if (response.isEmpty()) {
-            throw new ListRepertoryEmptyException(
-                    "List is empty! Maybe you need to add one music in repertory by id " + repertoryId + " !");
+            throw new ListRepertoryEmptyException("repertory.list.empty");
         }
         return mapper.toListMusicResponse(response);
     }
@@ -277,8 +263,7 @@ public class RepertoryService implements RepertoryInterface {
     public List<DanceResponse> listDancesByRepertoryId(UUID repertoryId) {
         List<DanceMinistry> response = this.repository.findAllDancesByRepertoryId(repertoryId);
         if (response.isEmpty()) {
-            throw new ListRepertoryEmptyException(
-                    "List is empty! Maybe you need to add one dance in repertory by id " + repertoryId + " !");
+            throw new ListRepertoryEmptyException("repertory.list.empty");
         }
         return mapper.toListDanceResponse(response);
     }
