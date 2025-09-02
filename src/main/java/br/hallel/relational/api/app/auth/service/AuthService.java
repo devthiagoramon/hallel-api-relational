@@ -18,12 +18,14 @@ import br.hallel.relational.api.app.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -150,13 +152,36 @@ public class AuthService {
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
             String url = String.format("https://4c3c114eb3ba.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
 
-            log.info("https://ce9b18708ccf.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+            log.info("{}/auth/validate-admin-access-web/{}?token={}", getNgrokUrl(), code, tokenAdmin);
 
 //            emailService.sendMail(user.getEmail(), "Url para validação!", "Url para verificação de token do Adm: "+url);
             return new TokenAdminResponse(tokenAdmin, code);
         }
         return null;
     }
+
+    private String getNgrokUrl() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.setRequestFactory(new SimpleClientHttpRequestFactory());
+
+            String response = restTemplate.getForObject("http://localhost:4040/api/tunnels", String.class);
+
+            if (response != null) {
+                // Parse simples para pegar a URL HTTPS
+                String[] parts = response.split("\"public_url\":\"https://");
+                if (parts.length > 1) {
+                    String url = "https://" + parts[1].split("\"")[0];
+                    return url;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️  Ngrok não detectado na porta 4040");
+        }
+        return null;
+    }
+
+
 
     public Boolean validateTokenAdminWeb(String tokenAdmin, String code) {
         log.info("Validating if admin token and code is valid...");
