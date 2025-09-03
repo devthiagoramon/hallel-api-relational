@@ -16,6 +16,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import java.util.UUID;
 
 @Slf4j
@@ -70,6 +71,13 @@ public class MercadoPagoClient {
         return payment;
     }
 
+    public String getPaymentQRCode(long paymentId) throws MPException, MPApiException {
+        PaymentClient client = new PaymentClient();
+        Payment payment = client.get(paymentId);
+
+        return payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+    }
+
     public Payment getPaymentStatus(long paymentId) throws MPException, MPApiException {
         log.info("Buscando status do pagamento Pix com ID: {}", paymentId);
         PaymentClient client = new PaymentClient();
@@ -98,6 +106,7 @@ public class MercadoPagoClient {
         log.warn("Comprovante não encontrado ou pagamento não aprovado para o ID: {}", paymentId);
         return null;
     }
+
     public boolean requestRefund(Long paymentId, Double amount) throws PaymentRefundException {
         log.info("Attempting to refund paymentId: {} for amount R${}", paymentId, amount);
 

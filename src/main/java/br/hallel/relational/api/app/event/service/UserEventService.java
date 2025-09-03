@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -132,6 +134,7 @@ public class UserEventService {
             }
         } else {
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+            eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
         }
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
@@ -167,6 +170,16 @@ public class UserEventService {
         }
 
         byte[] pixTxidBytes = participation.getPixTxid().getBytes();
+        try {
+            String qrCode = mercadoPagoClient.getPaymentQRCode(participation.getMercadoPagoPaymentId());
+
+            template.convertAndSend("/topic/payments/" + user.getId(),
+                    new PaymentStatusDTO(qrCode, participation.getPixTxid(),
+                            StatusPaymentEventParticipation.PENDENTE));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+
 
         return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes),
                 participation.getPixTxid(),

@@ -150,7 +150,8 @@ public class AuthService {
             User user = this.userRepository.findByToken(token)
                     .orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
-            String url = String.format("https://4c3c114eb3ba.ngrok-free.app/auth/validate-admin-access-web/{}?token={}", code, tokenAdmin);
+            String url = String.format("{}/auth/validate-admin-access-web/{}?token={}", getNgrokUrl(), code,
+                    tokenAdmin);
 
             log.info("{}/auth/validate-admin-access-web/{}?token={}", getNgrokUrl(), code, tokenAdmin);
 
