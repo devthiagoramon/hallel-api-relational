@@ -8,6 +8,9 @@ import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
+import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
+import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -23,13 +26,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -401,7 +404,7 @@ public class UserEventService {
         Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
-        this.userRepository.findById(userId).orElseThrow(
+        User user = this.userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException("user.not.found", userId.toString())
         );
 
@@ -409,6 +412,7 @@ public class UserEventService {
                 .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
         double valuePaid = 0;
         String comprovant = "";
+        String pdfBase64 = "";
 
         if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO
                 && !event.getItsFree()) {
@@ -416,17 +420,27 @@ public class UserEventService {
 
             // Busca a transação associada para pegar o comprovante
             if (participation.getMercadoPagoPaymentId() != null) {
-                Optional<EventTransaction> transaction =
-                        eventTransactionRepository.findByMercadoPagoPaymentId(participation.getMercadoPagoPaymentId());
+                try {
+                    comprovant = mercadoPagoClient.generateBase64ReceiptPayment(
+                            participation.getMercadoPagoPaymentId(), user);
+                    byte[] pdfBytes = mercadoPagoClient.generatePDFReceiptPayment(participation.getMercadoPagoPaymentId(),
+                            user);
 
-                if (transaction.isPresent()) {
-                    comprovant = transaction.get().getReceiptPaymentFileImage();
+                    pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
+                } catch (MPException e) {
+                    throw new MercadoPagoException("Erro no cliente do mercado pago: " + e.getMessage());
+                } catch (MPApiException e) {
+                    throw new MercadoPagoAPIException("Erro na API do mercado pago: " + e.getMessage());
+                } catch (IOException e) {
+                    throw new GenerateReceiptException(
+                            "Erro gerando o comprovante de pagamento do usuário: " + e.getMessage());
                 }
             }
         }
 
 
-        return new UserPaymentDetailResponse(eventId, userId, valuePaid, participation.getPaidDate(),
-                participation.getStatusPaymentEventParticipation(), comprovant);
+        return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
+                participation.getPaidDate(),
+                participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
     }
 }

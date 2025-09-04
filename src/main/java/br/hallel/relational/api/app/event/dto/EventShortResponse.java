@@ -16,5 +16,6 @@ public class EventShortResponse {
     private Date date;
     private String fileImageUrl;
     private String banner;
+    private boolean itsFree;
 }
 

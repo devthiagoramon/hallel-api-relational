@@ -14,9 +14,12 @@ import java.util.UUID;
 public class UserPaymentDetailResponse {
     private UUID eventId;
     private UUID userId;
+    private String eventName;
+    private String userName;
     private double valuePaid;
     private OffsetDateTime paymentDate;
     private StatusPaymentEventParticipation paymentStatus;
-    private String comprovant;
+    private String receiptBase64;
+    private String receiptPDFBase64;
 
 }

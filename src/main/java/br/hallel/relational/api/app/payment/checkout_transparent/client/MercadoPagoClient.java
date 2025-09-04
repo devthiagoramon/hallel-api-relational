@@ -1,11 +1,12 @@
 package br.hallel.relational.api.app.payment.checkout_transparent.client;
 
 import br.hallel.relational.api.app.event.exception.PaymentRefundException;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.user.model.User;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.*;
-import com.mercadopago.example.apis.order.RefundTotal;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -14,9 +15,18 @@ import com.mercadopago.resources.payment.PaymentRefund;
 import com.mercadopago.resources.payment.PaymentTransactionData;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
@@ -28,6 +38,9 @@ public class MercadoPagoClient {
 
     @Value("${mercadopago.notification.url}")
     private String notificationUrl;
+
+    @Autowired
+    private PdfGenerationService pdfGenerationService;
 
     @PostConstruct
     public void init() {
@@ -76,6 +89,92 @@ public class MercadoPagoClient {
         Payment payment = client.get(paymentId);
 
         return payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+    }
+
+    public byte[] generatePDFReceiptPayment(long paymentId, User user) throws MPException, MPApiException, IOException{
+        PaymentClient client = new PaymentClient();
+        Payment paymentDetails = client.get(paymentId);
+        return pdfGenerationService.generatePdfFromPayment(paymentDetails, user);
+    }
+
+    public String generateBase64ReceiptPayment(long paymentId, User user) throws MPException, MPApiException, IOException {
+        PaymentClient client = new PaymentClient();
+        Payment paymentDetails = client.get(paymentId);
+        int WIDTH = 400;
+        int HEIGHT = 500;
+        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = image.createGraphics();
+
+
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, WIDTH, HEIGHT);
+
+
+        g2d.setColor(Color.BLACK);
+
+
+        int y = 40; // Posição vertical inicial
+
+        // Título
+        g2d.setFont(new Font("SansSerif", Font.BOLD, 20));
+        g2d.drawString("Comprovante de Pagamento", 55, y);
+        y += 40;
+
+        // Linha separadora
+        g2d.drawLine(20, y - 20, WIDTH - 20, y - 20);
+
+        // Detalhes do pagamento
+        g2d.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        DecimalFormat currencyFormatter = new DecimalFormat("'R$' #,##0.00");
+
+        g2d.drawString("ID da Transação:", 20, y);
+        g2d.drawString(paymentDetails.getId().toString(), 180, y);
+        y += 20;
+
+        g2d.drawString("Data:", 20, y);
+        g2d.drawString(paymentDetails.getDateApproved().format(formatter), 180, y);
+        y += 20;
+
+        g2d.drawString("Valor:", 20, y);
+        g2d.setFont(new Font("Monospaced", Font.BOLD, 12));
+        g2d.drawString(currencyFormatter.format(paymentDetails.getTransactionAmount()), 180, y);
+        y += 20;
+
+        g2d.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        g2d.drawString("Status:", 20, y);
+        g2d.drawString(paymentDetails.getStatus().toUpperCase(), 180, y);
+        y += 30;
+
+        // Detalhes do Pagador
+        g2d.drawString("Pagador:", 20, y);
+        g2d.drawString(user.getName(), 180, y);
+        y += 20;
+
+        g2d.drawString("Email:", 20, y);
+        g2d.drawString(user.getEmail(), 180, y);
+        y += 20;
+
+        // Adicione aqui um logo se desejar!
+
+        // Rodapé
+        g2d.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        g2d.drawString("Comprovante gerado por Hallel.", 130, HEIGHT - 20);
+
+        // 4. Finaliza o "desenho"
+        g2d.dispose();
+
+        // 5. Converte a imagem gerada para um array de bytes (PNG)
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        byte[] imageBytes = baos.toByteArray();
+
+        // 6. Codifica o array de bytes em uma string Base64 e retorna
+        return Base64.getEncoder().encodeToString(imageBytes);
     }
 
     public Payment getPaymentStatus(long paymentId) throws MPException, MPApiException {

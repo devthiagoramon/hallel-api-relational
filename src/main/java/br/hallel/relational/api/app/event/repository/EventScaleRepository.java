@@ -47,7 +47,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url
+                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree
                     ),
                     m.id,
                     e.date
@@ -62,7 +62,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url
+                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree
                     ),
                     m.id,
                     e.date
@@ -175,7 +175,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    e.id AS UUID, e.title, e.date, e.image_url, e.banner_url
+                    e.id AS UUID, e.title, e.date, e.image_url, e.banner_url, e.itsFree
                     ),
                     m.id,
                     e.date
@@ -196,7 +196,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url
+                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree
                     ),
                     m.id,
                     e.date
