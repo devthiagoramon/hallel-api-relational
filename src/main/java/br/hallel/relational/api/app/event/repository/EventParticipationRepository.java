@@ -7,6 +7,8 @@ import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 import java.util.List;
@@ -42,4 +44,25 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     Optional<EventParticipation> findByMercadoPagoPaymentId(Long mercadoPagoPaymentId);
 
     Optional<EventParticipation> findByUserAndEvent(User user, Event event);
+
+    @Query("""
+                    SELECT u from User u
+                    JOIN u.roles r
+                    WHERE u.id
+                            NOT IN (
+                                SELECT ep.user.id FROM EventParticipation ep WHERE ep.event.id = :eventId
+                            )
+                    AND r.description = 'USER' AND SIZE(u.roles) = 1
+            """)
+    Page<User> listUsersWhoNotParticipateOfEvent(@Param("eventId") UUID eventId, Pageable page);
+
+    @Query("""
+                SELECT u from User u
+                JOIN u.roles r
+                WHERE u.id NOT IN (
+                                SELECT ep.user.id FROM EventParticipation ep WHERE ep.event.id = :eventId
+                                )
+                AND LOWER(u.name) LIKE concat('%', LOWER(:name), '%') AND r.description = 'USER' AND SIZE(u.roles) = 1
+            """)
+    Page<User> listUsersWhoNotParticipateOfEventByName(@Param("eventId") UUID eventId, @Param("name") String name, Pageable page);
 }

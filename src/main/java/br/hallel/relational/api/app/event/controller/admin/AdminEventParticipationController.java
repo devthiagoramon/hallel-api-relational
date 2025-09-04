@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
 
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
+import br.hallel.relational.api.app.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -73,5 +74,22 @@ public class AdminEventParticipationController {
         return ResponseEntity.ok(userEventService.getUserPaymentDetail(userId, eventId));
     }
 
+    @GetMapping("/users/not-participate/{event-id}")
+    @Operation(summary = "List users that not participate of event")
+    public ResponseEntity<Page<User>> listUserThatNotParticipateOfEvent(@PathVariable("event-id") UUID eventId,
+                                                                        @RequestParam(name = "page") int page,
+                                                                        @RequestParam(name = "size") int size) {
+        return ResponseEntity.ok(userEventService.listUsersNotParticipateOfEvent(eventId, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/users/not-participate/name/{event-id}")
+    @Operation(summary = "List users that not participate of event by name")
+    public ResponseEntity<Page<User>> listUsersThatNotParticipateOfEventByName(@PathVariable("event-id") UUID eventId,
+                                                                               @RequestParam(name = "name") String name,
+                                                                               @RequestParam(name = "page") int page,
+                                                                               @RequestParam(name = "size") int size) {
+        return ResponseEntity.ok(
+                userEventService.listUsersNotParticipateOfEventByName(eventId, name, PageRequest.of(page, size)));
+    }
 
 }

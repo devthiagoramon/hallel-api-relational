@@ -396,6 +396,32 @@ public class UserEventService {
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
         eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now()
                 .atOffset(ZoneOffset.UTC) : null);
+        if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE) {
+            CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
+                    BigDecimal.valueOf(event.getValue()),
+                    event.getTitle(),
+                    user.getEmail(),
+                    "",
+                    "",
+                    user.getCpf()
+            );
+            try {
+
+                Payment createPaymentUser = mercadoPagoClient.createPixPayment(paymentRequestDTO, user.getId());
+                eventParticipation.setMercadoPagoPaymentId(createPaymentUser.getId());
+            } catch (MPApiException apiException) {
+                log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
+                        apiException.getStatusCode(),
+                        apiException.getMessage(),
+                        apiException.getApiResponse().getContent());
+                throw new MercadoPagoAPIException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
+                        apiException.getMessage());
+            } catch (MPException | RuntimeException e) {
+                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+                throw new MercadoPagoException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
+                        e.getMessage());
+            }
+        }
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
                 null);
     }
@@ -423,7 +449,8 @@ public class UserEventService {
                 try {
                     comprovant = mercadoPagoClient.generateBase64ReceiptPayment(
                             participation.getMercadoPagoPaymentId(), user);
-                    byte[] pdfBytes = mercadoPagoClient.generatePDFReceiptPayment(participation.getMercadoPagoPaymentId(),
+                    byte[] pdfBytes = mercadoPagoClient.generatePDFReceiptPayment(
+                            participation.getMercadoPagoPaymentId(),
                             user);
 
                     pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
@@ -442,5 +469,15 @@ public class UserEventService {
         return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
                 participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
+    }
+
+    public Page<User> listUsersNotParticipateOfEvent(UUID eventId, Pageable page) {
+        log.info("Listing users not participate of event {}", eventId);
+        return this.eventParticipationRepository.listUsersWhoNotParticipateOfEvent(eventId, page);
+    }
+
+    public Page<User> listUsersNotParticipateOfEventByName(UUID eventId, String name, Pageable page) {
+        log.info("Listing users not participate of event {} by name", eventId);
+        return this.eventParticipationRepository.listUsersWhoNotParticipateOfEventByName(eventId, name, page);
     }
 }
