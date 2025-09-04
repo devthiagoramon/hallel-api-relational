@@ -231,4 +231,11 @@ public class MercadoPagoClient {
             // Retorne false para indicar que o reembolso não foi bem-sucedido
         }
     }
+
+    public String getPaymentPixCode(Long mercadoPagoPaymentId) throws MPException, MPApiException {
+        PaymentClient client = new PaymentClient();
+        Payment payment = client.get(mercadoPagoPaymentId);
+
+        return payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+    }
 }

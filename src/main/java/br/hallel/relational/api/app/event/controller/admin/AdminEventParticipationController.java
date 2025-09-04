@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
-import br.hallel.relational.api.app.event.dto.EventParticipationAdmDTO;
-import br.hallel.relational.api.app.event.dto.EventParticipationDTO;
-import br.hallel.relational.api.app.event.dto.EventParticipationResponse;
-import br.hallel.relational.api.app.event.dto.UserInEventInfosResponse;
+import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
@@ -67,6 +64,13 @@ public class AdminEventParticipationController {
     @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
     public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto) {
         return ResponseEntity.ok(userEventService.addParticipateAsAdminService(dto));
+    }
+
+    @GetMapping("/user-comprovant")
+    @Operation(summary = "Get payment comprovant of user", description = "Handles to get the comprovant of payment in some event of user ")
+    public ResponseEntity<UserPaymentDetailResponse> getUserPaymentDetailResponse(
+            @RequestParam(name = "userId") UUID userId, @RequestParam(name = "eventId") UUID eventId) {
+        return ResponseEntity.ok(userEventService.getUserPaymentDetail(userId, eventId));
     }
 
 

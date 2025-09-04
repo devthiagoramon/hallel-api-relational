@@ -1,11 +1,16 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
+import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
+import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
+import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -34,6 +39,7 @@ public class AdminEventController {
     private final EventService eventService;
     private final MercadoPagoClient client;
     private final SimpMessagingTemplate template;
+    private final EventParticipationRepository eventParticipationRepository;
 
     //** CRIANDO EVENTO **
     @PostMapping(value = "/create", consumes = "multipart/form-data")
@@ -46,8 +52,10 @@ public class AdminEventController {
     @PatchMapping(value = "/edit/{id}", consumes = "multipart/form-data")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable(name = "id") UUID id,
                                                      @RequestPart(name = "request") EventDTO eventDTO,
-                                                     @RequestPart(name = "image_url", required = false) MultipartFile img_url,
-                                                     @RequestPart(name = "banner_url", required = false) MultipartFile banner_url) {
+                                                     @RequestPart(name = "image_url", required = false)
+                                                     MultipartFile img_url,
+                                                     @RequestPart(name = "banner_url", required = false)
+                                                     MultipartFile banner_url) {
         return ResponseEntity.ok(this.eventService.updateById(id, eventDTO, img_url, banner_url));
     }
 
@@ -75,8 +83,9 @@ public class AdminEventController {
         return ResponseEntity.ok(eventService.listAllTransactions());
     }
 
-   @GetMapping("/transaction/get/{transactionId}")
-    public ResponseEntity<EventTransactionResponse> getTransactionById(@PathVariable(name = "transactionId") UUID transactionId) {
+    @GetMapping("/transaction/get/{transactionId}")
+    public ResponseEntity<EventTransactionResponse> getTransactionById(
+            @PathVariable(name = "transactionId") UUID transactionId) {
         return ResponseEntity.ok(eventService.getTransactionById(transactionId));
     }
 
@@ -87,8 +96,9 @@ public class AdminEventController {
 
     @GetMapping("/transaction-type/list-all/by-event/{eventId}")
     @Operation(summary = "List all transactions by event ID and Transaction Type (ENTRADA or SAIDA)")
-    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEventAndTransactionType(@PathVariable UUID eventId,
-                                                                                                       @RequestParam TransactionType type) {
+    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEventAndTransactionType(
+            @PathVariable UUID eventId,
+            @RequestParam TransactionType type) {
         return ResponseEntity.ok(eventService.listAllTransactionsByEventAndTransactionType(eventId, type));
     }
 
@@ -98,7 +108,8 @@ public class AdminEventController {
     }
 
     @PutMapping("/transaction/edit/{id}")
-    public ResponseEntity<EventTransactionResponse> updateTransaction(@PathVariable UUID id, @RequestBody EventTransactionDTO dto) {
+    public ResponseEntity<EventTransactionResponse> updateTransaction(@PathVariable UUID id,
+                                                                      @RequestBody EventTransactionDTO dto) {
         return ResponseEntity.ok(eventService.updateTransaction(id, dto));
     }
 
@@ -108,23 +119,25 @@ public class AdminEventController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/create-pix")
-    @Operation(summary = "Create an Pix Charge" +
-            "needs the information of the customer who will make the payment")
-    public ResponseEntity<Map<String, String>> createPixPayment(@Valid @RequestBody CreatePixPaymentRequestDTO requestDTO, @RequestParam(name = "userId") UUID userId) {
+    @GetMapping("/get-payment-pix-of-user")
+    @Operation(summary = "Get the Pix created when participant accept participation in event")
+    public ResponseEntity<Map<String, String>> createPixPayment(@RequestParam(name = "eventId") UUID eventId,
+                                                                @RequestParam(name = "userId") UUID userId) {
         log.info("Creating a Pix payment...");
         try {
-            Payment payment = client.createPixPayment(requestDTO, userId);
+            EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId,
+                            eventId)
+                    .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
+            String qrCode = client.getPaymentQRCode(participation.getMercadoPagoPaymentId());
+            String pixCode = client.getPaymentPixCode(participation.getMercadoPagoPaymentId());
 
-            String pixCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
-            String qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
 
             template.convertAndSend("/topic/payments/" + userId,
-                    new PaymentStatusDTO(qrCodeBase64, pixCode,
+                    new PaymentStatusDTO(qrCode, pixCode,
                             StatusPaymentEventParticipation.PENDENTE));
             return ResponseEntity.ok(Map.of(
                     "pixCode", pixCode,
-                    "qrCodeBase64", qrCodeBase64
+                    "qrCodeBase64", qrCode
             ));
         } catch (MPApiException apiException) {
             String apiResponseDetails = apiException.getApiResponse().getContent();
@@ -135,13 +148,11 @@ public class AdminEventController {
                     apiException.getMessage(),
                     apiResponseDetails);
 
-            return ResponseEntity.status(statusCode).body(Map.of(
-                    "error", "Erro da API do Mercado Pago.",
-                    "details", apiResponseDetails
-            ));
+            throw new MercadoPagoAPIException(
+                    "Não foi possivel conectar com a API do mercado pago: " + apiResponseDetails);
         } catch (MPException e) {
             log.error("Erro inesperado na SDK do Mercado Pago", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Erro inesperado ao criar pagamento Pix."));
+            throw new MercadoPagoException("Ocorreu um erro com o cliente do mercado pago: " + e.getMessage());
         }
     }
 

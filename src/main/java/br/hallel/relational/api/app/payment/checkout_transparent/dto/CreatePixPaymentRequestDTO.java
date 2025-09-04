@@ -12,19 +12,19 @@ public record CreatePixPaymentRequestDTO(
         @DecimalMin(value = "0.01", message = "Amount must be positive")
         BigDecimal amount,
 
-        @NotBlank(message = "Description cannot be blank")
+
         String description,
 
         @NotBlank(message = "Payer email cannot be blank")
         String payerEmail,
 
-        @NotBlank(message = "Payer first name cannot be blank")
+
         String payerFirstName,
 
-        @NotBlank(message = "Payer last name cannot be blank")
+
         String payerLastName,
 
-        @NotBlank(message = "Payer CPF/CNPJ cannot be blank")
+
         String payerIdentificationNumber
 ) {
 }
