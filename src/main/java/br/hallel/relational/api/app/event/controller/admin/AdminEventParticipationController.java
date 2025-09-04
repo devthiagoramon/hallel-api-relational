@@ -31,12 +31,11 @@ public class AdminEventParticipationController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "Edit User Function participation")
-    @PatchMapping("/edit-function/{eventId}")
+    @PatchMapping("/edit-function")
     public ResponseEntity<EventParticipationResponse> editUserFunction(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable(name = "eventId") UUID eventId,
+            @RequestParam(name = "eventId") UUID eventId,
+            @RequestParam(name = "userId") UUID userId,
             @Valid @RequestParam UserFunctionInEvent userFunctionInEvent) {
-        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
         EventParticipationResponse response = userEventService.addFunctionUserInEvent(userId, eventId,
                 userFunctionInEvent);
         return ResponseEntity.ok(response);
