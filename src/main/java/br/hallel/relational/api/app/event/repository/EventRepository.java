@@ -26,7 +26,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree
+                    e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType
                 )
                 FROM Event e
                 WHERE e.id = :idEvento

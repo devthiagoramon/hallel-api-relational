@@ -26,7 +26,7 @@ public class UserInEventWithEventInfosResponse {
         Event eventToResponse = eventParticipation.getEvent();
         return new UserInEventWithEventInfosResponse(eventParticipation.getId(),
                 new EventShortResponse(eventToResponse.getId(), eventToResponse.getTitle(), eventToResponse.getDate(),
-                        eventToResponse.getImage_url(), eventToResponse.getBanner_url(), eventToResponse.getItsFree()),
+                        eventToResponse.getImage_url(), eventToResponse.getBanner_url(), eventToResponse.getItsFree(), eventToResponse.getEventType()),
                 eventParticipation.getUserFunctionInEvent(), eventParticipation.getStatusPaymentEventParticipation());
     }
 }
