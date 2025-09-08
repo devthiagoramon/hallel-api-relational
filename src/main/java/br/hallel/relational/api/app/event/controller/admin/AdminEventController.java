@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -90,16 +92,20 @@ public class AdminEventController {
     }
 
     @GetMapping("/transaction/list-all/by-event/{eventId}")
-    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEvent(@PathVariable UUID eventId) {
-        return ResponseEntity.ok(eventService.listAllTransactionsByEvent(eventId));
+    public ResponseEntity<Page<EventTransactionResponse>> listAllTransactionsByEvent(@PathVariable UUID eventId,
+                                                                                     @RequestParam(name = "page", defaultValue = "0") Integer page,
+                                                                                     @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(eventService.listAllTransactionsByEvent(eventId, PageRequest.of(page, size)));
     }
 
     @GetMapping("/transaction-type/list-all/by-event/{eventId}")
     @Operation(summary = "List all transactions by event ID and Transaction Type (ENTRADA or SAIDA)")
-    public ResponseEntity<List<EventTransactionResponse>> listAllTransactionsByEventAndTransactionType(
+    public ResponseEntity<Page<EventTransactionResponse>> listAllTransactionsByEventAndTransactionType(
             @PathVariable UUID eventId,
-            @RequestParam TransactionType type) {
-        return ResponseEntity.ok(eventService.listAllTransactionsByEventAndTransactionType(eventId, type));
+            @RequestParam TransactionType type, @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(
+                eventService.listAllTransactionsByEventAndTransactionType(eventId, type, PageRequest.of(page, size)));
     }
 
     @GetMapping("/transaction/by-id/{eventId}")
@@ -157,7 +163,7 @@ public class AdminEventController {
     }
 
     @GetMapping("/get-balance/{eventId}")
-    @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
+    @Operation(summary = "Get the balance of event", description = "Handles the action of getting the balance of event")
     public ResponseEntity<EventBalanceResponse> getInputAndOutputBalance(
             @PathVariable(name = "eventId") UUID eventId
     ) {

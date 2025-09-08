@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -20,6 +21,7 @@ public class EventTransactionResponse {
     private double value;
     private TransactionType transactionType;
     private UUID eventId;
+    private Date dateTransaction;
 
     public EventTransactionResponse toResponse(EventTransaction eventTransaction) {
         return new EventTransactionResponse(
@@ -27,7 +29,8 @@ public class EventTransactionResponse {
                 eventTransaction.getDesciption(),
                 eventTransaction.getValue(),
                 eventTransaction.getTransactionType(),
-                eventTransaction.getEvent().getId()
+                eventTransaction.getEvent().getId(),
+                eventTransaction.getDateTransaction()
         );
     }
 

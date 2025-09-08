@@ -181,7 +181,8 @@ public class EventService implements EventInterface {
         Page<Event> eventsPagination = this.repository.findAllByEventTypeOrderByTitleAsc(EventType.RETIRO, pageable);
         log.info("Listing all retreats...");
         if (eventsPagination.isEmpty()) {
-            throw new EventIllegalArumentException("Nenhum retiro encontrado! Talvez você não tenha criado nenhum ainda...");
+            throw new EventIllegalArumentException(
+                    "Nenhum retiro encontrado! Talvez você não tenha criado nenhum ainda...");
         }
 
         return eventsPagination.map(mapper::entityToResponse);
@@ -340,34 +341,33 @@ public class EventService implements EventInterface {
         return new EventTransactionResponse().toResponse(save);
     }
 
-    public List<EventTransactionResponse> listAllTransactionsByEvent(UUID eventId) {
+    public Page<EventTransactionResponse> listAllTransactionsByEvent(UUID eventId, Pageable pageable) {
         this.repository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
 
-        List<EventTransactionResponse> list = eventTransactionRepository.findByEventId(eventId)
-                .stream()
-                .map(tx -> new EventTransactionResponse().toResponse(tx))
-                .toList();
+        Page<EventTransaction> list = eventTransactionRepository.findByEventId(eventId, pageable);
 
         if (list.isEmpty()) {
             throw new EventTransactionEmptyListException("event.transaction.list.is.empty", eventId.toString());
         }
 
-        return list;
+        return list.map(eventTransaction -> new EventTransactionResponse().toResponse(eventTransaction));
     }
 
-    public List<EventTransactionResponse> listAllTransactionsByEventAndTransactionType(UUID eventId, TransactionType type) {
-        return eventTransactionRepository.findByEventIdAndTransactionType(eventId, type)
-                .stream()
-                .map(tx -> new EventTransactionResponse().toResponse(tx))
-                .toList();
+    public Page<EventTransactionResponse> listAllTransactionsByEventAndTransactionType(UUID eventId,
+                                                                                       TransactionType type,
+                                                                                       Pageable pageable) {
+        return eventTransactionRepository.findByEventIdAndTransactionType(eventId, type, pageable)
+                .map(eventTransaction -> new EventTransactionResponse().toResponse(eventTransaction));
+
     }
 
     public EventTransactionResponse getTransactionById(UUID transactionId) {
         return new EventTransactionResponse().toResponse(
                 eventTransactionRepository.findById(transactionId).orElseThrow(
-                        () -> new EventTransactionNotFoundException("event.transaction.not.found", transactionId.toString())
+                        () -> new EventTransactionNotFoundException("event.transaction.not.found",
+                                transactionId.toString())
                 )
         );
     }
