@@ -27,5 +27,4 @@ public interface EventTransactionRepository
 
     Page<EventTransaction> findAllByEvent_IdAndDateTransaction(UUID eventId, LocalDateTime eventDate, Pageable pageable);
 
-    List<EventTransaction> findAllByEvent_IdAndDateTransaction(UUID eventId, LocalDateTime dateTransaction);
 }

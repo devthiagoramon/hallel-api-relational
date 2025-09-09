@@ -9,6 +9,7 @@ import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
+import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
 import br.hallel.relational.api.app.global.utils.NumberUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -433,30 +435,39 @@ public class EventService implements EventInterface {
             return new EventBalanceResponse(eventId, event.getEventType(), 0.0, Math.abs(total), BalanceType.PREJUIZO);
         }
     }
-    public EventCashFlowResponse getEventCashFlow(UUID eventId, LocalDateTime date) {
+
+    public List<EventCashFlowResponse> getEventCashFlow(UUID eventId) {
         repository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
 
         List<EventTransaction> allTransactions =
-                eventTransactionRepository.findAllByEvent_IdAndDateTransaction(eventId, date);
+                eventTransactionRepository.findAllByEvent_Id(eventId);
 
         if (allTransactions.isEmpty()) {
             throw new EventIllegalArumentException("The list of cash flow is empty");
         }
 
-        Double totalProfit = allTransactions.stream()
-                .filter(t -> t.getTransactionType() == TransactionType.ENTRADA)
-                .mapToDouble(EventTransaction::getValue)
-                .sum();
+        List<EventCashFlowResponse> response = new ArrayList<>();
 
-        Double totalExpense = allTransactions.stream()
-                .filter(t -> t.getTransactionType() == TransactionType.SAIDA)
-                .mapToDouble(EventTransaction::getValue)
-                .sum();
+        Map<Date, List<EventTransaction>> transactionsFilteredByDate = allTransactions.stream()
+                .collect(
+                        Collectors.groupingBy(EventTransaction::getDateTransaction, TreeMap::new, Collectors.toList()));
 
 
-        return new EventCashFlowResponse(eventId,totalProfit, totalExpense, totalProfit - totalExpense, date,
-                allTransactions.stream().map(EventTransactionResponse::toResponse).toList());
+        transactionsFilteredByDate.forEach((dateTransaction, eventTransactions) -> {
+            Double totalProfit = eventTransactions.stream()
+                    .filter(t -> t.getTransactionType() == TransactionType.ENTRADA)
+                    .mapToDouble(EventTransaction::getValue).reduce(0.0, Double::sum);
+            Double totalExpense = eventTransactions.stream()
+                    .filter(t -> t.getTransactionType() == TransactionType.SAIDA)
+                    .mapToDouble(EventTransaction::getValue).reduce(0.0, Double::sum);
+            response.add(new EventCashFlowResponse(eventId, totalProfit, totalExpense, totalProfit - totalExpense,
+                    LocalDateTime.ofInstant(dateTransaction.toInstant(), ZoneId.of(LocalDateTimeUtils.MANAUS_ZONE_ID)),
+                    allTransactions.stream().map(EventTransactionResponse::toResponse).toList()));
+        });
+
+        return response;
+
     }
 }

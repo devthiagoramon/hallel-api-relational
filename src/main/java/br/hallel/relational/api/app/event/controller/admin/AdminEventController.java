@@ -173,11 +173,10 @@ public class AdminEventController {
 
     @GetMapping("/get-cash-flow/{eventId}")
     @Operation(summary = "Get the balance of event", description = "Handles the action of getting the balance of event")
-    public ResponseEntity<EventCashFlowResponse> getCashFlow(
-            @PathVariable(name = "eventId") UUID eventId,
-            @RequestParam(name = "date") LocalDateTime date
+    public ResponseEntity<List<EventCashFlowResponse>> getCashFlow(
+            @PathVariable(name = "eventId") UUID eventId
     ) {
         System.out.println("pau pau");
-        return ResponseEntity.ok(this.eventService.getEventCashFlow(eventId, date));
+        return ResponseEntity.ok(this.eventService.getEventCashFlow(eventId));
     }
 }
