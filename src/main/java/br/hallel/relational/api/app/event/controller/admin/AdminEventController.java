@@ -26,6 +26,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,5 +169,15 @@ public class AdminEventController {
             @PathVariable(name = "eventId") UUID eventId
     ) {
         return ResponseEntity.ok(this.eventService.getBalance(eventId));
+    }
+
+    @GetMapping("/get-cash-flow/{eventId}")
+    @Operation(summary = "Get the balance of event", description = "Handles the action of getting the balance of event")
+    public ResponseEntity<EventCashFlowResponse> getCashFlow(
+            @PathVariable(name = "eventId") UUID eventId,
+            @RequestParam(name = "date") LocalDateTime date
+    ) {
+        System.out.println("pau pau");
+        return ResponseEntity.ok(this.eventService.getEventCashFlow(eventId, date));
     }
 }

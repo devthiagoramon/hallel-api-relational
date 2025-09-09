@@ -91,4 +91,5 @@ public class AdminEventParticipationController {
                 userEventService.listUsersNotParticipateOfEventByName(eventId, name, PageRequest.of(page, size)));
     }
 
+
 }

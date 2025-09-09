@@ -28,10 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 
 @Service
@@ -325,7 +322,17 @@ public class UserEventService {
     }
 
     public Page<UserInEventWithEventInfosResponse> getAllUserParticipationByUserId(UUID userId, Pageable pageable) {
-        Page<EventParticipation> participations = eventParticipationRepository.findAllByUser_Id(userId, pageable);
+
+        Page<EventParticipation> participations = eventParticipationRepository.
+                findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(userId, LocalDateTime.now(), pageable);
+
+        if (participations.isEmpty()) {
+            Page<EventParticipation> allByUserId = this.eventParticipationRepository.findAllByUser_IdOrderByEvent_Title(userId, pageable);
+            if (allByUserId.isEmpty()) {
+                throw new EventParticipationException("Lista de participações do usuário está vazia");
+            }
+            participations = allByUserId;
+        }
 
         return participations.map(p -> new UserInEventWithEventInfosResponse().toResponse(p));
     }
@@ -339,6 +346,7 @@ public class UserEventService {
                 );
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
+
         return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
     }
 
@@ -480,4 +488,7 @@ public class UserEventService {
         log.info("Listing users not participate of event {} by name", eventId);
         return this.eventParticipationRepository.listUsersWhoNotParticipateOfEventByName(eventId, name, page);
     }
+
+
+
 }

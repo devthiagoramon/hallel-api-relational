@@ -23,7 +23,7 @@ public class EventTransactionResponse {
     private UUID eventId;
     private Date dateTransaction;
 
-    public EventTransactionResponse toResponse(EventTransaction eventTransaction) {
+    public static EventTransactionResponse toResponse(EventTransaction eventTransaction) {
         return new EventTransactionResponse(
                 eventTransaction.getId(),
                 eventTransaction.getDesciption(),

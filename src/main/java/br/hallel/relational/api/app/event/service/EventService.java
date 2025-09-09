@@ -433,4 +433,30 @@ public class EventService implements EventInterface {
             return new EventBalanceResponse(eventId, event.getEventType(), 0.0, Math.abs(total), BalanceType.PREJUIZO);
         }
     }
+    public EventCashFlowResponse getEventCashFlow(UUID eventId, LocalDateTime date) {
+        repository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
+        );
+
+        List<EventTransaction> allTransactions =
+                eventTransactionRepository.findAllByEvent_IdAndDateTransaction(eventId, date);
+
+        if (allTransactions.isEmpty()) {
+            throw new EventIllegalArumentException("The list of cash flow is empty");
+        }
+
+        Double totalProfit = allTransactions.stream()
+                .filter(t -> t.getTransactionType() == TransactionType.ENTRADA)
+                .mapToDouble(EventTransaction::getValue)
+                .sum();
+
+        Double totalExpense = allTransactions.stream()
+                .filter(t -> t.getTransactionType() == TransactionType.SAIDA)
+                .mapToDouble(EventTransaction::getValue)
+                .sum();
+
+
+        return new EventCashFlowResponse(eventId,totalProfit, totalExpense, totalProfit - totalExpense, date,
+                allTransactions.stream().map(EventTransactionResponse::toResponse).toList());
+    }
 }

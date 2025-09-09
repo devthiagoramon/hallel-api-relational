@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,4 +67,8 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
                 AND LOWER(u.name) LIKE concat('%', LOWER(:name), '%') AND r.description = 'USER' AND SIZE(u.roles) = 1
             """)
     Page<User> listUsersWhoNotParticipateOfEventByName(@Param("eventId") UUID eventId, @Param("name") String name, Pageable page);
+
+    Page<EventParticipation> findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(UUID userId, LocalDateTime now, Pageable pageable);
+
+    Page<EventParticipation> findAllByUser_IdOrderByEvent_Title(UUID userId, Pageable pageable);
 }
