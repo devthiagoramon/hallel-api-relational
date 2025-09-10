@@ -22,6 +22,8 @@ public class EventTransactionResponse {
     private TransactionType transactionType;
     private UUID eventId;
     private Date dateTransaction;
+    private Boolean isEditable;
+
 
     public static EventTransactionResponse toResponse(EventTransaction eventTransaction) {
         return new EventTransactionResponse(
@@ -30,7 +32,8 @@ public class EventTransactionResponse {
                 eventTransaction.getValue(),
                 eventTransaction.getTransactionType(),
                 eventTransaction.getEvent().getId(),
-                eventTransaction.getDateTransaction()
+                eventTransaction.getDateTransaction(),
+                eventTransaction.getIsEditable()
         );
     }
 
