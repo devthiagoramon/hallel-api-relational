@@ -88,6 +88,7 @@ public class ProcessPaymentNotificationService {
                 newTransaction.setDateTransaction(new Date());
                 newTransaction.setReceiptPaymentFileImage(mercadoPagoClient.getPixReceiptUrl(paymentId));
                 newTransaction.setMercadoPagoPaymentId(payment.getId());
+                newTransaction.setIsEditable(false);
                 eventTransactionRepository.save(newTransaction);
 
                 participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));

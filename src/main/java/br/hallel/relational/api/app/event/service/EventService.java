@@ -339,6 +339,7 @@ public class EventService implements EventInterface {
         eventTransaction.setDateTransaction(dto.dateTransaction());
         eventTransaction.setValue(dto.value());
         eventTransaction.setEvent(event);
+        eventTransaction.setIsEditable(true);
         EventTransaction save = this.eventTransactionRepository.save(eventTransaction);
         return new EventTransactionResponse().toResponse(save);
     }

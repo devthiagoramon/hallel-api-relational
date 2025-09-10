@@ -33,6 +33,9 @@ public class EventTransaction {
     @Column(name = "date_transaction")
     private Date dateTransaction;
 
+    @Column(name = "is_editable")
+    private Boolean isEditable;
+
     @Column(name = "receipt_payment_file_image")
     private String receiptPaymentFileImage;
 
