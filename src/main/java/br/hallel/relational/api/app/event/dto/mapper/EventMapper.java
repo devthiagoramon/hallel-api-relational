@@ -51,6 +51,7 @@ public abstract class EventMapper {
     @Mapping(target = "transactions", ignore = true)
     @Mapping(target = "itsFree", ignore = true)
     @Mapping(target = "participations", ignore = true)
+    @Mapping(target = "foods", ignore = true)
     public abstract Event responseToEntity(EventResponse eventResponse);
 
     @Mapping(target = "id", ignore = true)
@@ -64,6 +65,7 @@ public abstract class EventMapper {
     @Mapping(target = "transactions", ignore = true)
     @Mapping(target = "itsFree", ignore = true)
     @Mapping(target = "participations", ignore = true)
+    @Mapping(target = "foods", ignore = true)
 
     public abstract Event dtoToEntity(EventDTO event);
 

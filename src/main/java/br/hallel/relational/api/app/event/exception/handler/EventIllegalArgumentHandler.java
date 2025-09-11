@@ -184,20 +184,54 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
-  @ExceptionHandler(EventListIsEmptyException.class)
+    @ExceptionHandler(EventListIsEmptyException.class)
     public ResponseEntity<ExceptionResponse> handleEventListIsEmpty(EventListIsEmptyException exception, WebRequest request) {
-      Locale locale = LocaleContextHolder.getLocale();
-      String messageKey = exception.getMessage();
+        Locale locale = LocaleContextHolder.getLocale();
+        String messageKey = exception.getMessage();
 
-      String localizedMessage = messageSource.getMessage(messageKey, new Object[]{}, locale);
+        String localizedMessage = messageSource.getMessage(messageKey, new Object[]{}, locale);
 
-      ExceptionResponse response = new ExceptionResponse(
-              localizedMessage,
-              new Date(),
-              request.getDescription(false)
-      );
+        ExceptionResponse response = new ExceptionResponse(
+                localizedMessage,
+                new Date(),
+                request.getDescription(false)
+        );
 
-      return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(FoodEmptyListException.class)
+    public ResponseEntity<ExceptionResponse> handleFoodEmptyListException(FoodEmptyListException exception, WebRequest request) {
+        Locale locale = LocaleContextHolder.getLocale();
+        String messageKey = exception.getMessage();
+
+        String localizedMessage = messageSource.getMessage(messageKey, new Object[]{}, locale);
+
+        ExceptionResponse response = new ExceptionResponse(
+                localizedMessage,
+                new Date(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(FoodNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleFoodNotFoundException(FoodNotFoundException exception,
+                                                                   WebRequest request) {
+        Locale locale = LocaleContextHolder.getLocale();
+
+        String messageKey = exception.getMessage();
+        Object[] args = new Object[]{exception.getId()};
+
+        String localizedMessage = messageSource.getMessage(messageKey, args, locale);
+
+        ExceptionResponse response = new ExceptionResponse(
+                localizedMessage,
+                new Date(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
 }

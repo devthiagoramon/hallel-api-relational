@@ -38,7 +38,7 @@
 //                    .map(item -> PreferenceItemRequest.builder()
 //                            .id(item.id())
 //                            .title(item.title())
-//                            .quantity(item.quantity())
+//                            .stockQuantity(item.stockQuantity())
 //                            .unitPrice(item.unitPrice())
 //                            .build())
 //                    .collect(Collectors.toList());

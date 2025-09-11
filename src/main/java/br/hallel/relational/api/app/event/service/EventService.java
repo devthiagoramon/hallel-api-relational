@@ -193,12 +193,17 @@ public class EventService implements EventInterface {
     @Override
     public EventResponseWithMinistryAssociated getEventById(UUID id) {
         log.info("Getting event by id {}", id);
-        Event event = this.repository.listByIdWithMinistryResponse(id)
-                .orElseThrow(() -> new EventNotFoundException("event.id.not.found", id.toString()));
+
+        Optional<Event> op = this.repository.listByIdWithMinistryResponse(id);
+        if(op.isEmpty()){
+            throw new EventNotFoundException("event.id.not.found", id.toString());
+        }
+        Event event = op.get();
         List<MinistryResponse> ministriesAssociated = event.getScales().stream().map((scale) -> {
             Ministry ministry = scale.getMinistry();
             return ministryMapper.entityMinistryToResponse(ministry);
         }).toList();
+
         EventResponseWithMinistryAssociated eventResponse = mapper.eventToResponseWithMinistryAssociated(event);
         eventResponse.setMinistries(ministriesAssociated);
         return eventResponse;

@@ -7,13 +7,12 @@ import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.service.EventService;
+import br.hallel.relational.api.app.event.service.FoodService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
-import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.payment.Payment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,7 +25,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +41,8 @@ public class AdminEventController {
     private final MercadoPagoClient client;
     private final SimpMessagingTemplate template;
     private final EventParticipationRepository eventParticipationRepository;
+    private final FoodService foodService;
+
 
     //** CRIANDO EVENTO **
     @PostMapping(value = "/create", consumes = "multipart/form-data")
@@ -176,7 +176,56 @@ public class AdminEventController {
     public ResponseEntity<List<EventCashFlowResponse>> getCashFlow(
             @PathVariable(name = "eventId") UUID eventId
     ) {
-        System.out.println("pau pau");
         return ResponseEntity.ok(this.eventService.getEventCashFlow(eventId));
     }
+
+    //FOODS
+    @PostMapping("/food/create-food")
+    @Operation(summary = "Create and Save and food in DataBase")
+    public ResponseEntity<FoodResponseDTO> createFood(@RequestBody @Valid FoodRequestDTO dto) {
+        return ResponseEntity.ok(this.foodService.createFood(dto));
+    }
+
+    @GetMapping("/food/list-all")
+    @Operation(summary = "List all foods saved in DataBase")
+    public ResponseEntity<Page<FoodResponseDTO>> listAllFood(@RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(this.foodService.listAllFoods(PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/food/list-all/by-event-id/{eventId}")
+    @Operation(summary = "List all foods saved in DataBase by Event Id")
+    public ResponseEntity<Page<FoodResponseDTO>> listAllFoodByEventId(@PathVariable(name = "eventId") UUID eventId,
+                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/food/get-by-id/{foodId}")
+    @Operation(summary = "Getting Food By Id")
+    public ResponseEntity<FoodResponseDTO> getFoodById(@PathVariable(name = "foodId") UUID foodId) {
+        return ResponseEntity.ok(this.foodService.getFoodById(foodId));
+    }
+
+    @PatchMapping("/food/edit-by-id/{foodId}")
+    @Operation(summary = "Edit Food By Id")
+    public ResponseEntity<FoodResponseDTO> editFoodById(@PathVariable(name = "foodId") UUID foodId,
+                                                        @RequestBody FoodEditDTO dto) {
+        return ResponseEntity.ok(this.foodService.editFood(foodId, dto));
+    }
+
+    @DeleteMapping("/food/delete-by-id/{foodId}")
+    @Operation(summary = "Delete Food By Id")
+    public ResponseEntity<?> deleteFoodById(@PathVariable(name = "foodId") UUID foodId) {
+        this.foodService.deleteFood(foodId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/food/register-sale")
+    @Operation(summary = "Record a food sale")
+    public ResponseEntity<EventTransactionResponse> registerSale(@RequestParam(name = "foodId") UUID foodId,
+                                                                 @RequestParam(name = "quantity") Integer quantity) {
+        return ResponseEntity.ok(this.foodService.registerSale(foodId, quantity));
+    }
+
 }

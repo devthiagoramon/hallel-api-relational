@@ -37,7 +37,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     @Query("""
             SELECT e
             FROM Event e
-            JOIN FETCH e.scales
+            LEFT JOIN FETCH e.scales
             WHERE e.id = :eventId
             """)
     Optional<Event> listByIdWithMinistryResponse(@Param("eventId") UUID id);

@@ -39,7 +39,7 @@ public record CreatePreferenceRequestDTO(
             String id,
             @NotBlank(message = "Item title cannot be blank")
             String title,
-            @NotNull(message = "Item quantity cannot be null")
+            @NotNull(message = "Item stockQuantity cannot be null")
             Integer quantity,
             @NotNull(message = "Item unit price cannot be null")
             @DecimalMin(value = "0.01", message = "Item unit price must be positive")

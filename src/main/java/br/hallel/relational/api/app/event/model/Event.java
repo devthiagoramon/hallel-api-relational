@@ -82,4 +82,7 @@ public class Event {
     @JsonIgnore
     private List<EventParticipation> participations;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Foods> foods;
+
 }
