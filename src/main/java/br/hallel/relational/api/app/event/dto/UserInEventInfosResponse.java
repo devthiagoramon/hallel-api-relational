@@ -23,11 +23,12 @@ public class UserInEventInfosResponse {
     private String userEmail;
     private UserFunctionInEvent userFunctionInEvent;
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
+    private String community;
     private int quantity;
     public UserInEventInfosResponse toResponse(EventParticipation dto, int quantity) {
         return new UserInEventInfosResponse(dto.getId(),dto.getEvent().getId(), dto.getUser().getId(),
                 dto.getUser().getName(), dto.getEvent().getTitle(), dto.getUser().getEmail(),
-                dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), quantity);
+                dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), dto.getCommunity(), quantity);
     }
 
 }
