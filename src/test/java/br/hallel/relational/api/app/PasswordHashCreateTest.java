@@ -13,15 +13,17 @@ public class PasswordHashCreateTest {
     @Test
     void generateHashs(){
         Map<String, PasswordEncoder> encoders = new HashMap<>();
+        String pepper = "0b5c1b6a6f0e9f1e1b2c3d4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e";
 
-        Pbkdf2PasswordEncoder pbkdf2Encoder =
-                new Pbkdf2PasswordEncoder(
-                        "", 8, 185000,
-                        Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
+        Pbkdf2PasswordEncoder pbkdf2PasswordEncoder = new
+                Pbkdf2PasswordEncoder(pepper,
+                16,
+                185000,
+                Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
 
-        encoders.put("pbkdf2", pbkdf2Encoder);
+        encoders.put("pbkdf2", pbkdf2PasswordEncoder);
         DelegatingPasswordEncoder passwordEncoder = new DelegatingPasswordEncoder("pbkdf2", encoders);
-        passwordEncoder.setDefaultPasswordEncoderForMatches(pbkdf2Encoder);
+        passwordEncoder.setDefaultPasswordEncoderForMatches(pbkdf2PasswordEncoder);
 
         String admEncode = passwordEncoder.encode("hallel2023");
         String user1Enconde = passwordEncoder.encode("barros123");

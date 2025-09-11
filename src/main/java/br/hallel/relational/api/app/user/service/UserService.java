@@ -10,16 +10,16 @@ import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificati
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
+import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
-import br.hallel.relational.api.app.user.model.LastAccessLog;
-import br.hallel.relational.api.app.user.model.User;
-import br.hallel.relational.api.app.user.model.UserAccountStatus;
+import br.hallel.relational.api.app.user.model.*;
 import br.hallel.relational.api.app.user.repository.LastAcessLogRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import br.hallel.relational.api.app.user.repository.UserRoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,6 +50,10 @@ public class UserService implements UserInterface {
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private UserRoleRepository userRoleRepository;
     @Autowired
     private DeviceNotificationRepository deviceNotificationRepository;
     @Autowired
@@ -209,7 +213,7 @@ public class UserService implements UserInterface {
         log.info("Get User Profile By Token {}...", token);
         User user = this.userRepository.findByToken(token)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado pelo token: {0}",
-                        token.toString()));
+                        token));
         return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
                 user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, null);
     }
@@ -303,6 +307,11 @@ public class UserService implements UserInterface {
                 findByEmail(dto.getEmail()).isPresent()) {
             throw new AuthRequestException("User already exists in Database");
         }
+        List<Role> rolesBD = roleRepository.findAll();
+        Role userRole = rolesBD.stream()
+                .filter(role -> role.getDescription().equals("USER"))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Role USER not found"));
 
         User user = new User();
         user.setName(dto.getName());
@@ -310,9 +319,19 @@ public class UserService implements UserInterface {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setDateBirth(dto.getDateBirth());
         user.setCpf(dto.getCpf());
+        user.setStatus(UserAccountStatus.ENABLED);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         User userSaved = this.userRepository.save(user);
         Date date = getLastAccessDate(user);
+
+        UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), rolesBD.stream()
+                .filter(item -> item.getDescription()
+                        .equals("USER"))
+                .toList()
+                .get(0)
+                .getId());
+        userRoleRepository.save(new UserRole(userRoleIds));
+
         return new UserProfileResponse(
                 userSaved.getId(),
                 userSaved.getName(),
@@ -336,7 +355,6 @@ public class UserService implements UserInterface {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setDateBirth(dto.getDateBirth());
         user.setCpf(dto.getCpf());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         User userSaved = this.userRepository.save(user);
         Date date = getLastAccessDate(user);
         return new UserProfileResponse(
@@ -404,5 +422,16 @@ public class UserService implements UserInterface {
                 null,
                 date
         );
+    }
+
+    public UserProfileWithPasswordResponse getUserForAdmin(UUID idUser) {
+        log.info("Listing user for admin with id: " + idUser);
+        User userById = this.getUserById(idUser);
+
+        return new UserProfileWithPasswordResponse(userById.getId(), userById.getName(), userById.getEmail(),
+                userById.getPhoneNumber(), userById.getPassword(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
+                userById.getStatus(),
+                null, null);
+
     }
 }

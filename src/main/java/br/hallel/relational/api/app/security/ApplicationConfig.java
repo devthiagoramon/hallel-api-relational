@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,12 +26,15 @@ import java.util.Map;
 public class ApplicationConfig {
     private final UserRepository userRepository;
 
+    @Value("${security.password.pepper}")
+    private String pepper;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         Map<String, PasswordEncoder> encoders = new HashMap<>();
         Pbkdf2PasswordEncoder pbkdf2PasswordEncoder = new
-                Pbkdf2PasswordEncoder("",
-                8,
+                Pbkdf2PasswordEncoder(pepper,
+                16,
                 185000,
                 Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
         encoders.put("pbkdf2", pbkdf2PasswordEncoder);

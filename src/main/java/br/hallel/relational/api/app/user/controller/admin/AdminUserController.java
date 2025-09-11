@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.user.controller.admin;
 
 import br.hallel.relational.api.app.user.dto.CreateEditUser;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileWithPasswordResponse;
 import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,9 +25,8 @@ public class AdminUserController {
 
     @GetMapping("/get/{idUser}")
     public ResponseEntity<UserProfileResponse> getUserById(
-            @PathVariable(name = "idUser") UUID idUser,
-            @RequestParam(name = "idEventScale", required = false) UUID idEventScale) {
-        return ResponseEntity.ok(userService.getUserProfile(idUser, idEventScale));
+            @PathVariable(name = "idUser") UUID idUser) {
+        return ResponseEntity.ok(userService.getUserProfile(idUser, null));
     }
 
     @GetMapping("/list-all")

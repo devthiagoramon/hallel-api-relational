@@ -45,7 +45,7 @@ public class AuthService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final EmailService emailService;
 
-    private UserRoleRepository userRoleRepository;
+    private final UserRoleRepository userRoleRepository;
 
     public TokenDTO login(LoginRequest loginRequest) {
         try {
