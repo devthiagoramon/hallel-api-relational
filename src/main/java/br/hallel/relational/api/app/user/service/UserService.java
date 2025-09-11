@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.user.service;
 
+import br.hallel.relational.api.app.auth.exception.AuthRequestException;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
@@ -16,6 +17,7 @@ import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
 import br.hallel.relational.api.app.user.model.LastAccessLog;
 import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.model.UserAccountStatus;
 import br.hallel.relational.api.app.user.repository.LastAcessLogRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,8 @@ public class UserService implements UserInterface {
     private LastAcessLogRepository lastAcessLogRepository;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Autowired
     private DeviceNotificationRepository deviceNotificationRepository;
     @Autowired
@@ -156,6 +160,7 @@ public class UserService implements UserInterface {
 
         UserProfileResponse user = new UserProfileResponse(userById.getId(), userById.getName(), userById.getEmail(),
                 userById.getPhoneNumber(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
+                userById.getStatus(),
                 date_view_invite, null);
         System.out.println(user);
         return user;
@@ -181,13 +186,9 @@ public class UserService implements UserInterface {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> users = this.userRepository.searchAllByOrderByNameAsc(pageable);
         return users.map((user -> {
-            LocalDateTime lastAcessLog = this.getLastAcessLog(user);
-            Date date = null;
-            if (lastAcessLog != null) {
-                date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
-            }
+            Date date = getLastAccessDate(user);
             return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, date);
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, date);
         }));
     }
 
@@ -210,7 +211,7 @@ public class UserService implements UserInterface {
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado pelo token: {0}",
                         token.toString()));
         return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), null, null);
+                user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, null);
     }
 
     public UserEditProfileDTO editCPF(UUID idUser, String cpf) {
@@ -295,4 +296,113 @@ public class UserService implements UserInterface {
         System.out.println("Notification sending with success!");
     }
 
+    public UserProfileResponse createUser(CreateEditUser dto) {
+        log.info("Creating User: " + dto.getName());
+
+        if (userRepository.
+                findByEmail(dto.getEmail()).isPresent()) {
+            throw new AuthRequestException("User already exists in Database");
+        }
+
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setDateBirth(dto.getDateBirth());
+        user.setCpf(dto.getCpf());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        User userSaved = this.userRepository.save(user);
+        Date date = getLastAccessDate(user);
+        return new UserProfileResponse(
+                userSaved.getId(),
+                userSaved.getName(),
+                userSaved.getEmail(),
+                userSaved.getPhoneNumber(),
+                userSaved.getDateBirth(),
+                userSaved.getFileImageUrl(),
+                userSaved.getCpf(),
+                user.getStatus(),
+                null,
+                date
+        );
+    }
+
+    public UserProfileResponse editUser(UUID id, CreateEditUser dto) {
+        log.info("Editing User: " + id);
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", id.toString()));
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setDateBirth(dto.getDateBirth());
+        user.setCpf(dto.getCpf());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        User userSaved = this.userRepository.save(user);
+        Date date = getLastAccessDate(user);
+        return new UserProfileResponse(
+                userSaved.getId(),
+                userSaved.getName(),
+                userSaved.getEmail(),
+                userSaved.getPhoneNumber(),
+                userSaved.getDateBirth(),
+                userSaved.getFileImageUrl(),
+                userSaved.getCpf(),
+                user.getStatus(),
+                null,
+                date
+        );
+    }
+
+    private Date getLastAccessDate(User user) {
+        LocalDateTime lastAcessLog = this.getLastAcessLog(user);
+        Date date = null;
+        if (lastAcessLog != null) {
+            date = Date.from(lastAcessLog.atZone(ZoneId.systemDefault()).toInstant());
+        }
+        return date;
+    }
+
+    public UserProfileResponse disableUser(UUID idUser) {
+        log.info("Disabling User: " + idUser);
+        User user = this.userRepository.findById(idUser)
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", idUser.toString()));
+
+        user.setStatus(UserAccountStatus.DISABLED);
+        User userSaved = this.userRepository.save(user);
+        Date date = getLastAccessDate(user);
+        return new UserProfileResponse(
+                userSaved.getId(),
+                userSaved.getName(),
+                userSaved.getEmail(),
+                userSaved.getPhoneNumber(),
+                userSaved.getDateBirth(),
+                userSaved.getFileImageUrl(),
+                userSaved.getCpf(),
+                user.getStatus(),
+                null,
+                date
+        );
+    }
+
+    public UserProfileResponse activateUser(UUID idUser) {
+        log.info("Activating User: " + idUser);
+        User user = this.userRepository.findById(idUser)
+                .orElseThrow(() -> new UserNotFoundException("user.not.found", idUser.toString()));
+
+        user.setStatus(UserAccountStatus.ENABLED);
+        User userSaved = this.userRepository.save(user);
+        Date date = getLastAccessDate(user);
+        return new UserProfileResponse(
+                userSaved.getId(),
+                userSaved.getName(),
+                userSaved.getEmail(),
+                userSaved.getPhoneNumber(),
+                userSaved.getDateBirth(),
+                userSaved.getFileImageUrl(),
+                userSaved.getCpf(),
+                user.getStatus(),
+                null,
+                date
+        );
+    }
 }

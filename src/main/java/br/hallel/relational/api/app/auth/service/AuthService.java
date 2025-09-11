@@ -11,6 +11,7 @@ import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.model.UserAccountStatus;
 import br.hallel.relational.api.app.user.model.UserRole;
 import br.hallel.relational.api.app.user.model.UserRoleIds;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -58,6 +59,9 @@ public class AuthService {
                     user.getRoles().stream().map(Role::getDescription)
                             .toList());
             user.setToken(tokenResponse.getAccessToken());
+            if (user.getStatus() == UserAccountStatus.DISABLED) {
+                user.setStatus(UserAccountStatus.ENABLED);
+            }
             userRepository.save(user);
             return tokenResponse;
         } catch (Exception e) {
@@ -181,7 +185,6 @@ public class AuthService {
         }
         return null;
     }
-
 
 
     public Boolean validateTokenAdminWeb(String tokenAdmin, String code) {
