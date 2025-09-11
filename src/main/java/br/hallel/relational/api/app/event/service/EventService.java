@@ -435,11 +435,8 @@ public class EventService implements EventInterface {
 
         double total = inputAmount - outputAmount;
 
-        if (total >= 0) {
-            return new EventBalanceResponse(eventId, event.getEventType(), total, 0.0, BalanceType.LUCRO);
-        } else {
-            return new EventBalanceResponse(eventId, event.getEventType(), 0.0, Math.abs(total), BalanceType.PREJUIZO);
-        }
+        return new EventBalanceResponse(eventId, event.getEventType(), inputAmount, outputAmount, total,
+                total >= 0 ? BalanceType.LUCRO : BalanceType.PREJUIZO);
     }
 
     public List<EventCashFlowResponse> getEventCashFlow(UUID eventId) {

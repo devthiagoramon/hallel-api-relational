@@ -18,5 +18,6 @@ public class EventBalanceResponse {
     private EventType eventType;
     private double profit;
     private double prejudice;
+    private double total;
     private BalanceType balanceType;
 }
