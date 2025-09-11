@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;
 import br.hallel.relational.api.app.ministry.dto.MinistryRequestDTO;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ public interface MinistryInterface {
     MinistryResponse
     createMinistry(MinistryRequestDTO ministryRequestDTO, MultipartFile image);
 
-    List<MinistryResponse> listAllMinistriesPage(int page, int size);
+    Page<MinistryResponse> listAllMinistriesPage(int page, int size);
 
     MinistryResponse getMinistryById(UUID id);
 

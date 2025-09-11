@@ -122,21 +122,11 @@ public class MinistryService implements MinistryInterface {
     }
 
     @Override
-    public List<MinistryResponse> listAllMinistriesPage(int page,
+    public Page<MinistryResponse> listAllMinistriesPage(int page,
                                                         int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Ministry> ministryPagination = this.ministryRepository.findAll(pageable);
-
-        List<MinistryResponse> responseList =
-                ministryPagination.stream().map(ministry ->
-                                mapper.entityMinistryToResponse(ministry))
-                        .collect(Collectors.toList());
-        if (responseList.isEmpty()) {
-            throw new MinistryListEmptyException(
-                    "ministry.list.is.empty");
-        }
-        log.info("Listing ministries...", responseList);
-        return responseList;
+        return ministryPagination.map(mapper::entityMinistryToResponse);
     }
 
     @Override

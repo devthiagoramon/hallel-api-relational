@@ -29,7 +29,7 @@ public class PublicMinistryController {
     private final MemberMinistryService memberMinistryService;
 
     @GetMapping("/list-all")
-    public ResponseEntity<List<MinistryResponse>> litAllMinistries(
+    public ResponseEntity<Page<MinistryResponse>> litAllMinistries(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
 
