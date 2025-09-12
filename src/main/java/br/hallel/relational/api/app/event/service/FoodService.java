@@ -35,7 +35,7 @@ public class FoodService {
         food.setName(dto.name());
         food.setValue(dto.value());
         food.setStockQuantity(dto.stockQuantity());
-
+        food.setRegisteredDate(dto.registeredDate());
         Event event = getEvent(dto);
         food.setEvent(event);
 

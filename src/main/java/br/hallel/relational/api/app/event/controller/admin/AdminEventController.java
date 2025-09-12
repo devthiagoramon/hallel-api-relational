@@ -180,20 +180,20 @@ public class AdminEventController {
     }
 
     //FOODS
-    @PostMapping("/food/create-food")
+    @PostMapping("/create/food")
     @Operation(summary = "Create and Save and food in DataBase")
     public ResponseEntity<FoodResponseDTO> createFood(@RequestBody @Valid FoodRequestDTO dto) {
         return ResponseEntity.ok(this.foodService.createFood(dto));
     }
 
-    @GetMapping("/food/list-all")
+    @GetMapping("/list-all/foods")
     @Operation(summary = "List all foods saved in DataBase")
     public ResponseEntity<Page<FoodResponseDTO>> listAllFood(@RequestParam(defaultValue = "0") int page,
                                                              @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(this.foodService.listAllFoods(PageRequest.of(page, size)));
     }
 
-    @GetMapping("/food/list-all/by-event-id/{eventId}")
+    @GetMapping("/list-all/food/by-event-id/{eventId}")
     @Operation(summary = "List all foods saved in DataBase by Event Id")
     public ResponseEntity<Page<FoodResponseDTO>> listAllFoodByEventId(@PathVariable(name = "eventId") UUID eventId,
                                                                       @RequestParam(defaultValue = "0") int page,
@@ -201,27 +201,27 @@ public class AdminEventController {
         return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, PageRequest.of(page, size)));
     }
 
-    @GetMapping("/food/get-by-id/{foodId}")
+    @GetMapping("/get-by-id/food/{foodId}")
     @Operation(summary = "Getting Food By Id")
     public ResponseEntity<FoodResponseDTO> getFoodById(@PathVariable(name = "foodId") UUID foodId) {
         return ResponseEntity.ok(this.foodService.getFoodById(foodId));
     }
 
-    @PatchMapping("/food/edit-by-id/{foodId}")
+    @PatchMapping("/edit-by-id/food/{foodId}")
     @Operation(summary = "Edit Food By Id")
     public ResponseEntity<FoodResponseDTO> editFoodById(@PathVariable(name = "foodId") UUID foodId,
                                                         @RequestBody FoodEditDTO dto) {
         return ResponseEntity.ok(this.foodService.editFood(foodId, dto));
     }
 
-    @DeleteMapping("/food/delete-by-id/{foodId}")
+    @DeleteMapping("/delete-by-id/food/{foodId}")
     @Operation(summary = "Delete Food By Id")
     public ResponseEntity<?> deleteFoodById(@PathVariable(name = "foodId") UUID foodId) {
         this.foodService.deleteFood(foodId);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/food/register-sale")
+    @PostMapping("/register-sale/food")
     @Operation(summary = "Record a food sale")
     public ResponseEntity<EventTransactionResponse> registerSale(@RequestParam(name = "foodId") UUID foodId,
                                                                  @RequestParam(name = "quantity") Integer quantity) {

@@ -67,6 +67,7 @@ springdoc:
     enabled: true
 
 
+
 mercadopago:
   access:
     token: APP_USR-4555467526956218-082700-3a593e9193068d796699857780c741ce-2640484802
