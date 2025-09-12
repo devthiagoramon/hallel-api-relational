@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
 
@@ -58,6 +59,27 @@ public class AdminEventParticipationController {
                                   @RequestParam(name = "page", defaultValue = "0") int page,
                                   @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(userEventService.getAllParticipationsByEventId(eventId, PageRequest.of(page, size)));
+    }
+
+    @Operation(summary = "List all participants by name of event")
+    @GetMapping("/by-event/{eventId}/name")
+    public ResponseEntity<Page<UserInEventInfosResponse>>
+    getAllParticipationsByNameOFEventId(@PathVariable(name = "eventId") UUID eventId,
+                                  @RequestParam(name = "name", defaultValue = "") String name,
+                                  @RequestParam(name = "page", defaultValue = "0") int page,
+                                  @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userEventService.getAllParticipationsByNameOFEventId(name, eventId, PageRequest.of(page, size)));
+    }
+
+    @Operation(summary = "List all participants by name of event")
+    @GetMapping("/by-event/{eventId}/statusPayment")
+    public ResponseEntity<Page<UserInEventInfosResponse>>
+    getAllParticipationsByFilterStatusPaymentOFEvent(@PathVariable(name = "eventId") UUID eventId,
+                                        @RequestParam(name = "status", defaultValue = "", required = true)
+                                        StatusPaymentEventParticipation statusPaymentEventParticipation,
+                                        @RequestParam(name = "page", defaultValue = "0") int page,
+                                        @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userEventService.getAllParticipationsByFilterOfEvent(statusPaymentEventParticipation, eventId, PageRequest.of(page, size)));
     }
 
     @PostMapping("/add")

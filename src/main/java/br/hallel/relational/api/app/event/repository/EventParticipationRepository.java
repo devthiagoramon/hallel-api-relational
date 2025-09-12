@@ -12,7 +12,6 @@ import org.springframework.data.repository.query.Param;
 
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,8 +23,6 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
 
     Page<EventParticipation> findAllByEvent_Id(UUID eventId, Pageable pageable);
 
-    List<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
-                                                                                 StatusPaymentEventParticipation status);
 
     Page<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
                                                                                  StatusPaymentEventParticipation status,
@@ -37,7 +34,8 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
 
     Optional<EventParticipation> findByUser_IdAndEvent_Id(UUID userId, UUID eventId);
 
-    List<EventParticipation> findByStatusPaymentEventParticipation(StatusPaymentEventParticipation statusPaymentEventParticipation);
+    List<EventParticipation> findByStatusPaymentEventParticipation(
+            StatusPaymentEventParticipation statusPaymentEventParticipation);
 
     Optional<EventParticipation> findByPixTxid(String pixTxid);
 
@@ -66,9 +64,22 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
                                 )
                 AND LOWER(u.name) LIKE concat('%', LOWER(:name), '%') AND r.description = 'USER' AND SIZE(u.roles) = 1
             """)
-    Page<User> listUsersWhoNotParticipateOfEventByName(@Param("eventId") UUID eventId, @Param("name") String name, Pageable page);
+    Page<User> listUsersWhoNotParticipateOfEventByName(@Param("eventId") UUID eventId, @Param("name") String name,
+                                                       Pageable page);
 
-    Page<EventParticipation> findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(UUID userId, LocalDateTime now, Pageable pageable);
+    Page<EventParticipation> findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(UUID userId,
+                                                                                               LocalDateTime now,
+                                                                                               Pageable pageable);
 
     Page<EventParticipation> findAllByUser_IdOrderByEvent_Title(UUID userId, Pageable pageable);
+
+    Page<EventParticipation> findAllByUser_name(String userName, Pageable pageable);
+    @Query("""
+                SELECT ep from EventParticipation ep
+                join ep.user u
+                where ep.event.id = :eventId
+                AND LOWER(u.name) LIKE concat('%', LOWER(:userName), '%')
+            """)
+    Page<EventParticipation> listAllByUser_nameAndEvent_id(@Param("userName") String userName,
+                                                           @Param("eventId") UUID eventId, Pageable pageable);
 }

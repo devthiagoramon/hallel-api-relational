@@ -324,10 +324,12 @@ public class UserEventService {
     public Page<UserInEventWithEventInfosResponse> getAllUserParticipationByUserId(UUID userId, Pageable pageable) {
 
         Page<EventParticipation> participations = eventParticipationRepository.
-                findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(userId, LocalDateTime.now(), pageable);
+                findAllByUser_IdAndEvent_DateGreaterThanEqualOrderByEvent_DateAsc(userId, LocalDateTime.now(),
+                        pageable);
 
         if (participations.isEmpty()) {
-            Page<EventParticipation> allByUserId = this.eventParticipationRepository.findAllByUser_IdOrderByEvent_Title(userId, pageable);
+            Page<EventParticipation> allByUserId = this.eventParticipationRepository.findAllByUser_IdOrderByEvent_Title(
+                    userId, pageable);
             if (allByUserId.isEmpty()) {
                 throw new EventParticipationException("Lista de participações do usuário está vazia");
             }
@@ -485,10 +487,21 @@ public class UserEventService {
     }
 
     public Page<User> listUsersNotParticipateOfEventByName(UUID eventId, String name, Pageable page) {
-        log.info("Listing users not participate of event {} by name", eventId);
         return this.eventParticipationRepository.listUsersWhoNotParticipateOfEventByName(eventId, name, page);
     }
 
 
+    public Page<UserInEventInfosResponse> getAllParticipationsByNameOFEventId(String name, UUID eventId,
+                                                                              Pageable page) {
+        Page<EventParticipation> participations = eventParticipationRepository.listAllByUser_nameAndEvent_id(name,
+                eventId, page);
+        return participations.map(part -> new UserInEventInfosResponse().toResponse(part, 0));
+    }
 
+    public Page<UserInEventInfosResponse> getAllParticipationsByFilterOfEvent(
+            StatusPaymentEventParticipation statusPaymentEventParticipation, UUID eventId, Pageable page) {
+        Page<EventParticipation> participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(
+                eventId, statusPaymentEventParticipation, page);
+        return participations.map(part -> new UserInEventInfosResponse().toResponse(part, 0));
+    }
 }

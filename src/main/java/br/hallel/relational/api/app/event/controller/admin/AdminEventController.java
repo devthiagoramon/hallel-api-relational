@@ -9,10 +9,12 @@ import br.hallel.relational.api.app.event.repository.EventParticipationRepositor
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.FoodService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
