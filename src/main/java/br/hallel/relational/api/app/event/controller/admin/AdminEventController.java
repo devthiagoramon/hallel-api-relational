@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventParticipationException;
+import br.hallel.relational.api.app.event.model.EventFoodSales;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
@@ -9,12 +10,10 @@ import br.hallel.relational.api.app.event.repository.EventParticipationRepositor
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.FoodService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
-import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.payment.Payment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +26,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,4 +229,37 @@ public class AdminEventController {
         return ResponseEntity.ok(this.foodService.registerSale(foodId, quantity));
     }
 
+    @GetMapping("/list-all/solds/foods/{eventId}")
+    @Operation(summary = "List All foods sold")
+    public ResponseEntity<Page<EventFoodSoldResponseDTO>> listAllFoodsSold(
+            @PathVariable(name = "eventId") UUID eventId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(this.foodService.listAllFoodsSoldByEventId(eventId, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/get/food-sold/{eventId}")
+    @Operation(summary = "List All foods sold")
+    public ResponseEntity<EventFoodSoldResponseDTO> getEventFoodSold(
+            @PathVariable(name = "eventId") UUID eventId) {
+
+        return ResponseEntity.ok(this.foodService.getFoodSoldById(eventId));
+    }
+
+    @DeleteMapping("/delete/food-sold/{eventFoodSoldId}")
+    @Operation(summary = "Delete foods sold By Id")
+    public ResponseEntity<?> deleteFoodSoldById(@PathVariable(name = "eventFoodSoldId") UUID eventFoodSoldId) {
+        this.foodService.deleteFoodSold(eventFoodSoldId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/edit/food-sold/{eventFoodSoldId}")
+    @Operation(summary = "edit foods sold By Id")
+    public ResponseEntity<EventFoodSales> editFoodSale(
+            @PathVariable("eventFoodSoldId") UUID eventFoodSoldId,
+            @RequestBody EventFoodSaleDTO dto
+    ) {
+        return ResponseEntity.ok(this.foodService.edit(eventFoodSoldId, dto));
+    }
 }
