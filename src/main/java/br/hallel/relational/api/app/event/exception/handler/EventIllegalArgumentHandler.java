@@ -22,20 +22,25 @@ public class EventIllegalArgumentHandler {
     private final MessageSource messageSource;
 
     @ExceptionHandler(value = EventIllegalArumentException.class)
-    public ResponseEntity<ExceptionResponse> handleEventException(EventIllegalArumentException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleEventException(EventIllegalArumentException exception,
+                                                                  WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = ListEventScaleIsEmpty.class)
-    public ResponseEntity<ExceptionResponse> handleListEventScaleIsEmpty(ListEventScaleIsEmpty exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleListEventScaleIsEmpty(ListEventScaleIsEmpty exception,
+                                                                         WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
 
     @ExceptionHandler(value = EventScaleNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleEventScaleException(EventScaleNotFoundException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventScaleException(EventScaleNotFoundException exception,
+                                                                       WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
 
         String messageKey = exception.getMessage();
@@ -53,7 +58,8 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ExceptionResponse> handleEventScaleArgumentException(MethodArgumentTypeMismatchException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventScaleArgumentException(
+            MethodArgumentTypeMismatchException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(
                 exception.getMessage(), new Date(), request.getDescription(false)
         );
@@ -61,7 +67,8 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(EventScaleIllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleScaleIllegalArgumentException(EventScaleIllegalArgumentException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleScaleIllegalArgumentException(
+            EventScaleIllegalArgumentException exception, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(
                 exception.getMessage(),
                 new Date(),
@@ -72,37 +79,48 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(MemberEventScaleNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleMemberEventScaleNotFoundException(MemberEventScaleNotFoundException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleNotFoundException(
+            MemberEventScaleNotFoundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MemberScaleAlreadyHasThatStatus.class)
-    public ResponseEntity<ExceptionResponse> handleMemberScaleAlreadyHasThatStatus(MemberScaleAlreadyHasThatStatus exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleMemberScaleAlreadyHasThatStatus(
+            MemberScaleAlreadyHasThatStatus exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MemberEventScaleIllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleMemberEventScaleIllegalArgumentException(MemberEventScaleIllegalArgumentException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleMemberEventScaleIllegalArgumentException(
+            MemberEventScaleIllegalArgumentException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InviteEventScaleException.class)
-    public ResponseEntity<ExceptionResponse> handleInviteEventScaleException(InviteEventScaleException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleInviteEventScaleException(InviteEventScaleException exception,
+                                                                             WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EventScaleRuntimeException.class)
-    public ResponseEntity<ExceptionResponse> handleEventScaleRuntimeException(EventScaleRuntimeException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleEventScaleRuntimeException(EventScaleRuntimeException exception,
+                                                                              WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EventNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleEventNotFoundException(EventNotFoundException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventNotFoundException(EventNotFoundException exception,
+                                                                          WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
 
         String messageKey = exception.getMessage();
@@ -120,7 +138,8 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(EventTransactionNotFoundException.class)
-    public ResponseEntity<ExceptionResponse> handleEventTransactionNotFoundException(EventTransactionNotFoundException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventTransactionNotFoundException(
+            EventTransactionNotFoundException exception, WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
         String messageKey = exception.getMessage();
         Object[] args = new Object[]{exception.getId()};
@@ -137,7 +156,8 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(EventParticipationException.class)
-    public ResponseEntity<ExceptionResponse> handleEventParticipationException(EventParticipationException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventParticipationException(EventParticipationException exception,
+                                                                               WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
         String messageKey = exception.getMessage();
 
@@ -173,19 +193,24 @@ public class EventIllegalArgumentHandler {
     }
 
     @ExceptionHandler(UserValidationException.class)
-    public ResponseEntity<ExceptionResponse> handleUserValidationException(UserValidationException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handleUserValidationException(UserValidationException exception,
+                                                                           WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PaymentRefundException.class)
-    public ResponseEntity<ExceptionResponse> handlePaymentRefundException(PaymentRefundException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+    public ResponseEntity<ExceptionResponse> handlePaymentRefundException(PaymentRefundException exception,
+                                                                          WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EventListIsEmptyException.class)
-    public ResponseEntity<ExceptionResponse> handleEventListIsEmpty(EventListIsEmptyException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleEventListIsEmpty(EventListIsEmptyException exception,
+                                                                    WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
         String messageKey = exception.getMessage();
 
@@ -199,8 +224,10 @@ public class EventIllegalArgumentHandler {
 
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(FoodEmptyListException.class)
-    public ResponseEntity<ExceptionResponse> handleFoodEmptyListException(FoodEmptyListException exception, WebRequest request) {
+    public ResponseEntity<ExceptionResponse> handleFoodEmptyListException(FoodEmptyListException exception,
+                                                                          WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
         String messageKey = exception.getMessage();
 
@@ -217,7 +244,7 @@ public class EventIllegalArgumentHandler {
 
     @ExceptionHandler(FoodNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleFoodNotFoundException(FoodNotFoundException exception,
-                                                                   WebRequest request) {
+                                                                         WebRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
 
         String messageKey = exception.getMessage();
@@ -234,4 +261,11 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(GenerateParticipationsPDFException.class)
+    public ResponseEntity<ExceptionResponse> handleGenereateParticipationsPDFException(
+            GenerateParticipationsPDFException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

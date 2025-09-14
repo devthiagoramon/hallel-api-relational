@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.global.pdf;
 
+import br.hallel.relational.api.app.event.model.Event;
+import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.user.model.User;
 import com.mercadopago.resources.payment.Payment;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -10,6 +12,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 @Service
 public class PdfGenerationService {
@@ -42,4 +45,21 @@ public class PdfGenerationService {
 
         return outputStream.toByteArray();
     }
+
+    public byte[] generatePdfFromParticipationsInevent(List<EventParticipation> eventParticipations, Event event) throws IOException {
+        Context context = new Context();
+        context.setVariable("participants", eventParticipations);
+        context.setVariable("event", event);
+        String html = templateEngine.process("participantes_evento", context);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+        builder.useFastMode();
+        builder.withHtmlContent(html, null);
+        builder.toStream(outputStream);
+        builder.run();
+
+        return outputStream.toByteArray();
+    }
+
 }

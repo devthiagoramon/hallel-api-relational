@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            border: 1px solid #eee;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            border-bottom: 1px solid #CED4DA;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .details {
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Une as bordas das células */
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .empty-message {
+            margin-top: 1rem;
+            color: #888;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body class="container">
+<div class="header">
+    <h1>Participantes do evento <span th:text="${event.title}">...</span></h1>
+</div>
+<div class="details">
+    <table th:if="${not #lists.isEmpty(participants)}">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th th:if="${not event.itsFree}">Status de pagamento</th>
+            <th>Função</th>
+            <th>Comunidade</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="participant : ${participants}">
+            <td th:text="${participant.user.name}">...</td>
+            <td th:text="${participant.user.email}">...</td>
+            <td th:if="${not event.itsFree}" th:text="${participant.statusPaymentEventParticipation}">...</td>
+            <td th:text="${participant.userFunctionInEvent}">...</td>
+            <td th:text="${participant.community}">...</td>
+        </tr>
+        </tbody>
+    </table>
+    <div th:if="${#lists.isEmpty(participants)}" class="empty-message">
+        <p>Ainda não há participantes inscritos neste evento.</p>
+    </div>
+</div>
+<div class="footer">
+    <p th:text="|Gerado em: ${#temporals.format(T(java.time.LocalDate).now(), 'dd/MM/yyyy')}|"></p>
+</div>
+</body>
+</html>

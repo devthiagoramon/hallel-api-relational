@@ -113,5 +113,11 @@ public class AdminEventParticipationController {
                 userEventService.listUsersNotParticipateOfEventByName(eventId, name, PageRequest.of(page, size)));
     }
 
+    @GetMapping("/users/pdf/{event-id}")
+    @Operation(summary = "List the pdf from participants of event", description = "Handles to get the PDF from participants of event, the pdf's returned as Base64")
+    public ResponseEntity<String> listUsersParticipationInEventPDF(@PathVariable("event-id") UUID eventId) {
+        return ResponseEntity.ok(userEventService.listUsersAsPdf(eventId));
+    }
+
 
 }

@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
@@ -43,6 +44,7 @@ public class UserEventService {
     private final EventTransactionRepository eventTransactionRepository;
     private final MercadoPagoClient mercadoPagoClient;
     private final SimpMessagingTemplate template;
+    private final PdfGenerationService pdfGenerationService;
 
     public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
@@ -503,5 +505,22 @@ public class UserEventService {
         Page<EventParticipation> participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(
                 eventId, statusPaymentEventParticipation, page);
         return participations.map(part -> new UserInEventInfosResponse().toResponse(part, 0));
+    }
+
+    public String listUsersAsPdf(UUID eventId) {
+        List<EventParticipation> participations = eventParticipationRepository.findAllByEvent_Id(eventId);
+        Event event = this.eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventParticipationException("event.not.found"));
+        String pdfBase64 = "";
+        if (participations.isEmpty()) {
+            throw new EventParticipationException("participation.event.not.found");
+        }
+        try {
+            pdfBase64 = Base64.getEncoder().encodeToString(
+                    this.pdfGenerationService.generatePdfFromParticipationsInevent(participations, event));
+        } catch (IOException e) {
+            throw new GenerateParticipationsPDFException("Não foi possivel gerar o PDF: " + e.getMessage());
+        }
+        return pdfBase64;
     }
 }
