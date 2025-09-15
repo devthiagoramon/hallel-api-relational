@@ -28,8 +28,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
         registry.addEndpoint("/ws-scale-chat");
         registry.addEndpoint("/ws-auth").setAllowedOrigins(allowedOrigins);
-
         registry.addEndpoint("/ws-payment").setAllowedOrigins(allowedOrigins);
+        registry.addEndpoint("/ws-food-payments").setAllowedOrigins(allowedOrigins);
 
     }
 

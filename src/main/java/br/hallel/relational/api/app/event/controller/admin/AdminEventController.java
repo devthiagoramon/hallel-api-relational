@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventParticipationException;
-import br.hallel.relational.api.app.event.model.EventFoodSales;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
@@ -139,7 +138,6 @@ public class AdminEventController {
             String qrCode = client.getPaymentQRCode(participation.getMercadoPagoPaymentId());
             String pixCode = client.getPaymentPixCode(participation.getMercadoPagoPaymentId());
 
-
             template.convertAndSend("/topic/payments/" + userId,
                     new PaymentStatusDTO(qrCode, pixCode,
                             StatusPaymentEventParticipation.PENDENTE));
@@ -224,12 +222,11 @@ public class AdminEventController {
 
     @PostMapping("/register-sale/food")
     @Operation(summary = "Record a food sale")
-    public ResponseEntity<EventTransactionResponse> registerSale(@RequestParam(name = "foodId") UUID foodId,
-                                                                 @RequestParam(name = "quantity") Integer quantity) {
-        return ResponseEntity.ok(this.foodService.registerSale(foodId, quantity));
+    public ResponseEntity<EventTransactionResponse> registerSale(@RequestBody List<FoodSaleItemRequestDTO> foodSaleItems) {
+        return ResponseEntity.ok(this.foodService.registerSale(foodSaleItems));
     }
 
-    @GetMapping("/list-all/solds/foods/{eventId}")
+    @GetMapping("/list-all/food-sold/{eventId}")
     @Operation(summary = "List All foods sold")
     public ResponseEntity<Page<EventFoodSoldResponseDTO>> listAllFoodsSold(
             @PathVariable(name = "eventId") UUID eventId,
@@ -239,10 +236,10 @@ public class AdminEventController {
         return ResponseEntity.ok(this.foodService.listAllFoodsSoldByEventId(eventId, PageRequest.of(page, size)));
     }
 
-    @GetMapping("/get/food-sold/{eventId}")
-    @Operation(summary = "List All foods sold")
+    @GetMapping("/get/food-sold/{foodSoldId}")
+    @Operation(summary = "Get an foods sold by Id")
     public ResponseEntity<EventFoodSoldResponseDTO> getEventFoodSold(
-            @PathVariable(name = "eventId") UUID eventId) {
+            @PathVariable(name = "foodSoldId") UUID eventId) {
 
         return ResponseEntity.ok(this.foodService.getFoodSoldById(eventId));
     }
@@ -256,10 +253,20 @@ public class AdminEventController {
 
     @PutMapping("/edit/food-sold/{eventFoodSoldId}")
     @Operation(summary = "edit foods sold By Id")
-    public ResponseEntity<EventFoodSales> editFoodSale(
+    public ResponseEntity<EventFoodSoldResponseDTO> editFoodSale(
             @PathVariable("eventFoodSoldId") UUID eventFoodSoldId,
             @RequestBody EventFoodSaleDTO dto
     ) {
-        return ResponseEntity.ok(this.foodService.edit(eventFoodSoldId, dto));
+        return ResponseEntity.ok(this.foodService.editFoodSold(eventFoodSoldId, dto));
     }
+
+    @PostMapping("/generate-food-payment/{eventId}")
+    @Operation(summary = "Generates a PIX payment for food sales")
+    public ResponseEntity<PaymentFoodResponseDTO> generateFoodPayment(@RequestBody List<FoodSaleItemRequestDTO> saleItems,
+                                                                      @PathVariable(name = "eventId") UUID eventId) {
+
+        return ResponseEntity.ok(this.foodService.createFoodPayment(saleItems,eventId));
+    }
+
+
 }

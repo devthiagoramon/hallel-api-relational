@@ -1,44 +1,36 @@
 package br.hallel.relational.api.app.payment.checkout_transparent.dto;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-@Getter@Setter
-@NoArgsConstructor@AllArgsConstructor
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MercadoPagoConfigDTO {
 
-    // A ID da notificação.
     private Long id;
-
-    // O tipo da notificação, como "payment".
-    private String type;
-
-    // A ID do recurso, como a ID do pagamento.
+    private String action;
+    @JsonProperty("api_version")
+    private String apiVersion;
+    @JsonProperty("date_created")
+    private String dateCreated;
+    @JsonProperty("live_mode")
+    private Boolean liveMode;
+    @JsonProperty("user_id")
+    private Long userId;
     @JsonProperty("data")
     private DataDTO data;
 
-    // O status da ação, como "payment.updated".
-    private String action;
+    private String resource;
+    private String topic;
+    private String type;
 
-    // Outros campos úteis que podem ser enviados.
-    @JsonProperty("api_version")
-    private String apiVersion;
 
-    @JsonProperty("date_created")
-    private String dateCreated;
-
-    @JsonProperty("live_mode")
-    private Boolean liveMode;
-
-    private Long user_id;
-
-    @Getter
-    @Setter
-    @ToString
+    @Data
+    @NoArgsConstructor
     public static class DataDTO {
-
         private String id;
     }
 }

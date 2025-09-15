@@ -28,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -339,7 +338,7 @@ public class EventService implements EventInterface {
         );
 
         EventTransaction eventTransaction = new EventTransaction();
-        eventTransaction.setDesciption(dto.desciption());
+        eventTransaction.setDescription(dto.desciption());
         eventTransaction.setTransactionType(dto.transactionType());
         eventTransaction.setDateTransaction(dto.dateTransaction());
         eventTransaction.setValue(dto.value());
@@ -396,7 +395,7 @@ public class EventService implements EventInterface {
         EventTransaction transaction = eventTransactionRepository.findById(id)
                 .orElseThrow(() -> new EventTransactionNotFoundException("event.transaction.not.found", id.toString()));
 
-        transaction.setDesciption(dto.desciption());
+        transaction.setDescription(dto.desciption());
         transaction.setTransactionType(dto.transactionType());
         transaction.setDateTransaction(dto.dateTransaction());
         transaction.setValue(dto.value());

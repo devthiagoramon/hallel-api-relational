@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface FoodRepository extends JpaRepository<Foods, UUID> {
 
     Page<Foods> findAllByEvent_Id(UUID eventId, Pageable pageable);
+
+
 }

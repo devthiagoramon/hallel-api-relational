@@ -24,6 +24,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -66,8 +67,6 @@ public class MercadoPagoClient {
                                 .build())
                 .build();
 
-        // CORREÇÃO: Removendo o PaymentAdditionalInfoRequest, pois shipments
-        // deve ser definido no nível superior.
 
         PaymentCreateRequest createRequest = PaymentCreateRequest.builder()
                 .transactionAmount(dto.amount())
@@ -230,6 +229,28 @@ public class MercadoPagoClient {
             throw new PaymentRefundException("Mercado Pago SDK Error: " + e.getMessage());
             // Retorne false para indicar que o reembolso não foi bem-sucedido
         }
+    }
+
+    public Payment createFoodPixPayment(BigDecimal amount, String description, UUID transactionId) throws MPException, MPApiException {
+        log.info("Criando pagamento Pix para venda de alimentos. Valor: {}", amount);
+
+        PaymentPayerRequest payerRequest = PaymentPayerRequest.builder().email("pagador_generico@email.com").build();
+
+        PaymentCreateRequest createRequest = PaymentCreateRequest.builder()
+                .transactionAmount(amount)
+                .description(description)
+                .paymentMethodId("pix")
+                .payer(payerRequest)
+                .externalReference(transactionId.toString())
+                .notificationUrl(notificationUrl)
+                .build();
+
+        PaymentClient client = new PaymentClient();
+        Payment payment = client.create(createRequest);
+
+        log.info("Pagamento Pix para alimentos criado com sucesso. ID: {}", payment.getId());
+
+        return payment;
     }
 
     public String getPaymentPixCode(Long mercadoPagoPaymentId) throws MPException, MPApiException {

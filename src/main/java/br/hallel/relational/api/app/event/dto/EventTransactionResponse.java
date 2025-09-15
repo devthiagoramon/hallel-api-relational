@@ -28,7 +28,7 @@ public class EventTransactionResponse {
     public static EventTransactionResponse toResponse(EventTransaction eventTransaction) {
         return new EventTransactionResponse(
                 eventTransaction.getId(),
-                eventTransaction.getDesciption(),
+                eventTransaction.getDescription(),
                 eventTransaction.getValue(),
                 eventTransaction.getTransactionType(),
                 eventTransaction.getEvent().getId(),

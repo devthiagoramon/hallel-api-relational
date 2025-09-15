@@ -88,7 +88,6 @@ public class UserEventService {
 
                 if (user.getCpf() == null || user.getCpf().isEmpty()) {
                     throw new UserValidationException("User CPF is required to make the payment.");
-
                 }
 
                 CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
@@ -102,7 +101,6 @@ public class UserEventService {
 
                 Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, userId);
 
-                // Verificação de segurança adicional para evitar NPE
                 if (payment != null && payment.getPointOfInteraction() != null &&
                         payment.getPointOfInteraction().getTransactionData() != null) {
                     eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
@@ -110,7 +108,6 @@ public class UserEventService {
                     eventParticipation.setMercadoPagoPaymentId(payment.getId());
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
                     String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
-
 
                     template.convertAndSend("/topic/payments/" + user.getId(),
                             new PaymentStatusDTO(qrCodeBase64, linkCodePayment,
@@ -277,7 +274,7 @@ public class UserEventService {
                 transaction.setValue(dto.amountPaid());
                 transaction.setDateTransaction(new Date());
                 transaction.setTransactionType(TransactionType.ENTRADA);
-                transaction.setDesciption("Pagamento atualizado do Participante " +
+                transaction.setDescription("Pagamento atualizado do Participante " +
                         participation.getUser().getName() +
                         " para o Evento " + participation.getEvent().getTitle());
                 eventTransactionRepository.save(transaction);

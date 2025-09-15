@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +23,7 @@ public class Foods {
     private String name;
 
     @Column(name = "value")
-    private BigDecimal value;
+    private Double value;
 
     @Column(name = "stockQuantity")
     private Integer stockQuantity;

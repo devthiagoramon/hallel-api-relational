@@ -5,20 +5,25 @@ import br.hallel.relational.api.app.event.exception.EventIllegalArumentException
 import br.hallel.relational.api.app.event.exception.EventNotFoundException;
 import br.hallel.relational.api.app.event.exception.FoodNotFoundException;
 import br.hallel.relational.api.app.event.model.*;
-import br.hallel.relational.api.app.event.repository.EventFoodSaleRepository;
-import br.hallel.relational.api.app.event.repository.EventRepository;
-import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
-import br.hallel.relational.api.app.event.repository.FoodRepository;
+import br.hallel.relational.api.app.event.repository.*;
+import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -28,7 +33,10 @@ public class FoodService {
     private final FoodRepository foodRepository;
     private final EventRepository eventRepository;
     private final EventTransactionRepository eventTransactionRepository;
-    private final EventFoodSaleRepository eventFoodSaleRepository;
+    private final FoodSaleItemRepository foodSaleItemRepository;
+    private final MercadoPagoClient mercadoPagoClient;
+    private final FoodTransactionRepository foodTransactionRepository;
+    private final SimpMessagingTemplate template;
 
     public FoodResponseDTO createFood(FoodRequestDTO dto) {
 
@@ -51,110 +59,153 @@ public class FoodService {
         );
     }
 
-    public EventTransactionResponse registerSale(UUID foodId, Integer quantity) {
+    public Page<FoodResponseDTO> listAllFoods(Pageable pageable) {
 
-        Foods food = this.foodRepository.findById(foodId).orElseThrow(
-                () -> new FoodNotFoundException("food.event.not.found", foodId.toString())
-        );
+        Page<Foods> foodsPage = foodRepository.findAll(pageable);
 
-        if (food.getStockQuantity() < quantity) {
-            throw new EventIllegalArumentException("A quantidade de Alimentos para venda é maior que a quantidade em estoque!");
+        return foodsPage.map(FoodResponseDTO::toResponse);
+    }
+
+
+    public Page<FoodResponseDTO> listAllFoodsByEventId(UUID eventId, Pageable pageable) {
+        Page<Foods> foodsPage = foodRepository.findAllByEvent_Id(eventId, pageable);
+
+        return foodsPage.map(FoodResponseDTO::toResponse);
+    }
+
+
+    @Transactional
+    public FoodResponseDTO getFoodById(UUID foodId) {
+        Foods food = foodRepository.findById(foodId)
+                .orElseThrow(() -> new FoodNotFoundException("event.food.not.found", foodId.toString()));
+
+        return FoodResponseDTO.toResponse(food);
+    }
+
+    @Transactional
+    public EventTransactionResponse registerSale(List<FoodSaleItemRequestDTO> foodSaleItems) {
+        if (foodSaleItems == null || foodSaleItems.isEmpty()) {
+            throw new IllegalArgumentException("Lista de alimentos para venda não pode estar vazia.");
         }
 
-        BigDecimal totalValue = food.getValue().multiply(new BigDecimal(quantity));
-
         EventTransaction transaction = new EventTransaction();
-        transaction.setValue(totalValue.doubleValue());
-        transaction.setDesciption("Venda: %s (x%d)".formatted(food.getName(), quantity));
-        transaction.setIsEditable(Boolean.FALSE);
         transaction.setTransactionType(TransactionType.ENTRADA);
-        transaction.setEvent(food.getEvent());
+
+        double totalValue = 0.0;
+        Event event = null;
+
+        List<String> foodDescriptions = new ArrayList<>();
+
+        for (FoodSaleItemRequestDTO item : foodSaleItems) {
+            Foods food = this.foodRepository.findById(item.foodId())
+                    .orElseThrow(() -> new FoodNotFoundException("food.event.not.found", item.foodId().toString()));
+            if (event != null) {
+                event = food.getEvent();
+            }
+
+            if (food.getStockQuantity() < item.quantity()) {
+                throw new EventIllegalArumentException("A quantidade de Alimentos para venda é maior que a quantidade em estoque!");
+            }
+
+            totalValue += food.getValue() * item.quantity();
+
+            FoodSaleItem sale = new FoodSaleItem();
+            sale.setFood(food);
+            sale.setEvent(food.getEvent());
+            sale.setQuantity(item.quantity());
+            sale.setPrice(food.getValue());
+            this.foodSaleItemRepository.save(sale);
+
+            food.setStockQuantity(food.getStockQuantity() - item.quantity());
+            this.foodRepository.save(food);
+            foodDescriptions.add(food.getName() + " (x" + item.quantity() + ")");
+        }
+
+        transaction.setValue(totalValue);
+        transaction.setDescription("Venda: " + String.join(", ", foodDescriptions));
+        transaction.setIsEditable(Boolean.FALSE);
+        transaction.setEvent(event);
         this.eventTransactionRepository.save(transaction);
-
-
-        EventFoodSales sale = new EventFoodSales();
-        sale.setFood(food);
-        sale.setEvent(food.getEvent());
-        sale.setQuantity(quantity);
-        sale.setPrice(totalValue);
-        this.eventFoodSaleRepository.save(sale);
-
-        food.setStockQuantity(food.getStockQuantity() - quantity);
-        this.foodRepository.save(food);
 
         return EventTransactionResponse.toResponse(transaction);
     }
 
     public Page<EventFoodSoldResponseDTO> listAllFoodsSoldByEventId(UUID eventId, Pageable pageable) {
         log.info("Listing all food by event id:  " + eventId.toString());
-        Page<EventFoodSales> foods = this.eventFoodSaleRepository.findAllByEvent_Id(eventId, pageable);
+
+        Page<FoodSaleItem> foods = this.foodSaleItemRepository.findAllByEvent_IdAndTransaction_Status(eventId,
+                StatusPaymentFood.PAGO, pageable);
+
         return foods.map(foodObject -> new EventFoodSoldResponseDTO().toResponseDTO(foodObject));
     }
 
     public EventFoodSoldResponseDTO getFoodSoldById(UUID eventFoodSoldId) {
-        log.info("Get food by event id:  " + eventFoodSoldId.toString());
-        EventFoodSales foods = this.eventFoodSaleRepository.findById(eventFoodSoldId).get();
+        log.info("Get food Sold by event id:  " + eventFoodSoldId.toString());
+        FoodSaleItem foods = this.foodSaleItemRepository.findById(eventFoodSoldId).orElseThrow(
+                () -> new FoodNotFoundException("food.event.not.found", eventFoodSoldId.toString())
+        );
         return new EventFoodSoldResponseDTO().toResponseDTO(foods);
     }
 
-    public void deleteFoodSold(UUID eventFoodSoldId) {
-        log.info("Deleting food sold by event id:  " + eventFoodSoldId.toString());
-        Optional<EventFoodSales> optional = this.eventFoodSaleRepository.findById(eventFoodSoldId);
-        if (optional.isPresent()) {
-            this.eventTransactionRepository.deleteById(optional.get().getEventTransaction().getId());
-            this.eventFoodSaleRepository.deleteById(eventFoodSoldId);
+    @Transactional
+    public void deleteFoodSold(UUID foodSaleItemId) {
+        log.info("Deleting food sale item with id: " + foodSaleItemId.toString());
+
+        FoodSaleItem saleItem = this.foodSaleItemRepository.findById(foodSaleItemId)
+                .orElseThrow(() -> new RuntimeException("Item de venda não encontrado"));
+
+        FoodTransaction foodTransaction = saleItem.getTransaction();
+        EventTransaction eventTransaction = foodTransaction.getEventTransaction();
+        Foods food = saleItem.getFood();
+
+        food.setStockQuantity(food.getStockQuantity() + saleItem.getQuantity());
+        this.foodRepository.save(food);
+
+        double itemValue = saleItem.getPrice() * saleItem.getQuantity();
+        foodTransaction.setValue(foodTransaction.getValue() - itemValue);
+        eventTransaction.setValue(eventTransaction.getValue() - itemValue);
+
+        this.foodTransactionRepository.save(foodTransaction);
+        this.eventTransactionRepository.save(eventTransaction);
+
+        this.foodSaleItemRepository.delete(saleItem);
+
+        if (foodTransaction.getValue() <= 0) {
+            this.foodTransactionRepository.delete(foodTransaction);
         }
     }
 
     @Transactional
-    public EventFoodSales edit(UUID eventFoodSaleId, EventFoodSaleDTO dto) {
+    public EventFoodSoldResponseDTO editFoodSold(UUID foodSaleItemId, EventFoodSaleDTO dto) {
+        log.info("Editing food sale item with id: " + foodSaleItemId.toString());
 
-        EventFoodSales sale = this.eventFoodSaleRepository.findById(eventFoodSaleId)
+        FoodSaleItem saleItem = this.foodSaleItemRepository.findById(foodSaleItemId)
                 .orElseThrow(() -> new RuntimeException("Venda de alimento não encontrada"));
 
-        Foods food = sale.getFood();
-        EventTransaction transaction = sale.getEventTransaction();
+        FoodTransaction foodTransaction = saleItem.getTransaction();
+        EventTransaction eventTransaction = foodTransaction.getEventTransaction();
+        Foods food = saleItem.getFood();
 
-        int oldQuantity = sale.getQuantity();
+        int oldQuantity = saleItem.getQuantity();
         int newQuantity = dto.quantity();
         int quantityDiff = newQuantity - oldQuantity;
-
         food.setStockQuantity(food.getStockQuantity() - quantityDiff);
         this.foodRepository.save(food);
 
+        saleItem.setQuantity(newQuantity);
+        saleItem.setPrice(dto.price());
+        this.foodSaleItemRepository.save(saleItem);
 
-        sale.setQuantity(newQuantity);
-        sale.setPrice(dto.price());
-        this.eventFoodSaleRepository.save(sale);
+        double total = foodTransaction.getSaleItems().stream()
+                .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                .sum();
 
-        List<EventFoodSales> sales = this.eventFoodSaleRepository.findByEventTransactionId(transaction.getId());
-        BigDecimal total = sales.stream()
-                .map(s -> s.getPrice().multiply(BigDecimal.valueOf(s.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        foodTransaction.setValue(total);
+        eventTransaction.setValue(total);
+        this.foodTransactionRepository.save(foodTransaction);
+        this.eventTransactionRepository.save(eventTransaction);
 
-        transaction.setValue(total.doubleValue());
-        this.eventTransactionRepository.save(transaction);
-
-        return sale;
-    }
-
-    public Page<FoodResponseDTO> listAllFoods(Pageable pageable) {
-        Page<Foods> foods = this.foodRepository.findAll(pageable);
-        return foods.map(foodObject -> new FoodResponseDTO().toResponse(foodObject));
-    }
-
-    public Page<FoodResponseDTO> listAllFoodsByEventId(UUID eventId, Pageable pageable) {
-        Page<Foods> foods = this.foodRepository.findAllByEvent_Id(eventId, pageable);
-        return foods.map(foodObject -> new FoodResponseDTO().toResponse(foodObject));
-    }
-
-    public FoodResponseDTO getFoodById(UUID foodId) {
-
-        Foods food = this.foodRepository.findById(foodId).orElseThrow(
-                () -> new FoodNotFoundException("food.event.not.found", foodId.toString())
-        );
-
-        return new FoodResponseDTO().toResponse(food);
+        return EventFoodSoldResponseDTO.toResponseDTO(saleItem);
     }
 
     public FoodResponseDTO editFood(UUID foodId, FoodEditDTO dto) {
@@ -191,5 +242,64 @@ public class FoodService {
         this.foodRepository.delete(foods);
     }
 
+    @Transactional
+    public PaymentFoodResponseDTO createFoodPayment(List<FoodSaleItemRequestDTO> saleItems, UUID eventId) {
+        log.info("Creating payment for food sale items: {}", saleItems);
 
+        FoodTransaction foodTransaction = new FoodTransaction();
+        foodTransaction.setStatus(StatusPaymentFood.PENDENTE);
+        foodTransaction.setEvent(eventRepository.findById(eventId).orElseThrow());
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<FoodSaleItem> itemsToSave = new ArrayList<>();
+
+        List<String> foodDescriptions = new ArrayList<>();
+
+        for (FoodSaleItemRequestDTO itemDTO : saleItems) {
+            Foods food = foodRepository.findById(itemDTO.foodId())
+                    .orElseThrow(() -> new FoodNotFoundException("Food not found", itemDTO.foodId().toString()));
+
+            if (food.getStockQuantity() < itemDTO.quantity()) {
+                throw new EventIllegalArumentException("Insufficient stock for food: " + food.getName());
+            }
+
+            totalAmount = totalAmount.add(itemDTO.price().multiply(BigDecimal.valueOf(itemDTO.quantity())));
+
+            foodDescriptions.add(itemDTO.quantity() + "x " + food.getName());
+
+            FoodSaleItem saleItem = new FoodSaleItem();
+            saleItem.setTransaction(foodTransaction);
+            saleItem.setFood(food);
+            saleItem.setQuantity(itemDTO.quantity());
+            saleItem.setPrice(itemDTO.price().doubleValue());
+            saleItem.setEvent(eventRepository.findById(eventId).get());
+            saleItem.setSoldAt(LocalDateTime.now());
+
+            itemsToSave.add(saleItem);
+        }
+
+        String finalDescription = String.join(", ", foodDescriptions);
+
+        foodTransaction.setDescription(finalDescription);
+        foodTransaction.setValue(totalAmount.doubleValue());
+        foodTransaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+
+        foodTransactionRepository.save(foodTransaction);
+        foodSaleItemRepository.saveAll(itemsToSave);
+
+        try {
+            Payment payment = mercadoPagoClient.createFoodPixPayment(totalAmount, finalDescription, foodTransaction.getId());
+            foodTransaction.setMercadoPagoPaymentId(payment.getId());
+            foodTransactionRepository.save(foodTransaction);
+
+            String pixCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
+            String qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+
+            return new PaymentFoodResponseDTO(pixCode, qrCodeBase64, foodTransaction.getId());
+
+        } catch (MPApiException | MPException e) {
+            log.error("Failed to create food payment: {}", e.getMessage(), e);
+            throw new RuntimeException("Error processing payment with Mercado Pago.", e);
+        }
+    }
 }

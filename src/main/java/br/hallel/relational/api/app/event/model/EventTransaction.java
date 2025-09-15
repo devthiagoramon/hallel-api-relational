@@ -22,7 +22,7 @@ public class EventTransaction {
     private UUID id;
 
     @Column(name = "description", nullable = false)
-    private String desciption;
+    private String description;
 
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
