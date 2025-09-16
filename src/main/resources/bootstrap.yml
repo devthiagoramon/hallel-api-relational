@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: hallel-api
+  cloud:
+    aws:
+      region:
+        static: us-east-1 # A mesma região do seu Terraform
+      parameterstore:
+        enabled: true
+        prefix: /${spring.profiles.active}/hallel
+        profile-separator: /

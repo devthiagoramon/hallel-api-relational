@@ -1,0 +1,65 @@
+name: Build and Deploy Application to EC2
+
+on:
+  push:
+    branches:
+      - main # O deploy é acionado em push para a branch 'main'
+
+jobs:
+  build_and_deploy:
+    name: 'Build and Deploy to Production EC2'
+    runs-on: ubuntu-latest
+
+    # Define que este job será executado no contexto do ambiente 'production'
+    environment:
+      name: production
+      url: https://api.comunidadecatolicahallel.com.br
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Copy JAR to EC2 server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.SERVER_IP }} # <-- Lê a variável do ambiente 'production'
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }} # <-- Lê o segredo do ambiente 'production'
+          source: "build/libs/*.jar"
+          target: "/home/ec2-user/app"
+
+      - name: SSH, Configure and Restart Application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_IP }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            # --- Cria o arquivo de variáveis de ambiente ---
+            # É mais seguro do que colocar as variáveis direto no .service
+            sudo mkdir -p /etc/hallel-api
+            echo "SPRING_PROFILES_ACTIVE=prod" | sudo tee /etc/hallel-api/prod.env
+            echo "DB_URL=${{ vars.DB_URL }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_USERNAME=${{ vars.DB_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}" | sudo tee -a /etc/hallel-api/prod.env
+
+            # --- Move o novo JAR e reinicia o serviço ---
+            sudo mv /home/ec2-user/app/*.jar /opt/hallel-api/hallel-api.jar
+            sudo systemctl restart hallel-api.service
