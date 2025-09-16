@@ -18,5 +18,5 @@ public class EventParticipationAdmDTO {
     private UUID userId;
     private StatusPaymentEventParticipation statusPayment;
     private UserFunctionInEvent userFunctionInEvent;
-
+    private String community;
 }

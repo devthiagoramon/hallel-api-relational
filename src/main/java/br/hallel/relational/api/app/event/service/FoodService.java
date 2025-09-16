@@ -14,7 +14,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,7 @@ public class FoodService {
     private final FoodTransactionRepository foodTransactionRepository;
     private final SimpMessagingTemplate template;
 
-    public FoodResponseDTO createFood(FoodRequestDTO dto) {
+    public EventFoodResponseDTO createFood(FoodRequestDTO dto) {
 
         Foods food = new Foods();
         food.setName(dto.name());
@@ -50,7 +52,7 @@ public class FoodService {
 
         this.foodRepository.save(food);
 
-        return new FoodResponseDTO().toResponse(food);
+        return new EventFoodResponseDTO().toResponse(food);
     }
 
     private Event getEvent(FoodRequestDTO dto) {
@@ -59,27 +61,35 @@ public class FoodService {
         );
     }
 
-    public Page<FoodResponseDTO> listAllFoods(Pageable pageable) {
+    public Page<EventFoodResponseDTO> listAllFoods(Pageable pageable) {
 
         Page<Foods> foodsPage = foodRepository.findAll(pageable);
 
-        return foodsPage.map(FoodResponseDTO::toResponse);
+        return foodsPage.map(EventFoodResponseDTO::toResponse);
     }
 
 
-    public Page<FoodResponseDTO> listAllFoodsByEventId(UUID eventId, Pageable pageable) {
-        Page<Foods> foodsPage = foodRepository.findAllByEvent_Id(eventId, pageable);
+    public Page<EventFoodTableResponseDTO> listAllFoodsByEventId(UUID eventId, Pageable pageable) {
 
-        return foodsPage.map(FoodResponseDTO::toResponse);
+        Sort.Order sortOrder = pageable.getSort().stream().findFirst().orElse(null);
+        if (sortOrder != null && "quantitySale".equals(sortOrder.getProperty())) {
+            Pageable paginationOnly = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+            return this.foodRepository.findFoodTableByEventIdOrderBySales(eventId, paginationOnly);
+
+        } else {
+            log.info("Usando ordenação padrão do Pageable (ex: name, stockQuantity).");
+            return this.foodRepository.findFoodTableByEventId(eventId, pageable);
+        }
     }
 
 
     @Transactional
-    public FoodResponseDTO getFoodById(UUID foodId) {
+    public EventFoodResponseDTO getFoodById(UUID foodId) {
         Foods food = foodRepository.findById(foodId)
                 .orElseThrow(() -> new FoodNotFoundException("event.food.not.found", foodId.toString()));
 
-        return FoodResponseDTO.toResponse(food);
+        return EventFoodResponseDTO.toResponse(food);
     }
 
     @Transactional
@@ -177,38 +187,46 @@ public class FoodService {
 
     @Transactional
     public EventFoodSoldResponseDTO editFoodSold(UUID foodSaleItemId, EventFoodSaleDTO dto) {
-        log.info("Editing food sale item with id: " + foodSaleItemId.toString());
+        log.info("Editing food sale item with id: {}", foodSaleItemId);
 
         FoodSaleItem saleItem = this.foodSaleItemRepository.findById(foodSaleItemId)
                 .orElseThrow(() -> new RuntimeException("Venda de alimento não encontrada"));
 
         FoodTransaction foodTransaction = saleItem.getTransaction();
-        EventTransaction eventTransaction = foodTransaction.getEventTransaction();
         Foods food = saleItem.getFood();
 
         int oldQuantity = saleItem.getQuantity();
+        double oldPrice = saleItem.getPrice();
+        double oldItemValue = oldPrice * oldQuantity;
+
         int newQuantity = dto.quantity();
+        double newPrice = dto.price();
+        double newItemValue = newPrice * newQuantity;
+
         int quantityDiff = newQuantity - oldQuantity;
         food.setStockQuantity(food.getStockQuantity() - quantityDiff);
         this.foodRepository.save(food);
 
         saleItem.setQuantity(newQuantity);
-        saleItem.setPrice(dto.price());
+        saleItem.setPrice(newPrice);
         this.foodSaleItemRepository.save(saleItem);
 
-        double total = foodTransaction.getSaleItems().stream()
-                .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum();
+        double oldTransactionTotal = foodTransaction.getValue();
+        double newTransactionTotal = oldTransactionTotal - oldItemValue + newItemValue;
 
-        foodTransaction.setValue(total);
-        eventTransaction.setValue(total);
+        foodTransaction.setValue(newTransactionTotal);
         this.foodTransactionRepository.save(foodTransaction);
-        this.eventTransactionRepository.save(eventTransaction);
+
+        EventTransaction eventTransaction = foodTransaction.getEventTransaction();
+        if (eventTransaction != null) {
+            eventTransaction.setValue(newTransactionTotal);
+            this.eventTransactionRepository.save(eventTransaction);
+        }
 
         return EventFoodSoldResponseDTO.toResponseDTO(saleItem);
     }
 
-    public FoodResponseDTO editFood(UUID foodId, FoodEditDTO dto) {
+    public EventFoodResponseDTO editFood(UUID foodId, FoodEditDTO dto) {
         Foods food = this.foodRepository.findById(foodId).orElseThrow(
                 () -> new FoodNotFoundException("food.event.not.found", foodId.toString())
         );
@@ -232,10 +250,11 @@ public class FoodService {
         }
 
         Foods updatedFood = this.foodRepository.save(food);
-        return new FoodResponseDTO().toResponse(updatedFood);
+        return new EventFoodResponseDTO().toResponse(updatedFood);
     }
 
     public void deleteFood(UUID foodId) {
+        log.info("Deleting food by id... "+foodId.toString());
         Foods foods = this.foodRepository.findById(foodId).orElseThrow(
                 () -> new FoodNotFoundException("food.event.not.found", foodId.toString())
         );

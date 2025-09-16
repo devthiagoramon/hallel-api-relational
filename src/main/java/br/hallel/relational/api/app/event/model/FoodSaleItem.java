@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -41,4 +43,5 @@ public class FoodSaleItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_transaction_id", nullable = false)
     private FoodTransaction transaction;
+
 }

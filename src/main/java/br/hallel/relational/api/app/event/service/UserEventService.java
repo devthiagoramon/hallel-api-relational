@@ -392,12 +392,14 @@ public class UserEventService {
     }
 
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
+        log.info("Add participant as Admin");
         EventParticipation eventParticipation = new EventParticipation();
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("user.not.found", dto.getUserId().toString()));
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
                         dto.getEventId().toString()));
+        eventParticipation.setCommunity(dto.getCommunity());
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());

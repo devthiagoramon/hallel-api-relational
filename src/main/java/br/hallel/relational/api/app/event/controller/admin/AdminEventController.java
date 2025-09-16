@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -181,35 +182,35 @@ public class AdminEventController {
     //FOODS
     @PostMapping("/create/food")
     @Operation(summary = "Create and Save and food in DataBase")
-    public ResponseEntity<FoodResponseDTO> createFood(@RequestBody @Valid FoodRequestDTO dto) {
+    public ResponseEntity<EventFoodResponseDTO> createFood(@RequestBody @Valid FoodRequestDTO dto) {
         return ResponseEntity.ok(this.foodService.createFood(dto));
     }
 
     @GetMapping("/list-all/foods")
     @Operation(summary = "List all foods saved in DataBase")
-    public ResponseEntity<Page<FoodResponseDTO>> listAllFood(@RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<EventFoodResponseDTO>> listAllFood(@RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(this.foodService.listAllFoods(PageRequest.of(page, size)));
     }
 
     @GetMapping("/list-all/food/by-event-id/{eventId}")
     @Operation(summary = "List all foods saved in DataBase by Event Id")
-    public ResponseEntity<Page<FoodResponseDTO>> listAllFoodByEventId(@PathVariable(name = "eventId") UUID eventId,
-                                                                      @RequestParam(defaultValue = "0") int page,
-                                                                      @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, PageRequest.of(page, size)));
+    public ResponseEntity<Page<EventFoodTableResponseDTO>> listAllFoodByEventId(@PathVariable(name = "eventId") UUID eventId,
+                                                                                Pageable pageable) {
+
+        return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, pageable));
     }
 
     @GetMapping("/get-by-id/food/{foodId}")
     @Operation(summary = "Getting Food By Id")
-    public ResponseEntity<FoodResponseDTO> getFoodById(@PathVariable(name = "foodId") UUID foodId) {
+    public ResponseEntity<EventFoodResponseDTO> getFoodById(@PathVariable(name = "foodId") UUID foodId) {
         return ResponseEntity.ok(this.foodService.getFoodById(foodId));
     }
 
     @PatchMapping("/edit-by-id/food/{foodId}")
     @Operation(summary = "Edit Food By Id")
-    public ResponseEntity<FoodResponseDTO> editFoodById(@PathVariable(name = "foodId") UUID foodId,
-                                                        @RequestBody FoodEditDTO dto) {
+    public ResponseEntity<EventFoodResponseDTO> editFoodById(@PathVariable(name = "foodId") UUID foodId,
+                                                             @RequestBody FoodEditDTO dto) {
         return ResponseEntity.ok(this.foodService.editFood(foodId, dto));
     }
 
@@ -240,7 +241,6 @@ public class AdminEventController {
     @Operation(summary = "Get an foods sold by Id")
     public ResponseEntity<EventFoodSoldResponseDTO> getEventFoodSold(
             @PathVariable(name = "foodSoldId") UUID eventId) {
-
         return ResponseEntity.ok(this.foodService.getFoodSoldById(eventId));
     }
 

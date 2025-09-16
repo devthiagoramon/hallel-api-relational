@@ -15,4 +15,6 @@ public interface FoodSaleItemRepository extends JpaRepository<FoodSaleItem, UUID
     Page<FoodSaleItem> findAllByEvent_Id(UUID eventId, Pageable pageable);
 
     Page<FoodSaleItem> findAllByEvent_IdAndTransaction_Status(UUID eventId, StatusPaymentFood transactionStatus, Pageable pageable);
+
+    long countByFood_Id(UUID foodId);
 }
