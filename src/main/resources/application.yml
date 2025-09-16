@@ -1,7 +1,16 @@
 MAIL_PASSWORD: uvbylzgyrbasdvte
 MAIL_USERNAME: miguelimabr10@gmail.com
 MERCADOPAGO_NOTIFICATION_URL: ""
+PEPPER_SECRET: 0b5c1b6a6f0e9f1e1b2c3d4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e
+FIREBASE_FCM_TOKEN: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
+MERCADOPAGO_ACCESS_TOKEN: APP_USR-4555467526956218-082700-3a593e9193068d796699857780c741ce-2640484802
+
+server:
+  port: 8080
+
 security:
+  password:
+    pepper: ${PEPPER_SECRET}
   jwt:
     token:
       expire-length: 2592000000
@@ -9,7 +18,7 @@ security:
 firebase:
   messaging:
     fcm:
-      token: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
+      token: ${FIREBASE_FCM_TOKEN}
       url: https://fcm.googleapis.com/v1/projects/hallel-messaging/messages:send
 spring:
   jpa:
@@ -57,8 +66,6 @@ spring:
     out-of-order: false
     validate-on-migrate: true
 
-server:
-  port: 8080
 springdoc:
   api-docs:
     path: "/v3/api-docs"
@@ -70,6 +77,6 @@ springdoc:
 
 mercadopago:
   access:
-    token: APP_USR-4555467526956218-082700-3a593e9193068d796699857780c741ce-2640484802
+    token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: https://ba5090e0822e.ngrok-free.app/public/payments/webhooks/mercadopago
+    url: https://c8f7851d35b3.ngrok-free.app/public/payments/webhooks/mercadopago

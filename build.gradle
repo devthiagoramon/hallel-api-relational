@@ -64,6 +64,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'io.awspring.cloud:spring-cloud-starter-aws-parameter-store-config:3.1.1'
     implementation 'com.mercadopago:sdk-java:2.2.0', {
 
         exclude group: 'com.google.collections', module: 'google-collections'
