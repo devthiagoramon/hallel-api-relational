@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.5'
+    id 'org.springframework.boot' version '3.3.1'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.flywaydb.flyway' version '9.22.0'
 }
@@ -27,7 +27,6 @@ repositories {
         url "https://maven.google.com"
     }
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
@@ -64,9 +63,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'io.awspring.cloud:spring-cloud-starter-aws-parameter-store-config:3.1.1'
-    implementation 'com.mercadopago:sdk-java:2.2.0', {
 
+    implementation 'com.mercadopago:sdk-java:2.2.0', {
         exclude group: 'com.google.collections', module: 'google-collections'
     }
 }

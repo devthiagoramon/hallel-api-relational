@@ -3,7 +3,7 @@ spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
-    password: ${db.password}
+    password: ${DB_PASSWORD}
   mail:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
