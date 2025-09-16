@@ -37,6 +37,7 @@ jobs:
           host: ${{ vars.SERVER_IP }} # <-- Lê a variável do ambiente 'production'
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }} # <-- Lê o segredo do ambiente 'production'
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           source: "build/libs/*.jar"
           target: "/home/ec2-user/app"
 
@@ -46,6 +47,7 @@ jobs:
           host: ${{ vars.SERVER_IP }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
             # --- Cria o arquivo de variáveis de ambiente ---
             # É mais seguro do que colocar as variáveis direto no .service
