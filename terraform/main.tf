@@ -98,7 +98,7 @@ resource "aws_iam_role" "app_server_role" {
 
 resource "aws_key_pair" "app_ssh_key" {
   key_name   = "hallel-app-key-prod" # Nome que aparecerá no painel da AWS
-  public_key = file("~/.ssh/hallel_app_key.pub") # Caminho para sua chave pública
+  public_key = file("~/.ssh/aws_deploy_key_api.pub") # Caminho para sua chave pública
 }
 
 resource "aws_iam_instance_profile" "app_profile" {
