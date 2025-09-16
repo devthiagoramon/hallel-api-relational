@@ -40,6 +40,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Origens fixas para desenvolvimento
         origins.add("http://localhost:5173");
         origins.add("http://localhost:3000");
+        origins.add("https://comunidadecatolicahallel.com.br");
 
         // URL do ngrok (se disponível)
         String ngrokUrl = getNgrokUrl();
