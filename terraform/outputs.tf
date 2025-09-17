@@ -24,3 +24,8 @@ output "db_password" {
   value       = random_password.db_password.result
   sensitive   = true # Impede que a senha apareça nos logs do Terraform
 }
+
+output "app_sg_id" {
+  description = "O ID do Security Group da aplicação."
+  value       = aws_security_group.app_sg.id
+}

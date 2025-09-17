@@ -85,3 +85,21 @@ docker-compose.override.yml
 /src/main/resources/crypto-avatar.json
 /src/main/resources/hallel-messaging-firebase-adminsdk-fbsvc-bbb8ade5e2.json
 /src/main/resources/*.json
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Terraform plan files
+*.tfplan
+
+# Terraform generated files and directories
+.terraform/
+crash.log
+
+# Terraform variable files that might contain secrets
+*.tfvars
+*.tfvars.json
+
+# Override the above to allow non-secret variable files if you have them
+# Ex: !variables.tfvars

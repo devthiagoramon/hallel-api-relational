@@ -407,6 +407,7 @@ public class UserEventService {
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
         eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now()
                 .atOffset(ZoneOffset.UTC) : null);
+        user.setCpf("05961055256");
         if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE) {
             CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
                     BigDecimal.valueOf(event.getValue()),
@@ -416,6 +417,7 @@ public class UserEventService {
                     "",
                     user.getCpf()
             );
+
             try {
 
                 Payment createPaymentUser = mercadoPagoClient.createPixPayment(paymentRequestDTO, user.getId());
