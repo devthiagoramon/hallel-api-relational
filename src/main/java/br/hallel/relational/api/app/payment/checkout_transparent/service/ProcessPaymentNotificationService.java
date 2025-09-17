@@ -38,15 +38,14 @@ public class ProcessPaymentNotificationService {
 
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
+
         Optional<EventParticipation> optionalParticipation = eventParticipationRepository.findByMercadoPagoPaymentId(paymentId);
 
         if (optionalParticipation.isPresent()) {
-            // Se encontrarmos, passamos o objeto e o paymentId para o método de evento
             Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
             return processEventNotification(payment, optionalParticipation.get());
         }
 
-        // Se não, tentamos encontrar uma transação de alimento com este paymentId
         Optional<FoodTransaction> optionalFoodTransaction = foodTransactionRepository.findByMercadoPagoPaymentId(paymentId);
         if (optionalFoodTransaction.isPresent()) {
             return processFoodNotification(optionalFoodTransaction.get());
@@ -56,7 +55,7 @@ public class ProcessPaymentNotificationService {
         return new ProcessNotificationResponseDTO(false, "not_found");
     }
 
-    @Transactional // Adicionando @Transactional para garantir a consistência
+    @Transactional
     public ProcessNotificationResponseDTO processEventNotification(Payment payment, EventParticipation participation) {
         log.info("Processing event payment webhook for paymentId: {}", payment.getId());
 
@@ -132,7 +131,6 @@ public class ProcessPaymentNotificationService {
                 return new ProcessNotificationResponseDTO(true, "approved");
             }
 
-            // ETAPA 1: PREPARAR AS ENTIDADES
             log.info("STEP 1: Preparing entities before database save...");
             EventTransaction eventTransaction = new EventTransaction();
             eventTransaction.setDescription("Venda de Alimento Confirmada: " + transaction.getDescription());
@@ -147,19 +145,16 @@ public class ProcessPaymentNotificationService {
                 if (food != null) {
                     int newStock = food.getStockQuantity() - item.getQuantity();
                     food.setStockQuantity(newStock);
-                    // Não precisa de save aqui, o Cascade vai cuidar
                 }
             }
             transaction.setStatus(StatusPaymentFood.PAGO);
             transaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
             log.info("STEP 1: Entities prepared successfully.");
 
-            // ETAPA 2: SALVAR NO BANCO DE DADOS
             log.info("STEP 2: Saving transaction to the database...");
             foodTransactionRepository.save(transaction);
             log.info("STEP 2: Transaction saved successfully.");
 
-            // ETAPA 3: ENVIAR MENSAGEM WEBSOCKET
             log.info("STEP 3: Preparing to send WebSocket message to topic /topic/payments/{}", transaction.getId().toString());
 
             Map<String, String> payload = new HashMap<>();
