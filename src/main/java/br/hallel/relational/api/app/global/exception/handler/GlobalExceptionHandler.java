@@ -58,4 +58,10 @@ public class GlobalExceptionHandler {
         ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(GenerateComandaException.class)
+    public ResponseEntity<ExceptionResponse> handleGenerateComandaException(GenerateComandaException exc, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exc.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

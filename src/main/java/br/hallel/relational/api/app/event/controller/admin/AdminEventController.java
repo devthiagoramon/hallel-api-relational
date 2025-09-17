@@ -268,5 +268,12 @@ public class AdminEventController {
         return ResponseEntity.ok(this.foodService.createFoodPayment(saleItems,eventId));
     }
 
+    @PostMapping("/generete-receipt-food/{eventId}")
+    @Operation(summary = "Generate a fiscal receipt for food", description = "Handles to generate a fiscal receipt for validate buying food, return a base64 with infos")
+    public ResponseEntity<String> generateFoodFiscalReceipt(@PathVariable(name = "eventId") UUID eventId, @RequestBody List<FoodSaleItemRequestDTO> saleItems){
+        return ResponseEntity.ok(this.foodService.generateFoodFiscalReceipt(eventId, saleItems));
+    }
+
+
 
 }
