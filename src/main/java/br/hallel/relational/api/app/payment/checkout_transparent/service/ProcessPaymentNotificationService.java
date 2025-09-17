@@ -39,19 +39,23 @@ public class ProcessPaymentNotificationService {
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
 
-        Optional<EventParticipation> optionalParticipation = eventParticipationRepository.findByMercadoPagoPaymentId(paymentId);
+        Optional<EventParticipation> optionalParticipation = eventParticipationRepository.findByMercadoPagoPaymentId(
+                paymentId);
 
         if (optionalParticipation.isPresent()) {
             Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
             return processEventNotification(payment, optionalParticipation.get());
         }
 
-        Optional<FoodTransaction> optionalFoodTransaction = foodTransactionRepository.findByMercadoPagoPaymentId(paymentId);
+        Optional<FoodTransaction> optionalFoodTransaction = foodTransactionRepository.findByMercadoPagoPaymentId(
+                paymentId);
         if (optionalFoodTransaction.isPresent()) {
-            return processFoodNotification(optionalFoodTransaction.get());
+            Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
+            return processFoodNotification(optionalFoodTransaction.get(), payment);
         }
 
-        log.warn("Nenhuma participação de evento ou transação de alimento encontrada para o ID de pagamento: {}", paymentId);
+        log.warn("Nenhuma participação de evento ou transação de alimento encontrada para o ID de pagamento: {}",
+                paymentId);
         return new ProcessNotificationResponseDTO(false, "not_found");
     }
 
@@ -92,10 +96,12 @@ public class ProcessPaymentNotificationService {
 
             EventTransaction newTransaction = new EventTransaction();
             newTransaction.setEvent(participation.getEvent());
-            newTransaction.setDescription("Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
+            newTransaction.setDescription(
+                    "Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
             newTransaction.setTransactionType(TransactionType.ENTRADA);
             newTransaction.setValue(Double.parseDouble(amountPaid.toString()));
             newTransaction.setDateTransaction(new Date());
+
             try {
                 newTransaction.setReceiptPaymentFileImage(mercadoPagoClient.getPixReceiptUrl(payment.getId()));
             } catch (MPException e) {
@@ -103,8 +109,10 @@ public class ProcessPaymentNotificationService {
             } catch (MPApiException e) {
                 throw new RuntimeException(e);
             }
+
             newTransaction.setMercadoPagoPaymentId(payment.getId());
             newTransaction.setIsEditable(false);
+
             eventTransactionRepository.save(newTransaction);
             participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
             participation.setAmountPaid(Double.parseDouble(amountPaid.toString()));
@@ -122,53 +130,76 @@ public class ProcessPaymentNotificationService {
     }
 
     @Transactional
-    public ProcessNotificationResponseDTO processFoodNotification(FoodTransaction transaction) {
-        log.info("Processing food payment webhook for transactionId: {}", transaction.getId());
+    public ProcessNotificationResponseDTO processFoodNotification(FoodTransaction foodTransaction, Payment payment) {
+        log.info("Processing food payment webhook for transactionId: {}", foodTransaction.getId());
 
-        try {
-            if (transaction.getStatus() == StatusPaymentFood.PAGO) {
-                log.warn("Transaction already had PAGO status. Ignoring duplicate notification. ID: {}", transaction.getId());
-                return new ProcessNotificationResponseDTO(true, "approved");
-            }
+        String paymentStatus = payment.getStatus();
+        String externalReferenceId = payment.getExternalReference();
 
-            log.info("STEP 1: Preparing entities before database save...");
-            EventTransaction eventTransaction = new EventTransaction();
-            eventTransaction.setDescription("Venda de Alimento Confirmada: " + transaction.getDescription());
-            eventTransaction.setValue(transaction.getValue());
-            eventTransaction.setTransactionType(TransactionType.ENTRADA);
-            eventTransaction.setEvent(transaction.getEvent());
-            eventTransaction.setDateTransaction(new Date());
-            transaction.setEventTransaction(eventTransaction);
+        StatusPaymentFood participationStatus;
+        boolean success = false;
 
-            for (FoodSaleItem item : transaction.getSaleItems()) {
-                Foods food = item.getFood();
-                if (food != null) {
-                    int newStock = food.getStockQuantity() - item.getQuantity();
-                    food.setStockQuantity(newStock);
-                }
-            }
-            transaction.setStatus(StatusPaymentFood.PAGO);
-            transaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
-            log.info("STEP 1: Entities prepared successfully.");
-
-            log.info("STEP 2: Saving transaction to the database...");
-            foodTransactionRepository.save(transaction);
-            log.info("STEP 2: Transaction saved successfully.");
-
-            log.info("STEP 3: Preparing to send WebSocket message to topic /topic/payments/{}", transaction.getId().toString());
-
-            Map<String, String> payload = new HashMap<>();
-            payload.put("statusPaymentEventParticipation", "PAGO");
-
-            template.convertAndSend("/topic/payments/" + transaction.getId().toString(), payload);
-            log.info("STEP 3: WebSocket message sent successfully.");
-
-            log.info("PROCESS COMPLETE: Food sale for transaction {} finished successfully.", transaction.getId());
-            return new ProcessNotificationResponseDTO(true, "approved");
-
-        } catch (Exception e) {
-            log.error("CRITICAL ERROR while processing food notification for transaction {}: {}", transaction.getId(), e.getMessage(), e);
-            return new ProcessNotificationResponseDTO(false, "error");
+        switch (paymentStatus) {
+            case "approved":
+                participationStatus = StatusPaymentFood.PAGO;
+                success = true;
+                break;
+            case "pending":
+                participationStatus = StatusPaymentFood.PENDENTE;
+                break;
+            case "rejected":
+            case "cancelled":
+            case "refunded":
+            case "charged_back":
+            case "in_mediation":
+                participationStatus = StatusPaymentFood.NAO_PAGO;
+                break;
+            default:
+                log.warn("Status de pagamento desconhecido: {}", paymentStatus);
+                participationStatus = StatusPaymentFood.PENDENTE;
+                break;
         }
+        foodTransaction.setStatus(participationStatus);
+        if ("approved".equalsIgnoreCase(paymentStatus)) {
+            try {
+
+                log.info("STEP 1: Preparing entities before database save...");
+                EventTransaction eventTransaction = new EventTransaction();
+                eventTransaction.setDescription("Venda de Alimento Confirmada: " + foodTransaction.getDescription());
+                eventTransaction.setValue(foodTransaction.getValue());
+                eventTransaction.setTransactionType(TransactionType.ENTRADA);
+                eventTransaction.setEvent(foodTransaction.getEvent());
+                eventTransaction.setDateTransaction(new Date());
+                EventTransaction eventTransaction1 = eventTransactionRepository.save(eventTransaction);
+                foodTransaction.setEventTransaction(eventTransaction1);
+
+                for (FoodSaleItem item : foodTransaction.getSaleItems()) {
+                    Foods food = item.getFood();
+                    if (food != null) {
+                        int newStock = food.getStockQuantity() - item.getQuantity();
+                        food.setStockQuantity(newStock);
+                    }
+                }
+                foodTransaction.setStatus(StatusPaymentFood.PAGO);
+                foodTransaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+                foodTransactionRepository.save(foodTransaction);
+                log.info("EVENT TRANSACTION CRIADO " + eventTransaction1.getId().toString());
+
+                template.convertAndSend("/topic/payments/" + externalReferenceId,
+                        new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
+
+                log.info("PROCESS COMPLETE: Food sale for transaction {} finished successfully.",
+                        foodTransaction.getId());
+                return new ProcessNotificationResponseDTO(success, paymentStatus);
+
+            } catch (Exception e) {
+                log.error("CRITICAL ERROR while processing food notification for transaction {}: {}",
+                        foodTransaction.getId(), e.getMessage(), e);
+                return new ProcessNotificationResponseDTO(false, "error");
+            }
+        }
+        log.warn("Nenhuma participação de evento ou transação de alimento encontrada para o ID de pagamento: {}",
+                payment.getId());
+        return new ProcessNotificationResponseDTO(false, "not_found");
     }
 }

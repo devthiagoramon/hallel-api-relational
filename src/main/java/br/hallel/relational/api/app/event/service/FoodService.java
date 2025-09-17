@@ -268,6 +268,9 @@ public class FoodService {
         FoodTransaction foodTransaction = new FoodTransaction();
         foodTransaction.setStatus(StatusPaymentFood.PENDENTE);
         foodTransaction.setEvent(eventRepository.findById(eventId).orElseThrow());
+        foodTransaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+        foodTransaction.setValue(0.0);
+        FoodTransaction savedTransaction1 = foodTransactionRepository.save(foodTransaction);
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<FoodSaleItem> itemsToSave = new ArrayList<>();
@@ -287,7 +290,7 @@ public class FoodService {
             foodDescriptions.add(itemDTO.quantity() + "x " + food.getName());
 
             FoodSaleItem saleItem = new FoodSaleItem();
-            saleItem.setTransaction(foodTransaction);
+            saleItem.setTransaction(savedTransaction1);
             saleItem.setFood(food);
             saleItem.setQuantity(itemDTO.quantity());
             saleItem.setPrice(itemDTO.price().doubleValue());
@@ -299,17 +302,15 @@ public class FoodService {
 
         String finalDescription = String.join(", ", foodDescriptions);
 
-        foodTransaction.setDescription(finalDescription);
-        foodTransaction.setValue(totalAmount.doubleValue());
-        foodTransaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
-
-        foodTransactionRepository.save(foodTransaction);
+        savedTransaction1.setDescription(finalDescription);
+        savedTransaction1.setValue(totalAmount.doubleValue());
+        FoodTransaction savedTransaction2 = foodTransactionRepository.save(savedTransaction1);
         foodSaleItemRepository.saveAll(itemsToSave);
 
         try {
             Payment payment = mercadoPagoClient.createFoodPixPayment(totalAmount, finalDescription, foodTransaction.getId());
-            foodTransaction.setMercadoPagoPaymentId(payment.getId());
-            foodTransactionRepository.save(foodTransaction);
+            savedTransaction2.setMercadoPagoPaymentId(payment.getId());
+            foodTransactionRepository.save(savedTransaction2);
 
             String pixCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
             String qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();

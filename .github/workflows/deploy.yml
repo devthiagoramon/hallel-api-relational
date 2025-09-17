@@ -31,6 +31,17 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
 
+      - name: Authorize GitHub Runner IP in AWS Security Group
+        id: open-firewall
+        uses: kowsheek/aws-security-group-action@v1.0.0
+        with:
+          group-id: ${{vars.AWS_SG_ID}}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: "us-east-1" # Região do seu EC2
+          action: 'open'
+          description: "Temporary access for GitHub Actions"
+
       - name: Copy JAR to EC2 server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -63,3 +74,15 @@ jobs:
             # --- Move o novo JAR e reinicia o serviço ---
             sudo mv /home/ec2-user/app/*.jar /opt/hallel-api/hallel-api.jar
             sudo systemctl restart hallel-api.service
+
+      - name: Remove GitHub Runner IP from AWS Security Group
+        if: always() # Garante que este passo sempre rode, mesmo se os anteriores falharem
+        id: open-firewall
+        uses: kowsheek/aws-security-group-action@v1.0.0
+        with:
+          group-id: ${{vars.AWS_SG_ID}}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: "us-east-1" # Região do seu EC2
+          action: 'close'
+          description: "Temporary access for GitHub Actions"
