@@ -1,13 +1,29 @@
-
+# Todas as configurações e segredos serão injetados como variáveis de ambiente no deploy
 spring:
   datasource:
-    url: jdbc:postgresql://hallel-app-db.cd66oaioym2y.us-east-2.rds.amazonaws.com:5432/hallel-db
-    username: halleladmin
-    password: Nowayout42#
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
 
+security:
+  password:
+    pepper: ${PEPPER_SECRET}
+  jwt:
+    token:
+      expire-length: 2592000000 # Valor para produção
+      expire-coordenador-length: 2592000000
+
+firebase:
+  messaging:
+    fcm:
+      token: ${FIREBASE_FCM_TOKEN}
+      url: https://fcm.googleapis.com/v1/projects/hallel-messaging/messages:send
 
 mercadopago:
   access:
-    token: APP_USR-4555467526956218-082700-3a593e9193068d796699857780c741ce-2640484802
+    token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: mercadopago.notification.url=${MERCADOPAGO_NOTIFICATION_URL}
+    url: ${MERCADOPAGO_NOTIFICATION_URL} # Esta será a URL pública da sua aplicação em produção
