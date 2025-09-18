@@ -50,6 +50,7 @@ jobs:
           host: ${{ vars.SERVER_IP }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          password: ${{ secrets.EC2_SSH_PASSWORD }}
           script: |
             cd /home/ec2-user/hallel-api
             # --- Cria o arquivo de variáveis de ambiente ---
