@@ -54,6 +54,15 @@ jobs:
           source: "docker-compose.yml"
           target: "/home/ec2-user/hallel-api"
 
+      - name: Debug Secrets and Variables
+        run: |
+          echo "SERVER_IP is set: ${{ vars.SERVER_IP != '' }}"
+          echo "DB_URL is set: ${{ vars.DB_URL != '' }}"
+          echo "DB_USERNAME is set: ${{ vars.DB_USERNAME != '' }}"
+          echo "DB_PASSWORD secret is set: ${{ secrets.DB_PASSWORD != '' }}"
+          echo "EC2_SSH_PRIVATE_KEY secret is set: ${{ secrets.EC2_SSH_PRIVATE_KEY != '' }}"
+          echo "MAIL_USERNAME secret is set: ${{ secrets.MAIL_USERNAME != '' }}"    
+
       - name: SSH, Configure and Restart Application
         uses: appleboy/ssh-action@v1.0.3
         with:
