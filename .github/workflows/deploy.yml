@@ -52,6 +52,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
           script: |
+            mkdir -p /home/ec2-user/hallel-api
+            sudo mkdir -p /etc/hallel-api
+            
             cd /home/ec2-user/hallel-api
             # --- Cria o arquivo de variáveis de ambiente ---
             # É mais seguro do que colocar as variáveis direto no .service
