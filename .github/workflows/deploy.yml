@@ -70,21 +70,32 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
+          envs: |
+            SPRING_PROFILES_ACTIVE=prod
+            SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
+            SPRING_DATASOURCE_USERNAME=${{ vars.DB_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}
+            FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
+            MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+            MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
           script: |
             mkdir -p /home/ec2-user/hallel-api
             sudo mkdir -p /etc/hallel-api
             
             sudo tee /etc/hallel-api/prod.env > /dev/null <<EOF
-            SPRING_PROFILES_ACTIVE=prod
-            DB_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
-            DB_USERNAME=${{ vars.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }} 
-            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}
-            FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
-            MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
-            MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
+            SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+            SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+            SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+            SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+            SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME}
+            SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD}
+            PEPPER_SECRET=${PEPPER_SECRET}
+            FIREBASE_FCM_TOKEN=${FIREBASE_FCM_TOKEN}
+            MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
+            MERCADOPAGO_NOTIFICATION_URL=${MERCADOPAGO_NOTIFICATION_URL}
             EOF
             
             cd /home/ec2-user/hallel-api
