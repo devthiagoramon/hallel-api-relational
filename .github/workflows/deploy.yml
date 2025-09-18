@@ -57,7 +57,19 @@ jobs:
           FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
           MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
           MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
-          EOF    
+          EOF
+          
+          tee crypto-avatar.json > /dev/null <<'EOF'
+          ${{ secrets.CRYPTO_AVATAR_JSON }}
+          EOF
+
+          tee google-services.json > /dev/null <<'EOF'
+          ${{ secrets.GOOGLE_SERVICES_JSON }}
+          EOF
+
+          tee hallel-messaging-firebase.json > /dev/null <<'EOF'
+          ${{ secrets.HALLEL_MESSAGING_FIREBASE_JSON }}
+          EOF
 
       - name: Copia o docker-compose.yml para o servidor
         uses: appleboy/scp-action@v0.1.7
@@ -90,6 +102,10 @@ jobs:
             sudo mkdir -p /etc/hallel-api
             
             sudo mv /home/ec2-user/hallel-api/prod.env /etc/hallel-api/prod.env
+            sudo mv /home/ec2-user/hallel-api/crypto-avatar.json /etc/hallel-api/crypto-avatar.json
+            sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api/google-services.json
+            sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api/hallel-messaging-firebase.json
+
             cd /home/ec2-user/hallel-api
             docker-compose pull
             docker-compose up -d

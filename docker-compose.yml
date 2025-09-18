@@ -12,3 +12,8 @@ services:
     # Carrega as variáveis de ambiente do arquivo .env no mesmo diretório
     env_file:
       - /etc/hallel-api/prod.env
+    volumes:
+      # Mapeia o arquivo do servidor (host) para dentro do contêiner
+      - /etc/hallel-api/crypto-avatar.json:/app/crypto-avatar.json
+      - /etc/hallel-api/google-services.json:/app/google-services.json
+      - /etc/hallel-api/hallel-messaging-firebase.json:/app/hallel-messaging-firebase.json
