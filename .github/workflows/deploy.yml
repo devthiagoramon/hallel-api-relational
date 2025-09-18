@@ -68,7 +68,9 @@ jobs:
           FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
           MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
           MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
-          GCP_CREDENTIALS_PATH=/app/crypto-avatar.json
+          GCP_CREDENTIALS_PATH=file:/app/crypto-avatar.json
+          GOOGLE_SERVICES_PATH=file:/app/google-services.json
+          HALLEL_MESSAGING_FIREBASE_PATH=file:/app/hallel-messaging-firebase.json
           EOF
           
 
