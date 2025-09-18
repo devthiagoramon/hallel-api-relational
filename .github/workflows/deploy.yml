@@ -71,6 +71,7 @@ jobs:
             echo "SPRING_PROFILES_ACTIVE=prod" | sudo tee /etc/hallel-api/prod.env
             echo "DB_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db" | sudo tee -a /etc/hallel-api/prod.env
             echo "DB_USERNAME=${{ vars.DB_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }} | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}" | sudo tee -a /etc/hallel-api/prod.env
