@@ -46,7 +46,7 @@ jobs:
 
       - name: Generate prod.env file
         run: |
-          tee prod.env > /dev/null <<EOF
+          tee prod.env > /dev/null <<'EOF'
           SPRING_PROFILES_ACTIVE=prod
           SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
           SPRING_DATASOURCE_USERNAME=${{ vars.DB_USERNAME }}
