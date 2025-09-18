@@ -31,25 +31,18 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
 
-      - name: Authorize GitHub Runner IP in AWS Security Group
-        id: open-firewall
-        uses: kowsheek/aws-security-group-action@v1.0.0
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          group-id: ${{vars.AWS_SG_ID}}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: "us-east-1" # Região do seu EC2
-          action: 'open'
-          description: "Temporary access for GitHub Actions"
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Copy JAR to EC2 server
-        uses: appleboy/scp-action@v0.1.7
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
-          host: ${{ vars.SERVER_IP }} # <-- Lê a variável do ambiente 'production'
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }} # <-- Lê o segredo do ambiente 'production'
-          source: "build/libs/*.jar"
-          target: "/home/ec2-user/app"
+          context: .
+          push: true
+          tags: thiagoramon/hallel-api:latest
 
       - name: SSH, Configure and Restart Application
         uses: appleboy/ssh-action@v1.0.3
@@ -58,9 +51,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
+            cd /home/ec2-user/hallel-api
             # --- Cria o arquivo de variáveis de ambiente ---
             # É mais seguro do que colocar as variáveis direto no .service
-            sudo mkdir -p /etc/hallel-api
             echo "SPRING_PROFILES_ACTIVE=prod" | sudo tee /etc/hallel-api/prod.env
             echo "DB_URL=${{ vars.DB_URL }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "DB_USERNAME=${{ vars.DB_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
@@ -72,17 +65,7 @@ jobs:
             echo "MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}" | sudo tee -a /etc/hallel-api/prod.env
 
             # --- Move o novo JAR e reinicia o serviço ---
-            sudo mv /home/ec2-user/app/*.jar /opt/hallel-api/hallel-api.jar
-            sudo systemctl restart hallel-api.service
-
-      - name: Remove GitHub Runner IP from AWS Security Group
-        if: always() # Garante que este passo sempre rode, mesmo se os anteriores falharem
-        id: open-firewall
-        uses: kowsheek/aws-security-group-action@v1.0.0
-        with:
-          group-id: ${{vars.AWS_SG_ID}}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: "us-east-1" # Região do seu EC2
-          action: 'close'
-          description: "Temporary access for GitHub Actions"
+            docker compose pull
+            
+            # Sobe o contêiner com a nova imagem (o Docker Compose recria apenas o que mudou)
+            docker compose up -d

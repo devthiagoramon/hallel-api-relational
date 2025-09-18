@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.event.exception.EventNotFoundException;
 import br.hallel.relational.api.app.event.exception.FoodNotFoundException;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.*;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -39,6 +40,7 @@ public class FoodService {
     private final MercadoPagoClient mercadoPagoClient;
     private final FoodTransactionRepository foodTransactionRepository;
     private final SimpMessagingTemplate template;
+    private final PdfGenerationService pdfGenerationService;
 
     public EventFoodResponseDTO createFood(FoodRequestDTO dto) {
 
@@ -321,5 +323,50 @@ public class FoodService {
             log.error("Failed to create food payment: {}", e.getMessage(), e);
             throw new RuntimeException("Error processing payment with Mercado Pago.", e);
         }
+    }
+
+    public String generateFoodFiscalReceipt(UUID eventId, List<FoodSaleItemRequestDTO> saleItems) {
+        FoodTransaction foodTransaction = new FoodTransaction();
+        foodTransaction.setStatus(StatusPaymentFood.PENDENTE);
+        foodTransaction.setEvent(eventRepository.findById(eventId).orElseThrow());
+        foodTransaction.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+        foodTransaction.setValue(0.0);
+        FoodTransaction savedTransaction1 = foodTransactionRepository.save(foodTransaction);
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<FoodSaleItem> itemsToSave = new ArrayList<>();
+
+        List<String> foodDescriptions = new ArrayList<>();
+
+        for (FoodSaleItemRequestDTO itemDTO : saleItems) {
+            Foods food = foodRepository.findById(itemDTO.foodId())
+                    .orElseThrow(() -> new FoodNotFoundException("Food not found", itemDTO.foodId().toString()));
+
+            if (food.getStockQuantity() < itemDTO.quantity()) {
+                throw new EventIllegalArumentException("Insufficient stock for food: " + food.getName());
+            }
+
+            totalAmount = totalAmount.add(itemDTO.price().multiply(BigDecimal.valueOf(itemDTO.quantity())));
+
+            foodDescriptions.add(itemDTO.quantity() + "x " + food.getName());
+
+            FoodSaleItem saleItem = new FoodSaleItem();
+            saleItem.setTransaction(savedTransaction1);
+            saleItem.setFood(food);
+            saleItem.setQuantity(itemDTO.quantity());
+            saleItem.setPrice(itemDTO.price().doubleValue());
+            saleItem.setEvent(eventRepository.findById(eventId).get());
+            saleItem.setSoldAt(LocalDateTime.now());
+
+            itemsToSave.add(saleItem);
+        }
+
+        String finalDescription = String.join(", ", foodDescriptions);
+
+        savedTransaction1.setDescription(finalDescription);
+        savedTransaction1.setValue(totalAmount.doubleValue());
+        FoodTransaction savedTransaction2 = foodTransactionRepository.save(savedTransaction1);
+        foodSaleItemRepository.saveAll(itemsToSave);
+        return pdfGenerationService.gerarComandaAlimentoBase64(savedTransaction2);
     }
 }

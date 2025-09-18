@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  hallel-api:
+    # O nome da sua imagem no Docker Hub (ex: seunome/hallel-api)
+    image: thiagoramon/hallel-api:latest
+    container_name: hallel-api-container
+    restart: always
+    ports:
+      # Mapeia a porta 8080 do servidor para a porta 8080 do contêiner
+      - "8080:8080"
+    # Carrega as variáveis de ambiente do arquivo .env no mesmo diretório
+    env_file:
+      - .env
