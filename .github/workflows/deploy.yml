@@ -67,9 +67,6 @@ jobs:
             echo "FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}" | sudo tee -a /etc/hallel-api/prod.env
-
-            # --- Move o novo JAR e reinicia o serviço ---
-            docker compose pull
             
-            # Sobe o contêiner com a nova imagem (o Docker Compose recria apenas o que mudou)
-            docker compose up -d
+            sudo docker-compose pull
+            sudo docker-compose up -d
