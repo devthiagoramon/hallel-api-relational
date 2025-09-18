@@ -61,23 +61,32 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
+          envs: |
+            SPRING_PROFILES_ACTIVE=prod
+            SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
+            SPRING_DATASOURCE_USERNAME=${{ vars.DB_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}
+            FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
+            MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+            MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
           script: |
             mkdir -p /home/ec2-user/hallel-api
             sudo mkdir -p /etc/hallel-api
             
-            cd /home/ec2-user/hallel-api
-            # --- Cria o arquivo de variáveis de ambiente ---
-            # É mais seguro do que colocar as variáveis direto no .service
-            echo "SPRING_PROFILES_ACTIVE=prod" | sudo tee /etc/hallel-api/prod.env
-            echo "DB_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db" | sudo tee -a /etc/hallel-api/prod.env
-            echo "DB_USERNAME=${{ vars.DB_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }} | sudo tee -a /etc/hallel-api/prod.env
-            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}" | sudo tee /etc/hallel-api/prod.env
+            echo "SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MAIL_USERNAME=${MAIL_USERNAME}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MAIL_PASSWORD=${MAIL_PASSWORD}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "PEPPER_SECRET=${PEPPER_SECRET}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "FIREBASE_FCM_TOKEN=${FIREBASE_FCM_TOKEN}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "MERCADOPAGO_NOTIFICATION_URL=${MERCADOPAGO_NOTIFICATION_URL}" | sudo tee -a /etc/hallel-api/prod.env
             
+            cd /home/ec2-user/hallel-api
             docker-compose pull
             docker-compose up -d
