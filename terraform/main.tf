@@ -10,31 +10,6 @@ resource "random_password" "db_password" {
   special = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
-resource "aws_ssm_parameter" "db_password_parameter" {
-  name  = "/${var.environment}/hallel/db/password" # Nomes de parâmetros geralmente começam com /
-  type  = "SecureString" # Isso garante que o valor seja criptografado
-  value = random_password.db_password.result
-}
-
-# Atualiza a política da IAM Role para permitir o acesso ao Parameter Store
-resource "aws_iam_role_policy" "ssm_read_policy" {
-  name = "ssm-parameter-store-read-policy"
-  role = aws_iam_role.app_server_role.id
-
-  policy = jsonencode({
-    Version   = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      # Ações necessárias para ler parâmetros
-      Action   = [
-        "ssm:GetParameters",
-        "ssm:GetParameter"
-      ],
-      # Permite ler APENAS o parâmetro específico que criamos
-      Resource = aws_ssm_parameter.db_password_parameter.arn
-    }]
-  })
-}
 
 
 # Criação da instância do banco de dados PostgreSQL no RDS
@@ -49,7 +24,7 @@ resource "aws_db_instance" "hallel_db_prod" {
 
   db_name              = "hallel_db"
   username             = "halleladmin"
-  password             = aws_ssm_parameter.db_password_parameter.value
+  password             = random_password.db_password.result
 
   # -- SEGURANÇA --
   publicly_accessible  = false
