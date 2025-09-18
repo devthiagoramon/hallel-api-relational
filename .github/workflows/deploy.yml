@@ -77,9 +77,9 @@ jobs:
             sudo mkdir -p /etc/hallel-api
             
             echo "SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}" | sudo tee /etc/hallel-api/prod.env
-            echo "SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}" | sudo tee -a /etc/hallel-api/prod.env
-            echo "SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_URL=${SPRING_DATASOURCE_URL}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_USERNAME=${SPRING_DATASOURCE_USERNAME}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_PASSWORD=${SPRING_DATASOURCE_PASSWORD}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_USERNAME=${MAIL_USERNAME}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_PASSWORD=${MAIL_PASSWORD}" | sudo tee -a /etc/hallel-api/prod.env
             echo "PEPPER_SECRET=${PEPPER_SECRET}" | sudo tee -a /etc/hallel-api/prod.env
