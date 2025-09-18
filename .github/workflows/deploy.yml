@@ -57,6 +57,7 @@ jobs:
           tee hallel-messaging-firebase.json > /dev/null <<'EOF'
           ${{ secrets.HALLEL_MESSAGING_FIREBASE_JSON }}
           EOF
+          
           tee prod.env > /dev/null <<'EOF'
           SPRING_PROFILES_ACTIVE=prod
           SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
@@ -105,9 +106,9 @@ jobs:
             sudo mkdir -p /etc/hallel-api
             
             sudo mv /home/ec2-user/hallel-api/prod.env /etc/hallel-api/prod.env
-            sudo mv /home/ec2-user/hallel-api/crypto-avatar.json /etc/hallel-api/crypto-avatar.json
-            sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api/google-services.json
-            sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api/hallel-messaging-firebase.json
+            sudo mv /home/ec2-user/hallel-api/crypto-avatar.json /etc/hallel-api
+            sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api
+            sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api
 
             cd /home/ec2-user/hallel-api
             docker-compose pull
