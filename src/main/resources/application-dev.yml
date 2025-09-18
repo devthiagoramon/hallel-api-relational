@@ -23,9 +23,22 @@ spring:
     restart:
       enabled: false
 
-  server:
-    address: 0.0.0.0
-    port: 8080
+gcp:
+  credentials:
+    path: classpath:crypto-avatar.json
+
+google:
+  services:
+    path: classpath:google-services.json
+
+hallel:
+  messaging:
+    firebase:
+      path: classpath:hallel-messaging-firebase.json
+
+server:
+  address: 0.0.0.0
+  port: 8080
 
 #mercadopago:
 # access:

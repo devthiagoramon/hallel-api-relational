@@ -46,19 +46,6 @@ jobs:
 
       - name: Generate prod.env file
         run: |
-          tee prod.env > /dev/null <<'EOF'
-          SPRING_PROFILES_ACTIVE=prod
-          SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
-          SPRING_DATASOURCE_USERNAME=${{ vars.DB_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
-          SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-          SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}
-          FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
-          MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
-          MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
-          EOF
-          
           tee crypto-avatar.json > /dev/null <<'EOF'
           ${{ secrets.CRYPTO_AVATAR_JSON }}
           EOF
@@ -70,6 +57,20 @@ jobs:
           tee hallel-messaging-firebase.json > /dev/null <<'EOF'
           ${{ secrets.HALLEL_MESSAGING_FIREBASE_JSON }}
           EOF
+          tee prod.env > /dev/null <<'EOF'
+          SPRING_PROFILES_ACTIVE=prod
+          SPRING_DATASOURCE_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db
+          SPRING_DATASOURCE_USERNAME=${{ vars.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          PEPPER_SECRET=${{ secrets.PEPPER_SECRET }}
+          FIREBASE_FCM_TOKEN=${{ secrets.FIREBASE_FCM_TOKEN }}
+          MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+          MERCADOPAGO_NOTIFICATION_URL=${{ secrets.MERCADOPAGO_NOTIFICATION_URL }}
+          GCP_CREDENTIALS_PATH=/app/crypto-avatar.json
+          EOF
+          
 
       - name: Copia o docker-compose.yml para o servidor
         uses: appleboy/scp-action@v0.1.7
