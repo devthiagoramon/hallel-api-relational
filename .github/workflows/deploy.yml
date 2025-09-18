@@ -69,7 +69,7 @@ jobs:
             # --- Cria o arquivo de variáveis de ambiente ---
             # É mais seguro do que colocar as variáveis direto no .service
             echo "SPRING_PROFILES_ACTIVE=prod" | sudo tee /etc/hallel-api/prod.env
-            echo "DB_URL=${{ vars.DB_URL }}" | sudo tee -a /etc/hallel-api/prod.env
+            echo "DB_URL=jdbc:postgresql://${{ vars.DB_URL }}/hallel_db" | sudo tee -a /etc/hallel-api/prod.env
             echo "DB_USERNAME=${{ vars.DB_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" | sudo tee -a /etc/hallel-api/prod.env
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" | sudo tee -a /etc/hallel-api/prod.env
