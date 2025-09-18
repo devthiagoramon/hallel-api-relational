@@ -44,6 +44,16 @@ jobs:
           push: true
           tags: thiagoramon/hallel-api:latest
 
+      - name: Copia o docker-compose.yml para o servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.SERVER_IP }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
+          source: "docker-compose.yml"
+          target: "/home/ec2-user/hallel-api"
+
       - name: SSH, Configure and Restart Application
         uses: appleboy/ssh-action@v1.0.3
         with:
