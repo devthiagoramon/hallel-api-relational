@@ -11,4 +11,4 @@ services:
       - "8080:8080"
     # Carrega as variáveis de ambiente do arquivo .env no mesmo diretório
     env_file:
-      - .env
+      - /etc/hallel-api/prod.env
