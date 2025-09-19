@@ -27,7 +27,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./CaddyFile:/etc/caddy/CaddyFile
+      - /etc/hallel-api/CaddyFile:/etc/caddy/CaddyFile
       - caddy_data:/data
     depends_on:
       - hallel-api

@@ -109,6 +109,8 @@ jobs:
             sudo mv /home/ec2-user/hallel-api/crypto-avatar.json /etc/hallel-api
             sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api
             sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api
+            
+            sudo mv /home/ec2-user/hallel-api/CaddyFile /etc/hallel-api/CaddyFile
 
             cd /home/ec2-user/hallel-api
             docker-compose pull

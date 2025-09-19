@@ -68,15 +68,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["191.122.187.39/32"] # IMPORTANTE: Troque pelo seu IP (veja em meuip.com.br)
-  }
-
-  ingress {
-    description = "Permite acesso pra API"
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # IMPORTANTE: Troque pelo seu IP (veja em meuip.com.br)
+    cidr_blocks = ["191.122.187.39/32", "191.26.143.242/32", aws_vpc.main.cidr_block] # IMPORTANTE: Troque pelo seu IP (veja em meuip.com.br)
   }
 
   egress {
