@@ -1,0 +1,89 @@
+name: Generate SSL Certificate
+
+# Permite que este workflow seja acionado manualmente pela interface do GitHub
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'O domínio para gerar o certificado (ex: api.meusite.com)'
+        required: true
+        default: 'api.comunidadecatolicahallel.com.br'
+      email:
+        description: 'Email para notificações do Let''s Encrypt'
+        required: true
+        default: 'comunidadehallelti@gmail.com'
+
+jobs:
+  generate_certificate:
+    name: 'Generate Let''s Encrypt Certificate'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: SSH into server and run Certbot
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_IP }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
+          script: |
+            # Navega até a pasta do projeto
+            cd /home/ec2-user/hallel-api
+
+            # PASSO 1: Cria a configuração temporária do Nginx (apenas HTTP)
+            echo "--- Creating temporary Nginx config for validation ---"
+            tee nginx.conf > /dev/null <<'EOF'
+            server {
+                listen 80;
+                server_name ${{ github.event.inputs.domain }};
+
+                location /.well-known/acme-challenge/ {
+                    root /var/www/certbot;
+                }
+            }
+            EOF
+
+            # PASSO 2: Inicia o Nginx para responder ao desafio
+            echo "--- Starting Nginx ---"
+            sudo docker-compose up -d --force-recreate nginx
+
+            # PASSO 3: Executa o Certbot para obter o certificado
+            echo "--- Running Certbot ---"
+            sudo docker-compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d ${{ github.event.inputs.domain }} --email ${{ github.event.inputs.email }} --agree-tos --no-eff-email
+
+            # PASSO 4: Cria a configuração final e completa do Nginx (com HTTPS)
+            echo "--- Creating final Nginx config ---"
+            tee nginx.conf > /dev/null <<'EOF'
+            server {
+                listen 80;
+                server_name ${{ github.event.inputs.domain }};
+                location /.well-known/acme-challenge/ {
+                    root /var/www/certbot;
+                }
+                location / {
+                    return 301 https://$host$request_uri;
+                }
+            }
+            server {
+                listen 443 ssl;
+                server_name ${{ github.event.inputs.domain }};
+                ssl_certificate /etc/letsencrypt/live/${{ github.event.inputs.domain }}/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/${{ github.event.inputs.domain }}/privkey.pem;
+                include /etc/letsencrypt/options-ssl-nginx.conf;
+                ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+                location / {
+                    proxy_pass http://hallel-api:8080;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                }
+            }
+            EOF
+
+            # PASSO 5: Reinicia o Nginx com a configuração final e o certificado SSL
+            echo "--- Restarting Nginx with final config ---"
+            sudo docker-compose up -d --force-recreate nginx
