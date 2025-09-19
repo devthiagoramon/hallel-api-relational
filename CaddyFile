@@ -1,0 +1,3 @@
+api.comunidadecatolicahallel.com.br {
+    reverse_proxy hallel-api:8080
+}

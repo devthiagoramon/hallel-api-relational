@@ -19,34 +19,24 @@ services:
     networks:
       - app-network
 
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx-proxy
+  caddy:
+    image: caddy:latest
+    container_name: caddy-proxy
     restart: always
-
     ports:
       - "80:80"
       - "443:443"
     volumes:
-
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-
+      - ./CaddyFile:/etc/caddy/CaddyFile
+      - caddy_data:/data
+    depends_on:
+      - hallel-api
     networks:
       - app-network
-
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  caddy_data:

@@ -136,8 +136,6 @@ resource "aws_instance" "app_server" {
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
 
-  user_data = file("${path.module}/install-nginx-certbot.sh")
-
   iam_instance_profile = aws_iam_instance_profile.app_profile.name
 
   tags = {
