@@ -6,7 +6,8 @@ services:
     image: thiagoramon/hallel-api:latest
     container_name: hallel-api-container
     restart: always
-
+    ports:
+      - "8080:8080"
     env_file:
       - /etc/hallel-api/prod.env
 
