@@ -1,16 +1,50 @@
 version: '3.8'
 
 services:
+
   hallel-api:
-    # O nome da sua imagem no Docker Hub (ex: seunome/hallel-api)
     image: thiagoramon/hallel-api:latest
     container_name: hallel-api-container
     restart: always
-    # Carrega as variáveis de ambiente do arquivo .env no mesmo diretório
+
     env_file:
       - /etc/hallel-api/prod.env
+
     volumes:
-      # Mapeia o arquivo do servidor (host) para dentro do contêiner
       - /etc/hallel-api/crypto-avatar.json:/app/crypto-avatar.json
       - /etc/hallel-api/google-services.json:/app/google-services.json
       - /etc/hallel-api/hallel-messaging-firebase.json:/app/hallel-messaging-firebase.json
+
+    networks:
+      - app-network
+
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    restart: always
+
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+
+    networks:
+      - app-network
+
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+
+networks:
+  app-network:
+    driver: bridge
