@@ -103,6 +103,7 @@ jobs:
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
           script: |
             mkdir -p /home/ec2-user/hallel-api
+            sudo mkdir -p /etc/caddy
             sudo mkdir -p /etc/hallel-api
             
             sudo mv /home/ec2-user/hallel-api/prod.env /etc/hallel-api/prod.env
@@ -110,7 +111,7 @@ jobs:
             sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api
             sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api
             
-            sudo mv /home/ec2-user/hallel-api/CaddyFile /etc/caddy/CaddyFile
+            sudo mv /home/ec2-user/hallel-api/CaddyFile /etc/caddy
 
             cd /home/ec2-user/hallel-api
             docker-compose pull
