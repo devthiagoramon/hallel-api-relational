@@ -6,9 +6,6 @@ services:
     image: thiagoramon/hallel-api:latest
     container_name: hallel-api-container
     restart: always
-    ports:
-      # Mapeia a porta 8080 do servidor para a porta 8080 do contêiner
-      - "8080:8080"
     # Carrega as variáveis de ambiente do arquivo .env no mesmo diretório
     env_file:
       - /etc/hallel-api/prod.env
@@ -17,33 +14,3 @@ services:
       - /etc/hallel-api/crypto-avatar.json:/app/crypto-avatar.json
       - /etc/hallel-api/google-services.json:/app/google-services.json
       - /etc/hallel-api/hallel-messaging-firebase.json:/app/hallel-messaging-firebase.json
-    networks:
-      - app-network
-
-  nginx:
-    image: nginx:latest # Imagem oficial do Docker Hub
-    container_name: nginx-proxy
-    restart: always
-    ports:
-      # Expõe as portas do Nginx para o mundo exterior
-      - "80:80"
-      - "443:443"
-    volumes:
-       # Mapeia os arquivos de configuração e certificados para dentro do contêiner
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/certbot:/var/www/certbot
-    networks:
-      - app-network
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      # Compartilha os mesmos volumes do Nginx para poder criar os certificados
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-
-networks:
-  app-network:
-    driver: bridge

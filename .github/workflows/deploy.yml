@@ -82,7 +82,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
-          source: "docker-compose.yml,prod.env,crypto-avatar.json,nginx.conf,google-services.json,hallel-messaging-firebase.json"
+          source: "docker-compose.yml,prod.env,crypto-avatar.json,google-services.json,hallel-messaging-firebase.json"
           target: "/home/ec2-user/hallel-api"
 
       - name: Debug Secrets and Variables

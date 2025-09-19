@@ -1,7 +1,32 @@
-# Configuração do provedor AWS
-provider "aws" {
-  region = var.aws_region # Sua região
+
+variable "domain_name" {
+  type        = string
+  description = "O domínio raiz, ex: comunidadecatolicahallel.com.br"
+  default     = "comunidadecatolicahallel.com.br"
 }
+
+# Variável para o subdomínio da API
+variable "api_domain_name" {
+  type    = string
+  default = "api.comunidadecatolicahallel.com.br"
+}
+
+data "aws_route53_zone" "primary" {
+  name = var.domain_name
+}
+
+resource "aws_acm_certificate" "cert" {
+  provider                  = aws.us_east_1 # Certificados para ALB/CloudFront devem estar em us-east-1
+  domain_name               = var.domain_name
+  # ADICIONADO O SUBDOMÍNIO DA API AQUI
+  subject_alternative_names = [var.api_domain_name]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 
 # -- CONFIGURAÇÃO DO BANCO DE DADOS --
 # Para segurança, gere uma senha aleatória para o banco de dados
@@ -81,10 +106,27 @@ resource "aws_iam_instance_profile" "app_profile" {
   role = aws_iam_role.app_server_role.name
 }
 
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+
+
 # Exemplo de uma instância EC2 para rodar a aplicação
 resource "aws_instance" "app_server" {
   # Amazon Machine Image - Amazon Linux 2 (gratuito e comum)
-  ami           = "ami-0023921b4fcd5382b" # Verifique o AMI ID mais recente para sua região (us-east-2)
+  ami           = data.aws_ami.amazon_linux_2.id # Verifique o AMI ID mais recente para sua região (us-east-2)
   instance_type = "t2.micro"             # Instância do Free Tier da AWS
 
   # AQUI a mágica acontece: associa a chave SSH criada no passo anterior
@@ -93,6 +135,8 @@ resource "aws_instance" "app_server" {
   # Associa a instância à sua rede e security group
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
+
+  user_data = file("${path.module}/install-nginx-certbot.sh")
 
   iam_instance_profile = aws_iam_instance_profile.app_profile.name
 
