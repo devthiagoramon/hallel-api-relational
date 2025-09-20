@@ -10,96 +10,105 @@
               rel="stylesheet">
     </head>
     <style>
-
         body {
             font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
         }
 
         .container {
-            width: 100%;
+            max-width: 600px;
             margin: 0 auto;
             border: 1px solid #eee;
+            border-radius: 8px;
             padding: 2rem;
+            background-color: #ffffff;
+
+
             display: flex;
             flex-direction: column;
-            flex-wrap: wrap;
+            align-items: center;
+            text-align: center;
         }
 
-        .header {
-            display: flex;
-            align-items: center;
+        .header, .body, .footer {
+            width: 100%;
         }
 
         .body {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            width: 100%;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .footer {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            width: 100%;
-            margin-top: 2rem;
+            margin-top: 1rem;
         }
+
+
 
         .description {
             margin: 0;
             padding: 0;
-            font-size: 14px;
+            font-size: 16px;
+            line-height: 1.5;
         }
 
         .important-text {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 500;
+            color: #007bff;
         }
 
-
         .title {
-            font-weight: 400;
+            font-weight: 500;
+            font-size: 24px;
+            margin: 0;
         }
 
         .action-button {
             display: inline-block;
-            background-color: #007bff; /* Cor principal do botão */
-            color: #ffffff; /* Cor do texto */
+            background-color: #007bff;
+            color: #ffffff;
             padding: 12px 24px;
             font-size: 16px;
             font-weight: 500;
             text-align: center;
-            text-decoration: none; /* Remove o sublinhado padrão de links */
+            text-decoration: none;
             border: none;
-            border-radius: 8px; /* Bordas arredondadas */
-            cursor: pointer; /* Muda o cursor para uma "mãozinha" */
-            transition: background-color 0.3s ease; /* Efeito suave na transição de cor */
-            -webkit-font-smoothing: antialiased; /* Melhora a renderização da fonte */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Poppins', sans-serif;
         }
 
         .action-button:hover {
-            background-color: #0056b3; /* Cor do botão ao passar o mouse */
+            background-color: #0056b3;
         }
-
-
     </style>
 </head>
-<body class="container">
-<div class="header">
-    <h1 class="title">Comunidade Católica Hallel</h1>
-</div>
-<div class="body">
-    <p class="description">
-        Uma conta de administrador aguarda validação para o e-mail <span class="important-text" th:text="${email}">...</span>.
-    </p>
-</div>
-<div class="footer">
-    <a href="#"
-       th:href="${url_validate}"
-       class="action-button">
-        Validar Conta
-    </a>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="title">Comunidade Católica Hallel</h1>
+    </div>
+
+    <div class="body">
+        <p class="description">
+            Uma conta de administrador aguarda validação para o e-mail
+            <span class="important-text" th:text="${email}">...</span>.
+        </p>
+    </div>
+
+    <div class="footer">
+        <button type="button"
+                class="action-button"
+                th:data-url="${url_validate}"
+                onclick="window.location.href = this.dataset.url">
+            Validar Conta
+        </button>
+    </div>
 </div>
 </body>
 </html>
