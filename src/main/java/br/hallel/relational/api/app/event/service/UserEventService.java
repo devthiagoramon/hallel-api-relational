@@ -524,4 +524,9 @@ public class UserEventService {
         }
         return pdfBase64;
     }
+
+    public Boolean validateHasFrenteCaixa(UUID userId, UUID eventId) {
+        return this.eventParticipationRepository.isFrenteCaixa(userId, eventId, UserFunctionInEvent.FRENTE_CAIXA)
+                .isPresent();
+    }
 }
