@@ -32,6 +32,8 @@ public class PasswordHashCreateTest {
         String user3Enconde = passwordEncoder.encode("felipe123");
         String user4Enconde = passwordEncoder.encode("emmerson123");
         String user5Enconde = passwordEncoder.encode("manfred123");
+        String user6Enconde = passwordEncoder.encode("carlamuniqueadmhallel05!");
+        String user7Enconde = passwordEncoder.encode("thiagoramonadmhallel2025!");
 
         System.out.println("Adm hash " + admEncode);
         System.out.println("user 1 hash  " + user1Enconde);
@@ -39,6 +41,8 @@ public class PasswordHashCreateTest {
         System.out.println("user 3 hash  " + user3Enconde);
         System.out.println("user 4 hash  " + user4Enconde);
         System.out.println("user 5 hash  " + user5Enconde);
+        System.out.println("user 6 hash  " + user6Enconde);
+        System.out.println("user 7 hash  " + user7Enconde);
     }
 
 }

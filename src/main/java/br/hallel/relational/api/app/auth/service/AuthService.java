@@ -154,12 +154,14 @@ public class AuthService {
             User user = this.userRepository.findByToken(token)
                     .orElseThrow(() -> new AuthRequestException("User not found with this token"));
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
-            String url = String.format("{}/auth/validate-admin-access-web/{}?token={}", getNgrokUrl(), code,
+            String url = String.format(
+                    "https://api.comunidadecatolicahallel.com.br/auth/validate-admin-access-web/%s?token=%s", code,
                     tokenAdmin);
 
-            log.info("{}/auth/validate-admin-access-web/{}?token={}", getNgrokUrl(), code, tokenAdmin);
+            log.info("https://api.comunidadecatolicahallel.com.br/auth/validate-admin-access-web/{}?token={}", code,
+                    tokenAdmin);
 
-//            emailService.sendMail(user.getEmail(), "Url para validação!", "Url para verificação de token do Adm: "+url);
+            emailService.sendAdminMail(user.getEmail(), user.getEmail(), url);
             return new TokenAdminResponse(tokenAdmin, code);
         }
         return null;
