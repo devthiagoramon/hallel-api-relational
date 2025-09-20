@@ -367,7 +367,7 @@ public class FoodService {
         savedTransaction1.setDescription(finalDescription);
         savedTransaction1.setValue(totalAmount.doubleValue());
         FoodTransaction savedTransaction2 = foodTransactionRepository.save(savedTransaction1);
-        foodSaleItemRepository.saveAll(itemsToSave);
+        List<FoodSaleItem> savedItems = foodSaleItemRepository.saveAll(itemsToSave);
 
         EventTransaction eventTransaction = new EventTransaction();
         eventTransaction.setDescription("Venda de Alimento Confirmada: " + savedTransaction2.getDescription());
@@ -378,15 +378,17 @@ public class FoodService {
         EventTransaction eventTransaction1 = eventTransactionRepository.save(eventTransaction);
         savedTransaction2.setEventTransaction(eventTransaction1);
 
-        for (FoodSaleItem item : savedTransaction2.getSaleItems()) {
+        for (FoodSaleItem item : savedItems) {
             Foods food = item.getFood();
             if (food != null) {
                 int newStock = food.getStockQuantity() - item.getQuantity();
                 food.setStockQuantity(newStock);
+                foodRepository.save(food);
             }
         }
         savedTransaction2.setStatus(StatusPaymentFood.PAGO);
         savedTransaction2.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+        savedTransaction2.setSaleItems(savedItems);
         FoodTransaction savedTransaction3 = foodTransactionRepository.save(savedTransaction2);
         log.info("EVENT TRANSACTION CRIADO " + eventTransaction1.getId().toString());
         return pdfGenerationService.gerarComandaAlimentoBase64(savedTransaction3);
