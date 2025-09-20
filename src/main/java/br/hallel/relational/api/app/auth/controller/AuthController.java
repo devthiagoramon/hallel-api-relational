@@ -102,9 +102,16 @@ public class AuthController {
 
     @GetMapping("/validate-admin-access-web/{validationCode}")
     @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
-    public Boolean validateAdminAccessWeb(@RequestParam(name = "token") String token,
+    public String validateAdminAccessWeb(@RequestParam(name = "token") String token,
                                           @PathVariable("validationCode") String code) {
-        return authService.validateTokenAdminWeb(token, code);
+        Boolean b = authService.validateTokenAdminWeb(token, code);
+        if (b) {
+            // Se a validação for bem-sucedida, redireciona para a página de sucesso/dashboard
+            return "redirect:https://comunidadecatolicahallel.com.br/administrador";
+        } else {
+            // Se falhar, redireciona para a página de erro/login
+            return "redirect:https://comunidadecatolicahallel.com.br/administrador/error";
+        }
     }
 
     @GetMapping("/verify-admin-access-web/{token}")
