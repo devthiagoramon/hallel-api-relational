@@ -193,13 +193,6 @@ public class AdminEventController {
         return ResponseEntity.ok(this.foodService.listAllFoods(PageRequest.of(page, size)));
     }
 
-    @GetMapping("/list-all/food/by-event-id/{eventId}")
-    @Operation(summary = "List all foods saved in DataBase by Event Id")
-    public ResponseEntity<Page<EventFoodTableResponseDTO>> listAllFoodByEventId(@PathVariable(name = "eventId") UUID eventId,
-                                                                                Pageable pageable) {
-
-        return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, pageable));
-    }
 
     @GetMapping("/get-by-id/food/{foodId}")
     @Operation(summary = "Getting Food By Id")
@@ -266,12 +259,6 @@ public class AdminEventController {
                                                                       @PathVariable(name = "eventId") UUID eventId) {
 
         return ResponseEntity.ok(this.foodService.createFoodPayment(saleItems,eventId));
-    }
-
-    @PostMapping("/generete-receipt-food/{eventId}")
-    @Operation(summary = "Generate a fiscal receipt for food", description = "Handles to generate a fiscal receipt for validate buying food, return a base64 with infos")
-    public ResponseEntity<String> generateFoodFiscalReceipt(@PathVariable(name = "eventId") UUID eventId, @RequestBody List<FoodSaleItemRequestDTO> saleItems){
-        return ResponseEntity.ok(this.foodService.generateFoodFiscalReceipt(eventId, saleItems));
     }
 
 

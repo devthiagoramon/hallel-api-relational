@@ -3,6 +3,7 @@ package br.hallel.relational.api.app.event.repository;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -82,4 +83,11 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
             """)
     Page<EventParticipation> listAllByUser_nameAndEvent_id(@Param("userName") String userName,
                                                            @Param("eventId") UUID eventId, Pageable pageable);
+
+    @Query("""
+    SELECT ep from EventParticipation ep
+    WHERE ep.user.id = :userId AND ep.event.id = :eventId AND ep.userFunctionInEvent = :userFunction
+    """)
+    Optional<EventParticipation> isFrenteCaixa(@Param("userId") UUID userId, @Param("eventId") UUID eventId, @Param("userFunction")
+                                               UserFunctionInEvent userFunctionInEvent);
 }
