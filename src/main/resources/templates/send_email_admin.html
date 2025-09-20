@@ -104,12 +104,12 @@
     </div>
 
     <div class="footer">
-        <button type="button"
-                class="action-button"
-                th:data-url="${url_validate}"
-                onclick="validateWithFetch(this)">
+        <a href="#"
+           th:href="@{${url_validate}}"
+           onclick="event.preventDefault()"
+           class="action-button">
             Validar Conta
-        </button>
+        </a>
     </div>
 </div>
 
