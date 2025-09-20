@@ -5,15 +5,18 @@ import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.LocalDate;
 
-@Service
+@Slf4j @Service
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
@@ -21,6 +24,8 @@ public class EmailService {
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private TemplateEngine templateEngine;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -39,6 +44,20 @@ public class EmailService {
             System.out.println("Email enviado com sucesso!");
         } catch (MessagingException e) {
             System.out.println("Erro ao enviar email HTML: " + e.getMessage());
+        }
+    }
+
+    public void sendAdminMail(String to, String email, String url) {
+        try {
+
+            Context context = new Context();
+            context.setVariable("url_validate", url);
+            context.setVariable("email", email);
+
+            String html = templateEngine.process("send_email_admin", context);
+            sendMail(to, "Validar administrador", html);
+        } catch (Exception e) {
+            log.info("Erro ao enviar email de validação do administrador HTML: " + e.getMessage());
         }
     }
 

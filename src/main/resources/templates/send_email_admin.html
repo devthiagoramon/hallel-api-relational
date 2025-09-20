@@ -1,0 +1,105 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <head>
+        <title th:remove="all">Validação de administrador</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+              rel="stylesheet">
+    </head>
+    <style>
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            border: 1px solid #eee;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+        }
+
+        .body {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .footer {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .description {
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .important-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+
+        .title {
+            font-weight: 400;
+        }
+
+        .action-button {
+            display: inline-block;
+            background-color: #007bff; /* Cor principal do botão */
+            color: #ffffff; /* Cor do texto */
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none; /* Remove o sublinhado padrão de links */
+            border: none;
+            border-radius: 8px; /* Bordas arredondadas */
+            cursor: pointer; /* Muda o cursor para uma "mãozinha" */
+            transition: background-color 0.3s ease; /* Efeito suave na transição de cor */
+            -webkit-font-smoothing: antialiased; /* Melhora a renderização da fonte */
+        }
+
+        .action-button:hover {
+            background-color: #0056b3; /* Cor do botão ao passar o mouse */
+        }
+
+
+    </style>
+</head>
+<body class="container">
+<div class="header">
+    <h1 class="title">Comunidade Católica Hallel</h1>
+</div>
+<div class="body">
+    <p class="description">
+        Uma conta de administrador aguarda validação para o e-mail <span class="important-text" th:text="${email}">...</span>.
+    </p>
+</div>
+<div class="footer">
+    <a href="#"
+       th:href="${url_validate}"
+       class="action-button">
+        Validar Conta
+    </a>
+</div>
+</body>
+</html>
