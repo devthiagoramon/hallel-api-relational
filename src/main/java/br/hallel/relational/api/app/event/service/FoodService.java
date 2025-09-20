@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -367,6 +368,27 @@ public class FoodService {
         savedTransaction1.setValue(totalAmount.doubleValue());
         FoodTransaction savedTransaction2 = foodTransactionRepository.save(savedTransaction1);
         foodSaleItemRepository.saveAll(itemsToSave);
-        return pdfGenerationService.gerarComandaAlimentoBase64(savedTransaction2);
+
+        EventTransaction eventTransaction = new EventTransaction();
+        eventTransaction.setDescription("Venda de Alimento Confirmada: " + savedTransaction2.getDescription());
+        eventTransaction.setValue(savedTransaction2.getValue());
+        eventTransaction.setTransactionType(TransactionType.ENTRADA);
+        eventTransaction.setEvent(savedTransaction2.getEvent());
+        eventTransaction.setDateTransaction(new Date());
+        EventTransaction eventTransaction1 = eventTransactionRepository.save(eventTransaction);
+        savedTransaction2.setEventTransaction(eventTransaction1);
+
+        for (FoodSaleItem item : savedTransaction2.getSaleItems()) {
+            Foods food = item.getFood();
+            if (food != null) {
+                int newStock = food.getStockQuantity() - item.getQuantity();
+                food.setStockQuantity(newStock);
+            }
+        }
+        savedTransaction2.setStatus(StatusPaymentFood.PAGO);
+        savedTransaction2.setDateTransaction(OffsetDateTime.now(ZoneId.of("America/Manaus")));
+        FoodTransaction savedTransaction3 = foodTransactionRepository.save(savedTransaction2);
+        log.info("EVENT TRANSACTION CRIADO " + eventTransaction1.getId().toString());
+        return pdfGenerationService.gerarComandaAlimentoBase64(savedTransaction3);
     }
 }
