@@ -115,39 +115,18 @@ public class EventService implements EventInterface {
         return mapper.entityToResponse(this.repository.save(event));
     }
 
+
     @Override
     public Page<EventResponse> listAllEvents(Pageable pageable) {
+        Page<Event> eventsPage = this.repository.findAll(pageable);
 
-        Page<Event> eventsPagination = this.repository.findAllByDateGreaterThanEqualOrderByDateAsc(LocalDateTime.now(),
-                pageable);
-        if (eventsPagination.isEmpty()) {
+        List<EventResponse> eventResponses = eventsPage.getContent().stream()
+                .map(this::eventToResponse)
+                .collect(Collectors.toList());
 
-            Page<Event> allByEventTypeOrderByTitleAsc = this.repository.findAllByOrderByTitleAsc(pageable);
-            if (allByEventTypeOrderByTitleAsc.isEmpty()) {
-                throw new EventListIsEmptyException("event.list.is.empty");
-            }
-            eventsPagination = allByEventTypeOrderByTitleAsc;
-
-        }
-
-        List<Event> importantEvents = eventsPagination.stream()
-                .filter(Event::getIsImportant)
-                .toList();
-
-        List<Event> otherEvents = eventsPagination.stream()
-                .filter(event -> !event.getIsImportant())
-                .toList();
-
-        List<Event> sortedEvents = new ArrayList<>(importantEvents);
-        sortedEvents.addAll(otherEvents);
-
-        List<EventResponse> sortedEventResponses = sortedEvents.stream()
-                .map(mapper::entityToResponse)
-                .toList();
-
-        log.info("Listing all events...");
-        return new PageImpl<>(sortedEventResponses, pageable, eventsPagination.getTotalElements());
+        return new PageImpl<>(eventResponses, pageable, eventsPage.getTotalElements());
     }
+
 
     public Page<EventResponse> listAllEventsAlreadyHappened(Pageable pageable) {
 
@@ -471,5 +450,23 @@ public class EventService implements EventInterface {
 
         return response;
 
+    }
+
+    private EventResponse eventToResponse(Event event) {
+        return new EventResponse(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDate(),
+                event.getBanner_url(),
+                event.getImage_url(),
+                event.getIsImportant(),
+                event.getLocal_event_name(),
+                event.getLocal_event_longitude(),
+                event.getLocal_event_latitude(),
+                event.getValue(),
+                null,
+                event.getEventType()
+        );
     }
 }
