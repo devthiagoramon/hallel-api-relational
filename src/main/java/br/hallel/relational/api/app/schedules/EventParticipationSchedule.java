@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.schedules;
 
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,37 +26,57 @@ public class EventParticipationSchedule {
     @Autowired
     private EventRepository eventRepository;
 
-    @Scheduled(cron = "0 0 * * * *", zone = "America/Manaus")
-    public void checkIfTheEventHasEnded() {
-        log.info("Starting scheduled check for ended events at {}", new Date());
+    @Scheduled(cron = "0 30 * * * *", zone = "America/Manaus")
+    public void updateEventStatus() {
+        log.info("Iniciando verificação de status dos eventos...");
 
-        List<Event> events = eventRepository.findByDateBeforeAndHasEndedFalse(new Date());
-        log.info("Found {} events that have ended", events.size());
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Manaus"));
+        List<Event> activeEvents = eventRepository.findByEventStatusNot(EventStatus.FINALIZADO);
+        log.info("Encontrados {} eventos ativos para verificação.", activeEvents.size());
 
+        List<Event> eventsToUpdate = new ArrayList<>();
         List<EventParticipation> participationsToUpdate = new ArrayList<>();
-        List<Event> eventsEnded = new ArrayList<>();
 
-        if (events.isEmpty()) {
-            return;
-        }
-        for (Event event : events) {
-            List<EventParticipation> allParticipations = eventParticipationRepository.findAllByEvent_Id(event.getId());
-            log.info("Processing event '{}' (id: {}) with {} participations", event.getTitle(), event.getId(), allParticipations.size());
+        for (Event event : activeEvents) {
 
-            for (EventParticipation participation : allParticipations) {
-                if (participation.getStatusPaymentEventParticipation() != StatusPaymentEventParticipation.PAGO) {
-                    participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.NAO_PAGO);
+            LocalDateTime startTime = event.getDate()
+                    .toInstant()
+                    .atZone(ZoneId.of("America/Manaus"))
+                    .toLocalDateTime();
 
+            LocalDateTime endTime = startTime.plus(event.getDuration());
+            LocalDateTime bufferedEndTime = endTime.plusHours(1);
+
+            if (now.isAfter(bufferedEndTime )) {
+                event.setEventStatus(EventStatus.FINALIZADO);
+                eventsToUpdate.add(event);
+                log.info("Evento '{}' (id: {}) finalizado. Status alterado para FINALIZADO.", event.getTitle(), event.getId());
+
+                List<EventParticipation> allParticipations = eventParticipationRepository.findAllByEvent_Id(event.getId());
+                for (EventParticipation participation : allParticipations) {
+                    if (participation.getStatusPaymentEventParticipation() != StatusPaymentEventParticipation.PAGO) {
+                        participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.NAO_PAGO);
+                    }
+                    participation.setHasParticipated(true);
+                    participationsToUpdate.add(participation);
                 }
-                participation.setHasParticipated(true);
-                participationsToUpdate.add(participation);
+
+            } else if (now.isAfter(startTime) && event.getEventStatus() == EventStatus.AGENDADO) {
+                event.setEventStatus(EventStatus.OCORRENDO);
+                eventsToUpdate.add(event);
+                log.info("Evento '{}' (id: {}) iniciado. Status alterado para EM_ANDAMENTO.", event.getTitle(), event.getId());
             }
-            event.setHasEnded(true);
-            eventsEnded.add(event);
         }
-        this.eventParticipationRepository.saveAll(participationsToUpdate);
-        this.eventRepository.saveAll(eventsEnded);
-        log.info("Updated {} event participations", participationsToUpdate.size());
-        log.info("Finished scheduled check for ended events at {}", new Date());
+
+        if (!eventsToUpdate.isEmpty()) {
+            eventRepository.saveAll(eventsToUpdate);
+            log.info("{} eventos tiveram seus status atualizados.", eventsToUpdate.size());
+        }
+        if (!participationsToUpdate.isEmpty()) {
+            eventParticipationRepository.saveAll(participationsToUpdate);
+            log.info("{} participações foram atualizadas para refletir o fim dos eventos.", participationsToUpdate.size());
+        }
+
+        log.info("Verificação de status de eventos finalizada.");
     }
 }

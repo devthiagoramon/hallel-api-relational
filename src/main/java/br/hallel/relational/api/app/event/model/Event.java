@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,13 @@ public class Event {
 
     @Column(name = "date", nullable = false)
     private Date date;
+
+    @Column(name = "duration")
+    private Duration duration;
+
+    @Column(name = "event_status")
+    @Enumerated(EnumType.STRING)
+    private EventStatus eventStatus;
 
     @Column(name = "local_event_name", nullable = false)
     private String local_event_name;
@@ -56,9 +64,6 @@ public class Event {
     @JsonBackReference
     @JsonIgnore
     private List<EventScale> scales;
-
-    @Column(name = "has_ended", nullable = false)
-    private Boolean hasEnded = false;
 
     @Column(name = "its_free", nullable = true)
     private Boolean itsFree = true;

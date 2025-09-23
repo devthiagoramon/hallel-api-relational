@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventResponse;
+import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.model.Event;
@@ -43,16 +45,21 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Optional<Event> listByIdWithMinistryResponse(@Param("eventId") UUID id);
 
     @Query("""
-    SELECT e FROM Event e
-    WHERE e.date > :date
-    """)
-    Page<Event> findAllUpcomingEvents( @Param("date") Date date, Pageable pageable);
+            SELECT e FROM Event e
+            WHERE e.date > :date
+            """)
+    Page<Event> findAllUpcomingEvents(@Param("date") Date date, Pageable pageable);
 
-
-    List<Event> findByDateBeforeAndHasEndedFalse(Date dateBefore);
 
     Page<Event> findAllByEventTypeOrderByTitleAsc(EventType eventType, Pageable pageable);
 
-    Page<Event> findAllByHasEndedAndEventType(Boolean hasEnded, EventType type,Pageable pageable);
-    Page<Event> findAllByHasEnded(Boolean hasEnded, Pageable pageable);
+    List<Event> findByEventStatusNot(EventStatus eventStatus);
+
+    Page<Event> findByEventStatusNot(EventStatus eventStatus, Pageable pageable);
+
+    Page<Event> findByEventStatus(EventStatus eventStatus, Pageable pageable);
+
+    Page<Event> findByEventStatusNotOrderByTitleAsc(EventStatus eventStatus, Pageable pageable);
+
+    Page<Event> findAllByEventStatusAndEventType(EventStatus eventStatus, EventType eventType, Pageable pageable);
 }

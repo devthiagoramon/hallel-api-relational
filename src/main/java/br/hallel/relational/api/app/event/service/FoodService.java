@@ -72,7 +72,7 @@ public class FoodService {
     }
 
 
-    public Page<EventFoodTableResponseDTO> listAllFoodsByEventId(UUID eventId, Pageable pageable) {
+    public Page<EventFoodTableResponseDTO> listAllFoodsByTableEventId(UUID eventId, Pageable pageable) {
 
         Sort.Order sortOrder = pageable.getSort().stream().findFirst().orElse(null);
         if (sortOrder != null && "quantitySale".equals(sortOrder.getProperty())) {
@@ -85,7 +85,6 @@ public class FoodService {
             return this.foodRepository.findFoodTableByEventId(eventId, pageable);
         }
     }
-
 
     @Transactional
     public EventFoodResponseDTO getFoodById(UUID foodId) {
@@ -257,7 +256,7 @@ public class FoodService {
     }
 
     public void deleteFood(UUID foodId) {
-        log.info("Deleting food by id... "+foodId.toString());
+        log.info("Deleting food by id... " + foodId.toString());
         Foods foods = this.foodRepository.findById(foodId).orElseThrow(
                 () -> new FoodNotFoundException("food.event.not.found", foodId.toString())
         );
