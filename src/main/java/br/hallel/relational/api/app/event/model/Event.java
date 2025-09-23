@@ -72,15 +72,18 @@ public class Event {
     @Column(name = "event_type", nullable = true)
     private EventType eventType;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "event_schedule",
             joinColumns = @JoinColumn(name = "event_id")
     )
     @Column(name = "activity")
+    @JsonIgnore
+    @ToString.Exclude
     private List<String> schedule;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<EventTransaction> transactions;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -88,6 +91,7 @@ public class Event {
     private List<EventParticipation> participations;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Foods> foods;
 
 }
