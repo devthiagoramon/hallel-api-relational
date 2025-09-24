@@ -32,5 +32,20 @@ public class CoordinatorScaleChatController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/add/participant")
+    @Operation(summary = "Add participant in some chat", description = "Handles adding some participant of scale in chat")
+    public ResponseEntity<ScaleChatParticipant> addParticipantOfScaleChat(@RequestParam(name = "user-id") UUID userId,
+                                                                          @RequestParam(name = "scale-id")
+                                                                          UUID scaleId) {
+        return ResponseEntity.ok(this.participantService.addParticipantFromScaleChatParticipant(userId, scaleId));
+    }
+
+    @DeleteMapping("/remove/participant/{participant-chat-id}")
+    public ResponseEntity<Boolean> removeParticipantOfScaleChat(
+            @PathVariable(name = "participant-chat-id") UUID participantChatId) {
+        this.participantService.removeParticipantFromScaleChat(participantChatId);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }
