@@ -36,14 +36,13 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-
 # Criação da instância do banco de dados PostgreSQL no RDS
 resource "aws_db_instance" "hallel_db_prod" {
   allocated_storage    = 20
   engine               = "postgres"
   engine_version       = "16.10"
   instance_class       = "db.t3.micro"
-  storage_type = "gp2"
+  storage_type = "gp3"
 
   identifier           = "hallel-db-${var.environment}"
 
@@ -56,7 +55,7 @@ resource "aws_db_instance" "hallel_db_prod" {
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
 
-  multi_az = true
+  multi_az = false
   backup_retention_period = 7
   skip_final_snapshot = false
   final_snapshot_identifier = "hallel-db-${var.environment}-final-snapshot"

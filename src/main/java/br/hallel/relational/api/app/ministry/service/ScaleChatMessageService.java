@@ -227,4 +227,7 @@ public class ScaleChatMessageService {
                 scaleId, userId, pageable);
     }
 
+    public List<StatusReadingMessageUserResponse> listStatusDeliveryPerUser(UUID messageId) {
+        return this.scaleChatMessageRepository.listStatusDeliverPerUser(messageId);
+    }
 }

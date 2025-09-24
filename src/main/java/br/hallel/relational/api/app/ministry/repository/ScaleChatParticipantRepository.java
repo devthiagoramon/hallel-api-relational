@@ -20,6 +20,8 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
                 join fetch mes.memberMinistry mm
                 join fetch mm.user u
                 join fetch u.devicesUser
+                JOIN scp.eventScale eventScale
+                WHERE eventScale.id = :scaleId
             """)
     List<ScaleChatParticipant> listParticipantsOfScale(@Param("scaleId") UUID eventScaleId);
 
@@ -31,4 +33,6 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
                 join fetch mm.user u
             """)
     Optional<ScaleChatParticipant> listByIdWithUserInfo(@Param("scaleChatParticipantId") UUID scaleChatParticipantId);
+
+    boolean existsScaleChatParticipantByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(UUID eventScaleId, UUID memberEventScaleMemberMinistryUserId);
 }

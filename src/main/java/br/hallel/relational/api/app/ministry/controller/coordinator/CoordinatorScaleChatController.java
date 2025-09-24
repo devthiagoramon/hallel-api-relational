@@ -37,7 +37,8 @@ public class CoordinatorScaleChatController {
     public ResponseEntity<ScaleChatParticipant> addParticipantOfScaleChat(@RequestParam(name = "user-id") UUID userId,
                                                                           @RequestParam(name = "scale-id")
                                                                           UUID scaleId) {
-        return ResponseEntity.ok(this.participantService.addParticipantFromScaleChatParticipant(userId, scaleId));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(this.participantService.addParticipantFromScaleChatParticipant(userId, scaleId));
     }
 
     @DeleteMapping("/remove/participant/{participant-chat-id}")

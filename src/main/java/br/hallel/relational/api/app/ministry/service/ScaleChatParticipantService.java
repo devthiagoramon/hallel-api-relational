@@ -85,23 +85,22 @@ public class ScaleChatParticipantService {
         return new ScaleChatInfoResponse(scaleId, eventShortResponse, participants);
     }
 
-    public void removeParticipantFromScaleChat(UUID scaleParticipantId) {
-        log.info("Removing participants scale chat of scale {}", scaleParticipantId);
-        ScaleChatParticipant scaleChatParticipant = this.scaleChatParticipantRepository.findById(scaleParticipantId)
+    public void removeParticipantFromScaleChat(UUID scaleChatParticipantId) {
+        log.info("Removing participants scale chat of scale {}", scaleChatParticipantId);
+        ScaleChatParticipant scaleChatParticipant = this.scaleChatParticipantRepository.findById(scaleChatParticipantId)
                 .orElseThrow(() -> new EventParticipationException(
-                        "Participante não encontrado pelo id: %s".formatted(scaleParticipantId.toString())));
+                        "Participante não encontrado pelo id: %s".formatted(scaleChatParticipantId.toString())));
         this.scaleChatParticipantRepository.delete(scaleChatParticipant);
     }
 
     public ScaleChatParticipant addParticipantFromScaleChatParticipant(UUID userId, UUID scaleId) {
         log.info("Add participant for scale chat of scale {}", scaleId);
         List<ScaleChatParticipant> participants = scaleChatParticipantRepository.listParticipantsOfScale(scaleId);
-        if (participants.isEmpty()) {
+        if (!verifyIfScaleChatExists(scaleId)) {
             throw new EventParticipationException("O chat da escala não foi criado");
         }
-        boolean isParticipanting = participants.stream()
-                .anyMatch(p -> p.getMemberEventScale().getMemberMinistry().getUser().getId().equals(userId));
-
+        boolean isParticipanting = this.scaleChatParticipantRepository.existsScaleChatParticipantByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                scaleId, userId);
         if (isParticipanting) {
             throw new EventParticipationException("Participante já está cadastrado na escala");
         }
