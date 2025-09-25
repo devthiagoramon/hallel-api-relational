@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
+import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatInfoResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantUserResponse;
 import br.hallel.relational.api.app.ministry.service.ScaleChatParticipantService;
@@ -40,5 +41,6 @@ public class UserScaleChatController {
     public ResponseEntity<ScaleChatInfoResponse> getScaleChatInfo(@PathVariable("scale-id") UUID scaleId) {
         return ResponseEntity.ok().body(this.scaleChatParticipantService.getInfoOfScaleChat(scaleId));
     }
+
 
 }

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,8 @@ public class EventDTO {
 
     @NotNull(message = "Campo 'date' não pode ser nulo.")
     private Date date;
+
+    private Duration duration;
 
     private String local_event_name;
     private double local_event_longitude;

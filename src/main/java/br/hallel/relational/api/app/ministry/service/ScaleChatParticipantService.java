@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -81,5 +83,34 @@ public class ScaleChatParticipantService {
                 .map(participant -> participant.getMemberEventScale().getMemberMinistry().getUser()).toList();
         EventShortResponse eventShortResponse = eventScaleRepository.findScaleByIdWithInfos(scaleId).getEvento();
         return new ScaleChatInfoResponse(scaleId, eventShortResponse, participants);
+    }
+
+    public void removeParticipantFromScaleChat(UUID scaleChatParticipantId) {
+        log.info("Removing participants scale chat of scale {}", scaleChatParticipantId);
+        ScaleChatParticipant scaleChatParticipant = this.scaleChatParticipantRepository.findById(scaleChatParticipantId)
+                .orElseThrow(() -> new EventParticipationException(
+                        "Participante não encontrado pelo id: %s".formatted(scaleChatParticipantId.toString())));
+        this.scaleChatParticipantRepository.delete(scaleChatParticipant);
+    }
+
+    public ScaleChatParticipant addParticipantFromScaleChatParticipant(UUID userId, UUID scaleId) {
+        log.info("Add participant for scale chat of scale {}", scaleId);
+        List<ScaleChatParticipant> participants = scaleChatParticipantRepository.listParticipantsOfScale(scaleId);
+        if (!verifyIfScaleChatExists(scaleId)) {
+            throw new EventParticipationException("O chat da escala não foi criado");
+        }
+        boolean isParticipanting = this.scaleChatParticipantRepository.existsScaleChatParticipantByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                scaleId, userId);
+        if (isParticipanting) {
+            throw new EventParticipationException("Participante já está cadastrado na escala");
+        }
+
+        MemberEventScale memberEventScaleUser = this.memberEventScaleRepository.listMemberEventScaleWithUserIdAndScaleId(
+                        userId, scaleId)
+                .orElseThrow(() -> new EventParticipationException("Usuário na convidado para a escala"));
+        EventScale eventScale = this.eventScaleRepository.findById(scaleId)
+                .orElseThrow(() -> new EventParticipationException("Escala não existe"));
+
+        return this.scaleChatParticipantRepository.save(new ScaleChatParticipant(eventScale, memberEventScaleUser));
     }
 }

@@ -71,12 +71,12 @@ public class EventService implements EventInterface {
         boolean itsFreeValue = value == 0;
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
-        eventToSave.setHasEnded(false);
         eventToSave.setEventType(eventDTO.getEventType());
 
         eventToSave.setValue(value);
         eventToSave.setItsFree(itsFreeValue);
         eventToSave.setIsImportant(eventDTO.getIsImportant());
+        eventToSave.setDuration(eventDTO.getDuration());
         eventToSave.setImage_url("");
         eventToSave.setBanner_url("");
         Event event = this.repository.save(eventToSave);
@@ -127,24 +127,33 @@ public class EventService implements EventInterface {
         return new PageImpl<>(eventResponses, pageable, eventsPage.getTotalElements());
     }
 
+    public Page<EventResponse> listAllEventsByEventStatus(Pageable pageable, EventStatus eventStatus) {
+        log.info("Listing events by event status {}", eventStatus);
+        Page<Event> event = this.repository.findByEventStatus(eventStatus, pageable);
+        List<EventResponse> eventResponses =
+                event.stream().map(this::eventToResponse).collect(Collectors.toList());
+        return new PageImpl<>(eventResponses, pageable, event.getTotalElements());
+    }
 
-    public Page<EventResponse> listAllEventsAlreadyHappened(Pageable pageable) {
+    public Page<EventResponse> listAllEventsHomePage(Pageable pageable) {
+        log.info("List all Events");
 
-        Page<Event> eventsPagination = this.repository.findAllByHasEnded(true, pageable);
-        if (eventsPagination.isEmpty()) {
-            throw new EventListIsEmptyException("event.list.is.empty");
+        Page<Event> events = this.repository.findByEventStatusNot(EventStatus.FINALIZADO, pageable);
+        List<EventResponse> eventResponses = events.getContent().stream().map(this::eventToResponse)
+                .collect(Collectors.toList());
+
+        if (events.isEmpty()) {
+            log.info("All events has status 'FINALIZADO', listing ALL EVENTS");
+            return this.listAllEvents(pageable);
         }
-        List<EventResponse> sortedEventResponses = eventsPagination.stream()
-                .map(mapper::entityToResponse)
-                .sorted(Comparator.comparing(EventResponse::getTitle)).toList();
 
-        log.info("Listing all events...");
-        return new PageImpl<>(sortedEventResponses, pageable, eventsPagination.getTotalElements());
+        return new PageImpl<>(eventResponses, pageable, events.getTotalElements());
     }
 
     public Page<EventResponse> listAllRetreatsAlreadyHappened(Pageable pageable) {
 
-        Page<Event> eventsPagination = this.repository.findAllByHasEndedAndEventType(true, EventType.RETIRO, pageable);
+        Page<Event> eventsPagination = this.repository.findAllByEventStatusAndEventType(EventStatus.FINALIZADO, EventType.RETIRO,
+                pageable);
         if (eventsPagination.isEmpty()) {
             throw new EventListIsEmptyException("event.list.is.empty");
         }
@@ -173,7 +182,7 @@ public class EventService implements EventInterface {
         log.info("Getting event by id {}", id);
 
         Optional<Event> op = this.repository.listByIdWithMinistryResponse(id);
-        if(op.isEmpty()){
+        if (op.isEmpty()) {
             throw new EventNotFoundException("event.id.not.found", id.toString());
         }
         Event event = op.get();
@@ -202,6 +211,7 @@ public class EventService implements EventInterface {
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
         event.setDate(eventDTO.getDate());
+        event.setDuration(eventDTO.getDuration());
         event.setLocal_event_name(eventDTO.getLocal_event_name());
         event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
@@ -267,7 +277,13 @@ public class EventService implements EventInterface {
     public List<EventResponse> listEventsByTitleOrderByAsc(int page,
                                                            int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+
+        Page<Event> eventsPagination = this.repository.findByEventStatusNotOrderByTitleAsc(EventStatus.FINALIZADO,
+                pageable);
+
+        if (eventsPagination.isEmpty()) {
+            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+        }
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
@@ -466,7 +482,8 @@ public class EventService implements EventInterface {
                 event.getLocal_event_latitude(),
                 event.getValue(),
                 null,
-                event.getEventType()
+                event.getEventType(),
+                event.getEventStatus()
         );
     }
 }

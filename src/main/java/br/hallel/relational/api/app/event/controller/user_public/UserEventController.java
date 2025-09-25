@@ -3,7 +3,6 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventFoodTableResponseDTO;
 import br.hallel.relational.api.app.event.dto.FoodSaleItemRequestDTO;
-import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.service.EventService;
 import br.hallel.relational.api.app.event.service.FoodService;
 import br.hallel.relational.api.app.event.service.UserEventService;
@@ -13,12 +12,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,7 +39,7 @@ public class UserEventController {
                                                                                 UUID eventId,
                                                                                 Pageable pageable) {
 
-        return ResponseEntity.ok(this.foodService.listAllFoodsByEventId(eventId, pageable));
+        return ResponseEntity.ok(this.foodService.listAllFoodsByTableEventId(eventId, pageable));
     }
 
 

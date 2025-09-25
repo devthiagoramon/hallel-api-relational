@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import lombok.AllArgsConstructor;
@@ -27,4 +28,5 @@ public class EventResponse {
     private Double value;
     private List<MinistrySimpleResponse> ministriesAssocied;
     private EventType eventType;
+    private EventStatus eventStatus;
 }

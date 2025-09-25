@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
+import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,11 +31,30 @@ public class PublicEventController {
     // ** CONSULTAS DE EVENTOS **
     @GetMapping("/list-all")
     @Operation(summary = "Listing all Events. Important and about to happen")
-    public ResponseEntity<Page<EventResponse>> getAllEvents(
+    public ResponseEntity<Page<EventResponse>> listAllEvents(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllEventsHomePage(PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/list-all/table-admin")
+    @Operation(summary = "Listing all Events. Important and about to happen")
+    public ResponseEntity<Page<EventResponse>> listAllEventsTableAdmin(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(this.eventService.listAllEvents(PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/list-all/by-status")
+    @Operation(summary = "Listing all Events. Important and about to happen")
+    public ResponseEntity<Page<EventResponse>> listAllEventsByStatus(
+            @RequestParam(name = "status") EventStatus status,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(this.eventService.listAllEventsByEventStatus(PageRequest.of(page, size), status));
     }
 
     @GetMapping("/list-all/happened")
@@ -43,7 +63,7 @@ public class PublicEventController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(this.eventService.listAllEventsAlreadyHappened(PageRequest.of(page, size)));
+        return ResponseEntity.ok(this.eventService.listAllEventsByEventStatus(PageRequest.of(page, size), EventStatus.FINALIZADO));
     }
 
     @GetMapping("/retreat/list-all")
@@ -62,7 +82,7 @@ public class PublicEventController {
     ) {
         return ResponseEntity.ok(this.eventService.listAllRetreatsAlreadyHappened(PageRequest.of(page, size)));
     }
-    
+
     @GetMapping("/list-upcoming")
     public ResponseEntity<Page<EventResponse>> getAllEventsUpcoming(
             @RequestParam(name = "page", defaultValue = "0") int page,

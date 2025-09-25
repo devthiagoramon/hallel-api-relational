@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,13 @@ public class Event {
 
     @Column(name = "date", nullable = false)
     private Date date;
+
+    @Column(name = "duration")
+    private Duration duration;
+
+    @Column(name = "event_status")
+    @Enumerated(EnumType.STRING)
+    private EventStatus eventStatus;
 
     @Column(name = "local_event_name", nullable = false)
     private String local_event_name;
@@ -57,9 +65,6 @@ public class Event {
     @JsonIgnore
     private List<EventScale> scales;
 
-    @Column(name = "has_ended", nullable = false)
-    private Boolean hasEnded = false;
-
     @Column(name = "its_free", nullable = true)
     private Boolean itsFree = true;
 
@@ -67,15 +72,18 @@ public class Event {
     @Column(name = "event_type", nullable = true)
     private EventType eventType;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "event_schedule",
             joinColumns = @JoinColumn(name = "event_id")
     )
     @Column(name = "activity")
+    @JsonIgnore
+    @ToString.Exclude
     private List<String> schedule;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<EventTransaction> transactions;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -83,6 +91,7 @@ public class Event {
     private List<EventParticipation> participations;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Foods> foods;
 
 }

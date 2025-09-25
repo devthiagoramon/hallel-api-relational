@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ public class EventResponseWithMinistryAssociated {
     private String title;
     private String description;
     private Date date;
+    private Duration duration;
     private String banner_url;
     private String image_url;
     private Boolean isImportant;
@@ -68,7 +70,6 @@ public class EventResponseWithMinistryAssociated {
         }
     }
 
-    // Se você ainda precisar do @AllArgsConstructor para outros usos:
     public EventResponseWithMinistryAssociated(UUID id, String title, String description, Date date,
                                                String banner_url, String image_url, Boolean isImportant,
                                                String local_event_name, Double local_event_longitude,

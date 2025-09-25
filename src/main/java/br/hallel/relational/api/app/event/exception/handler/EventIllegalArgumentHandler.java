@@ -158,18 +158,9 @@ public class EventIllegalArgumentHandler {
     @ExceptionHandler(EventParticipationException.class)
     public ResponseEntity<ExceptionResponse> handleEventParticipationException(EventParticipationException exception,
                                                                                WebRequest request) {
-        Locale locale = LocaleContextHolder.getLocale();
-        String messageKey = exception.getMessage();
-
-        String localizedMessage = messageSource.getMessage(messageKey, new Object[]{}, locale);
-
-        ExceptionResponse response = new ExceptionResponse(
-                localizedMessage,
-                new Date(),
-                request.getDescription(false)
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EventTransactionEmptyListException.class)

@@ -1,0 +1,9 @@
+ALTER TABLE "events"
+    ADD COLUMN duration BIGINT DEFAULT 5400000000000;
+
+ALTER TABLE "events"
+    ADD COLUMN event_status TEXT DEFAULT 'AGENDADO';
+
+ALTER TABLE "events"
+DROP
+COLUMN has_ended;

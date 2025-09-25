@@ -2,6 +2,8 @@ package br.hallel.relational.api.app.ministry.model;
 
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"eventScale", "memberEventScale"})
 public class ScaleChatParticipant {
 
     @Id
@@ -23,10 +26,12 @@ public class ScaleChatParticipant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_scale_id", unique = true)
+    @JsonIgnore
     private EventScale eventScale;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_scale_chat_id", unique = true)
+    @JsonIgnore
     private MemberEventScale memberEventScale;
 
     public ScaleChatParticipant(EventScale eventScale, MemberEventScale memberEventScale) {
