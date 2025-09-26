@@ -13,6 +13,7 @@ import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequest;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse;
 import br.hallel.relational.api.app.ministry.model.MessageScaleDeliveryStatus;
+import br.hallel.relational.api.app.ministry.model.MessageScaleStatus;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
 import br.hallel.relational.api.app.ministry.model.ScaleMessageType;
 import io.restassured.RestAssured;
@@ -56,6 +57,7 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
     private static String coordinatorToken;
     private static String userToken;
     private static List<ScaleChatParticipantResponse> scaleChatParticipants = new ArrayList<>();
+    private static ScaleChatMessageResponse scaleChatMessageResponse;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -137,6 +139,7 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
         assertThat(message.sentAt()).isNotNull();
         assertThat(message.updatedAt()).isNull();
 
+        scaleChatMessageResponse = message;
     }
 
     @Test
@@ -189,5 +192,49 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
 
     }
 
+    @Test
+    @Order(4)
+    public void readMessagesAsParticipant() {
+        String url = "/user/event/scale/chat/message/read-message/"+scaleChatMessageResponse.id();
+
+        MessageScaleDeliveryStatus responseStatus = RestAssured
+                .given()
+                .spec(getRequestSpecificationAsMember(url))
+                .when()
+                .patch()
+                .then()
+                .statusCode(200)
+                .extract().body().as(new TypeRef<MessageScaleDeliveryStatus>() {
+                });
+
+        assertThat(responseStatus).isNotNull();
+        assertThat(responseStatus).isEqualTo(MessageScaleDeliveryStatus.READ);
+
+    }
+
+    @Test
+    @Order(5)
+    public void listMessagesAsParticipantWhenReadMessage() {
+        String url = "/user/event/scale/chat/message/808bb575-e8cb-4186-a91b-e13f992d9457";
+
+        PaginationTestResponse<ScaleChatMessageResponse> paginationTestResponse = RestAssured
+                .given()
+                .spec(getRequestSpecificationAsMember(url))
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .extract().body().as(new TypeRef<PaginationTestResponse<ScaleChatMessageResponse>>() {
+                });
+
+        assertThat(paginationTestResponse.getPage().getSize()).isEqualTo(20);
+        assertThat(paginationTestResponse.getPage().getNumber()).isEqualTo(0);
+        assertThat(paginationTestResponse.getPage().getTotalElements()).isEqualTo(1);
+        assertThat(paginationTestResponse.getContent().size()).isEqualTo(1);
+        assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
+        assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste");
+        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(MessageScaleDeliveryStatus.READ);
+
+    }
 
 }

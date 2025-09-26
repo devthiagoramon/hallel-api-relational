@@ -10,5 +10,8 @@ import java.util.UUID;
 
 @Repository
 public interface MessageScaleStatusRepository extends JpaRepository<MessageScaleStatus, UUID> {
-    Optional<MessageScaleStatus> findByMessage_Id(UUID messageId);
+
+
+    Optional<MessageScaleStatus> findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
+            UUID messageId, UUID chatParticipantMemberEventScaleMemberMinistryUserId);
 }

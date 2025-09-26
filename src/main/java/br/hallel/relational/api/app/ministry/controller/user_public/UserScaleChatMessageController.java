@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequest;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequestEdit;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
 import br.hallel.relational.api.app.ministry.dto.StatusReadingMessageUserResponse;
+import br.hallel.relational.api.app.ministry.model.MessageScaleDeliveryStatus;
 import br.hallel.relational.api.app.ministry.service.ScaleChatMessageService;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,4 +77,11 @@ public class UserScaleChatMessageController {
         return ResponseEntity.ok(this.scaleChatMessageService.listStatusDeliveryPerUser(messageId));
     }
 
+    @PatchMapping("/read-message/{message-id}")
+    public ResponseEntity<MessageScaleDeliveryStatus> readMessageForUser(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable("message-id") UUID messageId) {
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(this.scaleChatMessageService.readMessageForUser(userId, messageId));
+    }
 }

@@ -224,15 +224,36 @@ public class ScaleChatMessageService {
     }
 
     public Page<ScaleChatMessageResponse> listMessagesOfScaleChatForUser(UUID scaleId, UUID userId, Pageable pageable) {
-        ScaleChatParticipant scaleChatParticipant = this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
-                        scaleId, userId)
-                .orElseThrow(() -> new EventParticipationException("Usuário não encontrado ou não participa do chat"));
+        ScaleChatParticipant scaleChatParticipant = getScaleChatParticipantByUserId(scaleId, userId);
 
         return this.scaleChatMessageRepository.listMessagesWithStatus(
                 scaleId, scaleChatParticipant.getId(), pageable);
     }
 
+    private ScaleChatParticipant getScaleChatParticipantByUserId(UUID scaleId, UUID userId) {
+        return this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                        scaleId, userId)
+                .orElseThrow(() -> new EventParticipationException("Usuário não encontrado ou não participa do chat"));
+    }
+
     public List<StatusReadingMessageUserResponse> listStatusDeliveryPerUser(UUID messageId) {
         return this.scaleChatMessageRepository.listStatusDeliverPerUser(messageId);
+    }
+
+
+    public MessageScaleDeliveryStatus readMessageForUser(UUID userId, UUID messageId) {
+        MessageScaleStatus messageScaleStatus = this.messageScaleStatusRepository.findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
+                messageId, userId).orElseThrow(
+                (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
+
+        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
+                .toString() + "/message/status";
+
+        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
+                messageId,
+                MessageScaleDeliveryStatus.READ
+        ));
+        this.messageScaleStatusRepository.save(messageScaleStatus);
+        return messageScaleStatus.getStatus();
     }
 }
