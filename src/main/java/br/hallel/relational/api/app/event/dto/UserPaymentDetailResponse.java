@@ -21,5 +21,4 @@ public class UserPaymentDetailResponse {
     private StatusPaymentEventParticipation paymentStatus;
     private String receiptBase64;
     private String receiptPDFBase64;
-
 }

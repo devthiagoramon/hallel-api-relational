@@ -288,11 +288,13 @@ public class UserEventService {
     }
 
     public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
+        log.info("Getting participation By Id");
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventParticipationException(
                         "participation.event.not.found"));
+        System.out.println(participation.getUser().getId() +" "+ participation.getEvent().getId());
 
-        return new EventParticipationResponse().toEventParticipation(participation, null);
+        return EventParticipationResponse.toEventParticipation(participation, null);
     }
 
     public Page<EventParticipationResponse> getAllParticipations(int page, int size) {
@@ -329,9 +331,7 @@ public class UserEventService {
         if (participations.isEmpty()) {
             Page<EventParticipation> allByUserId = this.eventParticipationRepository.findAllByUser_IdOrderByEvent_Title(
                     userId, pageable);
-            if (allByUserId.isEmpty()) {
-                throw new EventParticipationException("Lista de participações do usuário está vazia");
-            }
+
             participations = allByUserId;
         }
 
@@ -476,6 +476,10 @@ public class UserEventService {
                             "Erro gerando o comprovante de pagamento do usuário: " + e.getMessage());
                 }
             }
+        }else{
+
+
+
         }
 
 

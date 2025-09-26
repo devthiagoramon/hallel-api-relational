@@ -56,10 +56,11 @@ public class UserEventParticipationController {
     }
 
     @Operation(summary = "Get participation by ID")
-    @GetMapping("/get")
+    @GetMapping("/get/{eventId}")
     public ResponseEntity<EventParticipationResponse> getParticipation(
             @RequestHeader("Authorization") String authorization,
-            @RequestParam UUID eventId) {
+            @PathVariable(name = "eventId") UUID eventId
+    ) {
         EventParticipationResponse response = userEventService.getParticipationById(
                 jwtTokenProvider.getUserId(authorization), eventId
         );

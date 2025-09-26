@@ -28,7 +28,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     @Query("""
                 SELECT new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType
+                    e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType,e.local_event_name
                 )
                 FROM Event e
                 WHERE e.id = :idEvento
@@ -62,4 +62,6 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Page<Event> findByEventStatusNotOrderByTitleAsc(EventStatus eventStatus, Pageable pageable);
 
     Page<Event> findAllByEventStatusAndEventType(EventStatus eventStatus, EventType eventType, Pageable pageable);
+
+    Page<Event> findByEventStatusNotOrderByDateAsc(EventStatus eventStatus, Pageable pageable);
 }
