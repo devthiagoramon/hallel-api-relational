@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.controller.user_public;
 
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequest;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageRequestEdit;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
 import br.hallel.relational.api.app.ministry.dto.StatusReadingMessageUserResponse;
 import br.hallel.relational.api.app.ministry.service.ScaleChatMessageService;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +41,24 @@ public class UserScaleChatMessageController {
                 .body(this.scaleChatMessageService.sendFileMessage(file, scaleChatMessageRequest));
     }
 
+    @PostMapping("/text")
+    @Operation(summary = "Send message as text to scale chat", description = "Handles when user send message to some scale chat passing scale id and request, returning the message")
+    public ResponseEntity<ScaleChatMessageResponse> sendTextMessage(@RequestBody ScaleChatMessageRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(scaleChatMessageService.sendTextMessage(request));
+    }
+
+    @PutMapping("/edit")
+    @Operation(summary = "Edit message of scale chat", description = "Handles when user edit message to some scale chat passing scale id and request, returning the message")
+    public ResponseEntity<ScaleChatMessageResponse> updateMessage(@RequestBody ScaleChatMessageRequestEdit request) {
+        return ResponseEntity.ok(scaleChatMessageService.editMessage(request));
+    }
+
+    @DeleteMapping("/delete")
+    @Operation(summary = "Delete message of scale chat", description = "Handles when user delete message to some scale chat passing scale id and request, returning the message deleted")
+    public ResponseEntity<ScaleChatMessageResponse> deleteMessage(@RequestParam UUID messageId) {
+        return ResponseEntity.ok(this.scaleChatMessageService.deleteMessage(messageId));
+    }
+
     @GetMapping("/{scale-id}")
     @Operation(summary = "List messages from some scale with status", description = "Handles when user wants to get the messages of scale chat, returning the status of delivering of his messages")
     public ResponseEntity<Page<ScaleChatMessageResponse>> listMessageOfScaleChatForUser(
@@ -50,7 +71,8 @@ public class UserScaleChatMessageController {
     }
 
     @GetMapping("/status-reading/{message-id}")
-    public ResponseEntity<List<StatusReadingMessageUserResponse>> listStatusReadingPerUserInChatByMessage(@PathVariable("message-id") UUID messageId) {
+    public ResponseEntity<List<StatusReadingMessageUserResponse>> listStatusReadingPerUserInChatByMessage(
+            @PathVariable("message-id") UUID messageId) {
         return ResponseEntity.ok(this.scaleChatMessageService.listStatusDeliveryPerUser(messageId));
     }
 

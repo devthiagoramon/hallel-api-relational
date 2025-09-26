@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
@@ -223,8 +224,12 @@ public class ScaleChatMessageService {
     }
 
     public Page<ScaleChatMessageResponse> listMessagesOfScaleChatForUser(UUID scaleId, UUID userId, Pageable pageable) {
+        ScaleChatParticipant scaleChatParticipant = this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                        scaleId, userId)
+                .orElseThrow(() -> new EventParticipationException("Usuário não encontrado ou não participa do chat"));
+
         return this.scaleChatMessageRepository.listMessagesWithStatus(
-                scaleId, userId, pageable);
+                scaleId, scaleChatParticipant.getId(), pageable);
     }
 
     public List<StatusReadingMessageUserResponse> listStatusDeliveryPerUser(UUID messageId) {

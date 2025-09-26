@@ -36,13 +36,14 @@ public interface ScaleChatMessageRepository extends JpaRepository<ScaleChatMessa
             JOIN memberEventScale.memberMinistry mm
             JOIN mm.user senderUser
             LEFT JOIN MessageScaleStatus mss ON
-                        mss.message.id = scm.id AND
-                        senderUser.id = :currentUser AND
-                        mss.chatParticipant.memberEventScale.memberMinistry.user.id = :currentUser
-            where scale.id = :scaleId and senderUser.id = :currentUser
+                        mss.message = scm AND
+                        mss.chatParticipant.id = :currentScaleChatParticipantId
+            where scale.id = :scaleId
             ORDER BY scm.sentAt DESC
             """)
-    Page<ScaleChatMessageResponse> listMessagesWithStatus(@Param("scaleId") UUID scaleId, @Param("currentUser") UUID userId, Pageable pageable);
+    Page<ScaleChatMessageResponse> listMessagesWithStatus(@Param("scaleId") UUID scaleId,
+                                                          @Param("currentScaleChatParticipantId") UUID scaleChatParticipant,
+                                                          Pageable pageable);
 
     @Query("""
             SELECT new

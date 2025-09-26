@@ -20,14 +20,15 @@ public class MessageScaleStatus {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "message_id")
     private ScaleChatMessage message;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "recipíent_chat_id")
     private ScaleChatParticipant chatParticipant;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private MessageScaleDeliveryStatus status;
 

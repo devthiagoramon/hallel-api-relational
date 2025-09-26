@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.controller.coordinator;
 
+import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
 import br.hallel.relational.api.app.ministry.service.ScaleChatParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +23,7 @@ public class CoordinatorScaleChatController {
 
     @PostMapping("/{scale-id}")
     @Operation(summary = "Create chat of scale", description = "Route to create scale of chat, adding all users in chat of scale")
-    public ResponseEntity<List<ScaleChatParticipant>> createChatOfScale(@PathVariable("scale-id") UUID scaleId) {
+    public ResponseEntity<List<ScaleChatParticipantResponse>> createChatOfScale(@PathVariable("scale-id") UUID scaleId) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.participantService.createScaleChat(scaleId));
     }
 
