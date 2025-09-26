@@ -253,6 +253,23 @@ public class ScaleChatMessageService {
                 messageId,
                 MessageScaleDeliveryStatus.READ
         ));
+        messageScaleStatus.setStatus(MessageScaleDeliveryStatus.READ);
+        this.messageScaleStatusRepository.save(messageScaleStatus);
+        return messageScaleStatus.getStatus();
+    }
+
+    public MessageScaleDeliveryStatus userReceivedMessage(UUID messageId, UUID userId) {
+        MessageScaleStatus messageScaleStatus = this.messageScaleStatusRepository.findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
+                messageId, userId).orElseThrow(
+                (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
+        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
+                .toString() + "/message/status";
+
+        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
+                messageId,
+                MessageScaleDeliveryStatus.RECEIVED
+        ));
+        messageScaleStatus.setStatus(MessageScaleDeliveryStatus.RECEIVED);
         this.messageScaleStatusRepository.save(messageScaleStatus);
         return messageScaleStatus.getStatus();
     }

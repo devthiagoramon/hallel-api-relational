@@ -72,16 +72,27 @@ public class UserScaleChatMessageController {
     }
 
     @GetMapping("/status-reading/{message-id}")
+    @Operation(summary = "List status reading per user", description = "Handles listing status of delivering per user")
     public ResponseEntity<List<StatusReadingMessageUserResponse>> listStatusReadingPerUserInChatByMessage(
             @PathVariable("message-id") UUID messageId) {
         return ResponseEntity.ok(this.scaleChatMessageService.listStatusDeliveryPerUser(messageId));
     }
 
     @PatchMapping("/read-message/{message-id}")
+    @Operation(summary = "User read message", description = "Handles when user reads message")
     public ResponseEntity<MessageScaleDeliveryStatus> readMessageForUser(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("message-id") UUID messageId) {
         UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
         return ResponseEntity.ok(this.scaleChatMessageService.readMessageForUser(userId, messageId));
+    }
+
+    @PatchMapping("/receive-message/{message-id}")
+    @Operation(summary = "User received message", description = "Handles when user receive message")
+    public ResponseEntity<MessageScaleDeliveryStatus> userReceivedMessage(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable("message-id") UUID messageId) {
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(this.scaleChatMessageService.userReceivedMessage(messageId, userId));
     }
 }

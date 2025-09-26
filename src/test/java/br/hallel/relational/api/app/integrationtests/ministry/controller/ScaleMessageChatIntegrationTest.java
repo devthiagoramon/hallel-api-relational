@@ -188,14 +188,15 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
         assertThat(paginationTestResponse.getContent().size()).isEqualTo(1);
         assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
         assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste");
-        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(MessageScaleDeliveryStatus.SENT);
+        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(
+                MessageScaleDeliveryStatus.SENT);
 
     }
 
     @Test
     @Order(4)
     public void readMessagesAsParticipant() {
-        String url = "/user/event/scale/chat/message/read-message/"+scaleChatMessageResponse.id();
+        String url = "/user/event/scale/chat/message/read-message/" + scaleChatMessageResponse.id();
 
         MessageScaleDeliveryStatus responseStatus = RestAssured
                 .given()
@@ -233,8 +234,153 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
         assertThat(paginationTestResponse.getContent().size()).isEqualTo(1);
         assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
         assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste");
-        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(MessageScaleDeliveryStatus.READ);
+        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(
+                MessageScaleDeliveryStatus.READ);
 
+    }
+
+    @Test
+    @Order(6)
+    public void sendAnotherMessageAsMember() {
+        String url = "/user/event/scale/chat/message/text";
+
+
+        UUID memberChatSenderId = scaleChatParticipants
+                .get(1)
+                .userParticipant()
+                .getId()
+                .toString()
+                .equals("a78319c9-abd5-48d0-988a-60f421e9dd98") ?
+                scaleChatParticipants
+                        .get(1)
+                        .scaleParticipantId()
+                : null;
+        if (memberChatSenderId == null) {
+            throw new EventParticipationException("Not found user");
+        }
+        ScaleChatMessageResponse message = RestAssured.given()
+                .spec(getRequestSpecificationAsMember(url))
+                .body(new ScaleChatMessageRequest(UUID.fromString("808bb575-e8cb-4186-a91b-e13f992d9457"),
+                        memberChatSenderId, "Mensagem teste miguel", ScaleMessageType.TEXT))
+                .when()
+                .post()
+                .then()
+                .statusCode(201)
+                .extract().body().as(ScaleChatMessageResponse.class);
+
+
+        assertThat(message).isNotNull();
+        assertThat(message.content()).isEqualTo("Mensagem teste miguel");
+        assertThat(message.contentType()).isEqualTo(ScaleMessageType.TEXT);
+        assertThat(message.participantSenderId()).isEqualTo(memberChatSenderId);
+        assertThat(message.sentAt()).isNotNull();
+        assertThat(message.updatedAt()).isNull();
+
+        scaleChatMessageResponse = message;
+    }
+
+    @Test
+    @Order(7)
+    public void receiveMessagesAsCoordinator() {
+        String url = "/user/event/scale/chat/message/receive-message/" + scaleChatMessageResponse.id();
+
+        MessageScaleDeliveryStatus responseStatus = RestAssured
+                .given()
+                .spec(getRequestSpecification(url))
+                .when()
+                .patch()
+                .then()
+                .statusCode(200)
+                .extract().body().as(new TypeRef<MessageScaleDeliveryStatus>() {
+                });
+
+        assertThat(responseStatus).isNotNull();
+        assertThat(responseStatus).isEqualTo(MessageScaleDeliveryStatus.RECEIVED);
+
+    }
+
+    @Test
+    @Order(8)
+    public void listMessagesAsCoordinatorWhenReceiveMessage() {
+        String url = "/user/event/scale/chat/message/808bb575-e8cb-4186-a91b-e13f992d9457";
+
+        PaginationTestResponse<ScaleChatMessageResponse> paginationTestResponse = RestAssured
+                .given()
+                .spec(getRequestSpecification(url))
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .extract().body().as(new TypeRef<PaginationTestResponse<ScaleChatMessageResponse>>() {
+                });
+
+        assertThat(paginationTestResponse.getPage().getSize()).isEqualTo(20);
+        assertThat(paginationTestResponse.getPage().getNumber()).isEqualTo(0);
+        assertThat(paginationTestResponse.getPage().getTotalElements()).isEqualTo(2);
+        assertThat(paginationTestResponse.getContent().size()).isEqualTo(2);
+        assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
+        assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste miguel");
+        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(
+                MessageScaleDeliveryStatus.RECEIVED);
+    }
+
+    @Test
+    @Order(9)
+    public void sendFiftyMessagesToChat() {
+
+        String url = "/user/event/scale/chat/message/text";
+
+
+        UUID memberChatSenderId = scaleChatParticipants
+                .get(1)
+                .userParticipant()
+                .getId()
+                .toString()
+                .equals("a78319c9-abd5-48d0-988a-60f421e9dd98") ?
+                scaleChatParticipants
+                        .get(1)
+                        .scaleParticipantId()
+                : null;
+        if (memberChatSenderId == null) {
+            throw new EventParticipationException("Not found user");
+        }
+        for (int i = 0; i < 50; i++) {
+
+            RestAssured.given()
+                    .spec(getRequestSpecificationAsMember(url))
+                    .body(new ScaleChatMessageRequest(UUID.fromString("808bb575-e8cb-4186-a91b-e13f992d9457"),
+                            memberChatSenderId, "Mensagem teste mockada " + (i+1), ScaleMessageType.TEXT))
+                    .when()
+                    .post()
+                    .then()
+                    .statusCode(201)
+                    .extract().body().as(ScaleChatMessageResponse.class);
+        }
+    }
+
+    @Test
+    @Order(10)
+    public void listMessagesAsCoordinatorWhenSendedFiftyMessages() {
+        String url = "/user/event/scale/chat/message/808bb575-e8cb-4186-a91b-e13f992d9457";
+
+        PaginationTestResponse<ScaleChatMessageResponse> paginationTestResponse = RestAssured
+                .given()
+                .spec(getRequestSpecification(url))
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .extract().body().as(new TypeRef<PaginationTestResponse<ScaleChatMessageResponse>>() {
+                });
+
+        assertThat(paginationTestResponse.getPage().getSize()).isEqualTo(20);
+        assertThat(paginationTestResponse.getPage().getNumber()).isEqualTo(0);
+        assertThat(paginationTestResponse.getPage().getTotalElements()).isEqualTo(52);
+        assertThat(paginationTestResponse.getContent().size()).isEqualTo(20);
+        assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
+        assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste mockada 50");
+        assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(
+                MessageScaleDeliveryStatus.SENT);
     }
 
 }
