@@ -16,6 +16,7 @@ import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,27 +34,18 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional
-
+@RequiredArgsConstructor
 public class EventService implements EventInterface {
 
-    @Autowired
-    private EventRepository repository;
-    @Autowired
-    private GoogleBucketService bucketService;
-    @Autowired
-    private MinistryRepository ministryRepository;
-    @Autowired
-    private EventScaleService eventScaleService;
-    @Autowired
-    private EventTransactionRepository eventTransactionRepository;
+    private final EventRepository repository;
+    private final GoogleBucketService bucketService;
+    private final MinistryRepository ministryRepository;
+    private final EventScaleService eventScaleService;
+    private final EventTransactionRepository eventTransactionRepository;
 
     private final EventMapper mapper;
     private final MinistryMapper ministryMapper;
 
-    public EventService(EventMapper eventMapper, MinistryMapper ministryMapper) {
-        this.mapper = eventMapper;
-        this.ministryMapper = ministryMapper;
-    }
 
     @Override
     public EventResponse create(EventDTO eventDTO,
@@ -138,7 +130,7 @@ public class EventService implements EventInterface {
     public Page<EventResponse> listAllEventsHomePage(Pageable pageable) {
         log.info("List all Events");
 
-        Page<Event> events = this.repository.findByEventStatusNot(EventStatus.FINALIZADO, pageable);
+        Page<Event> events = this.repository.findByEventStatusNotOrderByDateAsc(EventStatus.FINALIZADO, pageable);
         List<EventResponse> eventResponses = events.getContent().stream().map(this::eventToResponse)
                 .collect(Collectors.toList());
 

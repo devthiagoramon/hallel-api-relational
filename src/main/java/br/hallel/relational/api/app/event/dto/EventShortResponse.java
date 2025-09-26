@@ -19,5 +19,6 @@ public class EventShortResponse {
     private String banner;
     private boolean itsFree;
     private EventType type;
+    private String local_event_name;
 }
 
