@@ -151,10 +151,7 @@ public class JwtTokenProvider {
             if (decodedJWT.getExpiresAt().before(new Date())) {
                 return false;
             }
-            if (!decodedJWT.getClaim("roles").asList(String.class).contains("ADMIN")) {
-                return false;
-            }
-            return true;
+            return decodedJWT.getClaim("roles").asList(String.class).contains("ADMIN");
         } catch (Exception e) {
             throw new InvalidJwtAuthenticationException("Expired or invalid JWT token!");
         }

@@ -38,7 +38,7 @@ public interface AuditionMapper {
     @Named("toMinistryResponse")
     default MinistrySimpleResponse toMinistryResponse(Ministry ministry) {
         if (ministry == null) return null;
-        return new MinistrySimpleResponse(ministry.getId(), ministry.getTitle(), ministry.getImage());
+        return new MinistrySimpleResponse(ministry.getId(), ministry.getTitle(), ministry.getImage(), ministry.getMinistryType());
     }
 
     @Named("toEventScaleResponse")

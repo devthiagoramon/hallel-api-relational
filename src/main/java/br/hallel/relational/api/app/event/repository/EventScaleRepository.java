@@ -38,7 +38,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
-    @Query("select new br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse(m.id, m.title, m.image) " +
+    @Query("select new br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse(m.id, m.title, m.image, m.ministryType) " +
             "from Ministry m join m.eventScalesList es " +
             "where es.event.id = :eventId")
     List<MinistrySimpleResponse> findMinistriesByEventId(@Param("eventId") UUID eventId);
