@@ -39,15 +39,15 @@ public class MemberMinistryService {
     private final MinistryMapper mapper;
 
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private MinistryRepository ministryRepository;
+    private final MinistryRepository ministryRepository;
 
-    private FCMSenderService fcmSenderService;
+    private final FCMSenderService fcmSenderService;
 
-    private RoleMinistryRepository roleMinistryRepository;
+    private final RoleMinistryRepository roleMinistryRepository;
 
-    private MinistryMemberRoleRepository ministryMemberRoleRepository;
+    private final MinistryMemberRoleRepository ministryMemberRoleRepository;
 
 
     public Page<MemberMinistryResponseWithFunctions> getAllMemberOfMinistry(

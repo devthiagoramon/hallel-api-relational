@@ -16,7 +16,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MemberAuditionMinistryService {
-    private MemberAuditionMinistryRepository repository;
+    private final MemberAuditionMinistryRepository repository;
 
     public MemberEventScaleStatus findMemberAuditionByAuditionAndMemberId(UUID auditionId, UUID memberMinistryId) {
 
