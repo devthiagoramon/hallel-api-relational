@@ -14,7 +14,7 @@ public interface ScaleInterface {
 
     EventScaleResponse editDateScale(UUID id, Date date);
 
-    EventScaleWithInfos getEventScaleWithInfos(UUID id, UUID userId);
+    EventScaleWithInfos getEventScaleWithInfos(UUID id);
 
     List<String> listMemberMinisteryCanInviteToScale(
             UUID id, int page, int size
