@@ -52,4 +52,17 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
     List<ScaleChatParticipantResponse> listParticipantsWithUserModelByScaleId(@Param("scaleId") UUID scaleId);
 
     Optional<ScaleChatParticipant> findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(UUID eventScaleId, UUID memberEventScaleMemberMinistryUserId);
+
+    @Query("""
+                select new br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse(
+                    scp.id,
+                    u
+                    ) from ScaleChatParticipant scp
+                JOIN scp.eventScale eventScale
+                JOIN scp.memberEventScale mes
+                join mes.memberMinistry mm
+                join mm.user u
+                WHERE eventScale.id = :scaleId AND scp.id <> :memberSenderId
+            """)
+    List<ScaleChatParticipantResponse> listParticipantsOfScaleWhoNotSender(@Param("scaleId") UUID scaleId, @Param("memberSenderId") UUID memberSenderId);
 }

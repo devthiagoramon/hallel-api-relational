@@ -33,8 +33,8 @@ import java.util.*;
 @Service
 public class TokenCoordinatorMinistry {
 
-
-    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @Value("${security.jwt.secret}")
+    private String secretKey;
 
     private long expirationTimeInMiliseconds = 2592000000L;
 
@@ -48,7 +48,7 @@ public class TokenCoordinatorMinistry {
 
     @PostConstruct
     public void init() {
-        this.algorithm = Algorithm.HMAC256(this.secretKey.getEncoded());
+        this.algorithm = Algorithm.HMAC256(this.secretKey.getBytes());
     }
 
     public TokenCoordinatorDTO createAccessToken(UUID userId, UUID ministryId) {
@@ -113,7 +113,7 @@ public class TokenCoordinatorMinistry {
     }
 
     private DecodedJWT decodedToken(String token) {
-        Algorithm alg = Algorithm.HMAC256(secretKey.getEncoded());
+        Algorithm alg = Algorithm.HMAC256(secretKey.getBytes());
         JWTVerifier verifier = JWT.require(alg).build();
         DecodedJWT decodedJWT = verifier.verify(token);
         return decodedJWT;
