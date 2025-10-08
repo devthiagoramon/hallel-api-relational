@@ -18,6 +18,8 @@ public class ServerConfig implements WebMvcConfigurer {
     @Value("${cors.origin-patterns:default}")
     private String corsOriginPatterns = "";
 
+
+
     @Override
     public void configureContentNegotiation(
             ContentNegotiationConfigurer configurer) {

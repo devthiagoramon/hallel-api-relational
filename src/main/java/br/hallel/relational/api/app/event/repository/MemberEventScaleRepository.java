@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -89,4 +90,16 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
         WHERE mes.memberMinistry.user.id = :userId and mes.eventScale.id = :scaleId
         """)
     Optional<MemberEventScale> listMemberEventScaleWithUserIdAndScaleId(@Param("userId") UUID userId, @Param("scaleId") UUID scaleId);
+
+    @Query("""
+            SELECT mm from MemberMinistry mm
+            WHERE
+            mm.id IN :memberMinistryIds AND
+            mm.id NOT IN (
+                                SELECT mes.memberMinistry.id
+                                FROM MemberEventScale mes
+                                WHERE mes.eventScale.id = :eventScaleId
+            )
+            """)
+    List<MemberMinistry> listMemberNotInvitedToAdd(@Param("eventScaleId") UUID eventScaleId, @Param("memberMinistryIds") List<UUID> memberMinistryIds);
 }

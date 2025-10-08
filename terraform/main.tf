@@ -61,6 +61,7 @@ resource "aws_rds_cluster" "hallel_db_serverless" {
 
   backup_retention_period = 7
   skip_final_snapshot     = false
+  final_snapshot_identifier = "hallel-db-prod-final-snapshot-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 
   tags = {
     Name        = "hallel-db-${var.environment}-serverless"

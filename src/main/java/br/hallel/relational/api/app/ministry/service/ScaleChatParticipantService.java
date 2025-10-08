@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -111,5 +110,11 @@ public class ScaleChatParticipantService {
                 .orElseThrow(() -> new EventParticipationException("Escala não existe"));
 
         return this.scaleChatParticipantRepository.save(new ScaleChatParticipant(eventScale, memberEventScaleUser));
+    }
+
+    public UUID getParticipantScaleIdByUserIdAndScaleId(UUID userId, UUID scaleId) {
+        return this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                        scaleId, userId).orElseThrow(() -> new EventParticipationException("User not found in this scale chat"))
+                .getId();
     }
 }

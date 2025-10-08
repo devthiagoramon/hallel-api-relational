@@ -10,6 +10,7 @@ import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-@RestController
+@Slf4j @RestController
 @RequestMapping("/user/event/scale/chat/message")
 @Tag(name = "User scale chat message", description = "User part for scale chat message, for actions in scale to send message")
 @RequiredArgsConstructor
@@ -45,7 +46,9 @@ public class UserScaleChatMessageController {
     @PostMapping("/text")
     @Operation(summary = "Send message as text to scale chat", description = "Handles when user send message to some scale chat passing scale id and request, returning the message")
     public ResponseEntity<ScaleChatMessageResponse> sendTextMessage(@RequestBody ScaleChatMessageRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(scaleChatMessageService.sendTextMessage(request));
+        ResponseEntity<ScaleChatMessageResponse> body = ResponseEntity.status(HttpStatus.CREATED)
+                .body(scaleChatMessageService.sendTextMessage(request));
+        return body;
     }
 
     @PutMapping("/edit")

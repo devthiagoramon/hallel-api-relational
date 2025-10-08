@@ -62,14 +62,9 @@ public class MemberEventScaleService {
         log.info("Inviting users {} into scale {}", memberMinistryIds, eventScaleId);
         EventScale eventScale = eventScaleRepository.findById(eventScaleId)
                 .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString()));
-        List<MemberMinistry> memberMinistries = memberMinistryRepository.findMemberMinistriesByMinistry_Id(eventScale.getMinistry().getId());
-        if (memberMinistries.size() != memberMinistryIds.size()) {
-            log.info("IDS SIZE: {}", memberMinistryIds.size());
-            log.info("IDS MEMBERSS FOUND: {}", memberMinistries.size());
-            throw new UserNotFoundException("user.not.found", "");
-        }
+        List<MemberMinistry> memberMinistriesNotInEventScaleToAdd = memberEventScaleRepository.listMemberNotInvitedToAdd(eventScale.getId(), memberMinistryIds);
         List<MemberEventScale> invitedMembers = new ArrayList<>();
-        for (MemberMinistry memberMinistry : memberMinistries) {
+        for (MemberMinistry memberMinistry : memberMinistriesNotInEventScaleToAdd) {
             MemberEventScale member = new MemberEventScale(
                     MemberEventScaleStatus.CONVIDADO,
                     null, memberMinistry, eventScale
