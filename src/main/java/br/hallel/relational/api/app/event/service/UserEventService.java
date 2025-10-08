@@ -143,6 +143,7 @@ public class UserEventService {
     }
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
+
         Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
@@ -440,6 +441,7 @@ public class UserEventService {
     }
 
     public UserPaymentDetailResponse getUserPaymentDetail(UUID userId, UUID eventId) {
+        log.info("Getting user payment detail");
         Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
@@ -476,12 +478,7 @@ public class UserEventService {
                             "Erro gerando o comprovante de pagamento do usuário: " + e.getMessage());
                 }
             }
-        }else{
-
-
-
         }
-
 
         return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
                 participation.getPaidDate(),

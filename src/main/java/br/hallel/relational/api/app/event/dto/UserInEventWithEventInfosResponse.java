@@ -27,7 +27,7 @@ public class UserInEventWithEventInfosResponse {
         return new UserInEventWithEventInfosResponse(eventParticipation.getId(),
                 new EventShortResponse(eventToResponse.getId(), eventToResponse.getTitle(), eventToResponse.getDate(),
                         eventToResponse.getImage_url(), eventToResponse.getBanner_url(), eventToResponse.getItsFree()
-                        , eventToResponse.getEventType(), eventToResponse.getLocal_event_name()),
+                        , eventToResponse.getEventType(), eventToResponse.getLocal_event_name(), eventToResponse.getEventStatus()),
                 eventParticipation.getUserFunctionInEvent(), eventParticipation.getStatusPaymentEventParticipation());
     }
 }
