@@ -82,4 +82,4 @@ mercadopago:
   access:
     token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: https://ae4c5a0f79ec.ngrok-free.app/public/payments/webhooks/mercadopago
+    url: https://84fb577f237d.ngrok-free.app/public/payments/webhooks/mercadopago

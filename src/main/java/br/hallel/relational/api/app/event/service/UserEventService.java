@@ -143,7 +143,7 @@ public class UserEventService {
     }
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
-
+        log.info("Paying an event");
         Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
@@ -188,7 +188,7 @@ public class UserEventService {
 
 
     public boolean leaveTheEvent(UUID eventId, UUID userId) {
-        this.eventRepository.findById(eventId).orElseThrow(
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
         this.userRepository.findById(userId).orElseThrow(
@@ -216,8 +216,7 @@ public class UserEventService {
 
                 log.error("Falha ao solicitar o reembolso para o pagamento {} do evento {}. Motivo: {}",
                         participation.getMercadoPagoPaymentId(), eventId, e.getMessage());
-                throw new EventIllegalArumentException(
-                        "Não foi possível solicitar o reembolso. A transação foi cancelada.");
+
             }
         }
 
@@ -293,7 +292,7 @@ public class UserEventService {
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventParticipationException(
                         "participation.event.not.found"));
-        System.out.println(participation.getUser().getId() +" "+ participation.getEvent().getId());
+        System.out.println(participation.getUser().getId() + " " + participation.getEvent().getId());
 
         return EventParticipationResponse.toEventParticipation(participation, null);
     }
@@ -481,6 +480,7 @@ public class UserEventService {
         }
 
         return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
+                event.getValue(),
                 participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
     }

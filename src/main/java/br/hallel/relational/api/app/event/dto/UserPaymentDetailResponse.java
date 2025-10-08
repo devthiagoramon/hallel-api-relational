@@ -17,8 +17,10 @@ public class UserPaymentDetailResponse {
     private String eventName;
     private String userName;
     private double valuePaid;
+    private double eventValue;
     private OffsetDateTime paymentDate;
     private StatusPaymentEventParticipation paymentStatus;
     private String receiptBase64;
     private String receiptPDFBase64;
+
 }
