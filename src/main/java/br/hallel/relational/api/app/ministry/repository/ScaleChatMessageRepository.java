@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.ministry.repository;
 
 import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponseView;
 import br.hallel.relational.api.app.ministry.dto.StatusReadingMessageUserResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatMessage;
 import org.springframework.data.domain.Page;
@@ -17,33 +18,15 @@ import java.util.UUID;
 public interface ScaleChatMessageRepository extends JpaRepository<ScaleChatMessage, UUID> {
 
     @Query("""
-            SELECT
-            new br.hallel.relational.api.app.ministry.dto.ScaleChatMessageResponse(
-                scm.id,
-                scale.id,
-                sender.id,
-                senderUser,
-                scm.content,
-                scm.contentType,
-                scm.sentAt,
-                scm.updatedAt,
-                mss.status,
-                scm.visibility
-            ) FROM ScaleChatMessage scm
-            JOIN scm.scale scale
-            JOIN scm.memberChatSender sender
-            JOIN sender.memberEventScale memberEventScale
-            JOIN memberEventScale.memberMinistry mm
-            JOIN mm.user senderUser
-            LEFT JOIN MessageScaleStatus mss ON
-                        mss.message = scm AND
-                        mss.chatParticipant.id = :currentScaleChatParticipantId
-            where scale.id = :scaleId
-            ORDER BY scm.sentAt DESC
+                SELECT v
+                FROM ScaleChatMessageResponseView v
+                WHERE v.eventScaleId = :scaleId
+                  AND (v.aggregatedStatus IS NULL OR v.participantSenderId = :currentScaleChatParticipantId)
+                ORDER BY v.sentAt DESC
             """)
-    Page<ScaleChatMessageResponse> listMessagesWithStatus(@Param("scaleId") UUID scaleId,
-                                                          @Param("currentScaleChatParticipantId") UUID scaleChatParticipant,
-                                                          Pageable pageable);
+    Page<ScaleChatMessageResponseView> listMessagesWithStatus(@Param("scaleId") UUID scaleId,
+                                                              @Param("currentScaleChatParticipantId") UUID scaleChatParticipant,
+                                                              Pageable pageable);
 
     @Query("""
             SELECT new

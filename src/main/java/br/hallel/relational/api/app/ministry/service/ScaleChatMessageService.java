@@ -16,6 +16,9 @@ import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.MessageScaleStatusRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatMessageRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatParticipantRepository;
+import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
+import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,7 @@ public class ScaleChatMessageService {
     private final MessageScaleStatusRepository messageScaleStatusRepository;
     private final FCMSenderService fcmSenderService;
     private final GoogleBucketService googleBucketService;
+    private final UserRepository userRepository;
 
     public ScaleChatMessageResponse sendTextMessage(ScaleChatMessageRequest dto) {
         log.info("Sending text message for scale {} ", dto.eventScaleId());
@@ -245,8 +249,29 @@ public class ScaleChatMessageService {
     public Page<ScaleChatMessageResponse> listMessagesOfScaleChatForUser(UUID scaleId, UUID userId, Pageable pageable) {
         ScaleChatParticipant scaleChatParticipant = getScaleChatParticipantByUserId(scaleId, userId);
 
-        return this.scaleChatMessageRepository.listMessagesWithStatus(
+        Page<ScaleChatMessageResponseView> viewPage = this.scaleChatMessageRepository.listMessagesWithStatus(
                 scaleId, scaleChatParticipant.getId(), pageable);
+        return viewPage.map(view -> {
+                    MessageScaleDeliveryStatus status = (view.getAggregatedStatus() != null)
+                            ? MessageScaleDeliveryStatus.valueOf(view.getAggregatedStatus())
+                            : null;
+                    User user = this.userRepository.findById(view.getUserSenderId()).orElseThrow(
+                            () -> new UserNotFoundException("Usuário não encontrado", view.getUserSenderId().toString()));
+
+                    return new ScaleChatMessageResponse(
+                            view.getId(),
+                            view.getEventScaleId(),
+                            view.getParticipantSenderId(),
+                            user,
+                            view.getContent(),
+                            view.getContentType(),
+                            view.getSentAt(),
+                            view.getUpdatedAt(),
+                            status,
+                            view.getVisibility()
+                    );
+                }
+        );
     }
 
     private ScaleChatParticipant getScaleChatParticipantByUserId(UUID scaleId, UUID userId) {
