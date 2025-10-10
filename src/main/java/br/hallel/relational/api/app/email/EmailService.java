@@ -15,8 +15,11 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-@Slf4j @Service
+@Slf4j
+@Service
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
@@ -107,6 +110,129 @@ public class EmailService {
             return true;
         } catch (Exception e) {
             System.out.println("Erro ao enviar email HTML: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean sendBillingAssociate(String to, String subject, String name, Double value, LocalDateTime renewalDate) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Nota: Removi 'User user, LocalDate today' da assinatura,
+            // pois este email não é para aniversário e não precisa atualizar o User.
+
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+
+            // Formata a data de renovação
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String formattedRenewalDate = renewalDate.format(formatter);
+
+            String html = """
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333;">
+                            <div style="max-width: 600px; margin: auto; padding: 20px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 10px;">
+                                <h2 style="color: #D32F2F;">Associação Suspensa, %s</h2>
+                                <p style="font-size: 16px;">
+                                    Identificamos que a data de renovação da sua Associação Hallel expirou em <b>%s</b>.
+                                </p>
+                                <p style="font-size: 16px;">
+                                    Devido ao atraso, seu status foi alterado para <b>SUSPENSO</b>. 
+                                    Para reativar imediatamente seus benefícios, realize a renovação.
+                                </p>
+                    
+                                <h3 style="color: #333;">Detalhes da Cobrança:</h3>
+                                <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                    <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ %.2f</li>
+                                    <li style="margin-bottom: 5px;"><strong>Data de Vencimento:</strong> %s</li>
+                                </ul>
+                    
+                                <div style="text-align: center; margin-top: 30px;">
+                                    <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]" 
+                                       style="background-color: #D32F2F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                        Clique aqui para Renovar Agora
+                                    </a>
+                                </div>
+                    
+                                <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                    Se você já realizou o pagamento, por favor, ignore esta mensagem. Caso contrário, reative sua associação para continuar a fazer parte da nossa comunidade.
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 🔔</p>
+                            </div>
+                        </body>
+                    </html>
+                    """.formatted(name, formattedRenewalDate, value, formattedRenewalDate);
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            System.out.println("Email de cobrança enviado com sucesso!");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Erro ao enviar email de cobrança: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public boolean sendRenewalEmail(String to, String name, Double value, LocalDateTime renewalDate) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from);
+            helper.setTo(to);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String formattedRenewalDate = renewalDate.format(formatter);
+
+            helper.setSubject("Lembrete: Sua Associação Hallel Vence em Breve!");
+
+            String html = """
+                <html>
+                    <body style="font-family: Arial, sans-serif; color: #333;">
+                        <div style="max-width: 600px; margin: auto; padding: 20px; background: #ebfff0; border: 1px solid #c9e6d0; border-radius: 10px;">
+                            <h2 style="color: #4CAF50;">Não perca seus benefícios, %s! 🔔</h2>
+                            <p style="font-size: 16px;">
+                                Agradecemos por fazer parte da nossa comunidade! Queremos lembrar que sua associação está programada para vencer em <b>%s</b>.
+                            </p>
+                            <p style="font-size: 16px;">
+                                Renove agora para garantir a continuidade de todos os seus benefícios e acesso.
+                            </p>
+                            
+                            <h3 style="color: #333;">Detalhes da Renovação:</h3>
+                            <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ %.2f</li>
+                                <li style="margin-bottom: 5px;"><strong>Vencimento:</strong> %s</li>
+                            </ul>
+                            
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]" 
+                                   style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                    Renovar Agora
+                                </a>
+                            </div>
+                            
+                            <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                Se você já renovou recentemente, por favor, desconsidere esta mensagem.
+                            </p>
+                            <br/>
+                            <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 💚</p>
+                        </div>
+                    </body>
+                </html>
+                """.formatted(name, formattedRenewalDate, value, formattedRenewalDate);
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            log.info("Email de renovação enviado para: {}", to);
+            return true;
+        } catch (Exception e) {
+            log.error("Erro ao enviar email de renovação para {}: {}", to, e.getMessage());
             return false;
         }
     }
