@@ -21,7 +21,6 @@ public interface ScaleChatMessageRepository extends JpaRepository<ScaleChatMessa
                 SELECT v
                 FROM ScaleChatMessageResponseView v
                 WHERE v.eventScaleId = :scaleId
-                  AND (v.aggregatedStatus IS NULL OR v.participantSenderId = :currentScaleChatParticipantId)
                 ORDER BY v.sentAt DESC
             """)
     Page<ScaleChatMessageResponseView> listMessagesWithStatus(@Param("scaleId") UUID scaleId,
