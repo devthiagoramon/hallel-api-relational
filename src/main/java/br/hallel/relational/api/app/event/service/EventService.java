@@ -7,6 +7,7 @@ import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -45,6 +47,7 @@ public class EventService implements EventInterface {
 
     private final EventMapper mapper;
     private final MinistryMapper ministryMapper;
+    private final PdfGenerationService pdfGenerationService;
 
 
     @Override
@@ -144,7 +147,8 @@ public class EventService implements EventInterface {
 
     public Page<EventResponse> listAllRetreatsAlreadyHappened(Pageable pageable) {
 
-        Page<Event> eventsPagination = this.repository.findAllByEventStatusAndEventType(EventStatus.FINALIZADO, EventType.RETIRO,
+        Page<Event> eventsPagination = this.repository.findAllByEventStatusAndEventType(EventStatus.FINALIZADO,
+                EventType.RETIRO,
                 pageable);
         if (eventsPagination.isEmpty()) {
             throw new EventListIsEmptyException("event.list.is.empty");
@@ -477,5 +481,43 @@ public class EventService implements EventInterface {
                 event.getEventType(),
                 event.getEventStatus()
         );
+    }
+
+    public String getTransactionEventPDF(UUID eventId, TransactionType filter) {
+
+        Event event = this.repository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("event.id.not.found", eventId.toString()));
+        List<EventTransaction> transactions = this.eventTransactionRepository.findAllByEvent_Id(eventId);
+
+        if (filter != null) {
+            transactions = transactions.stream().filter(t -> t.getTransactionType() == filter).toList();
+        }
+
+        Double balance = 0.0;
+        Double incomings = 0.0;
+        Double outgoings = 0.0;
+
+        if (!transactions.isEmpty()) {
+            for (EventTransaction transaction : transactions) {
+                if (transaction.getTransactionType() == TransactionType.ENTRADA) {
+                    balance += transaction.getValue();
+                    incomings += transaction.getValue();
+                } else if (transaction.getTransactionType() == TransactionType.SAIDA) {
+                    balance -= transaction.getValue();
+                    outgoings += transaction.getValue();
+                }
+            }
+        }
+        String pdfBase64;
+        try {
+            pdfBase64 = Base64.getEncoder()
+                    .encodeToString(
+                            this.pdfGenerationService.generatePDFTransactionsEvents(event, transactions, filter,
+                                    balance,
+                                    incomings, outgoings));
+        } catch (IOException e) {
+            throw new GenerateEventTransactionPDFException("Não foi possivel gerar o PDF de transações");
+        }
+        return pdfBase64;
     }
 }

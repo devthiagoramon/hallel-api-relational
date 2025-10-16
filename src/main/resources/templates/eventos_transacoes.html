@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            padding: 1rem; /* Moved padding here from the old .container */
+            width: 96%;
+        }
+
+        .header-table {
+            width: 100%;
+            border: 1px solid #CED4DA;
+            border-radius: 8px;
+            border-spacing: 0;
+            padding: 1rem;
+        }
+
+        .header-logo {
+            width: 60px;
+            border: none;
+            padding: 0;
+        }
+
+        .header-text {
+            vertical-align: middle;
+            border: none;
+            padding: 0 0 0 1rem;
+        }
+
+        .body {
+            margin-top: 1rem;
+        }
+
+        .event-infos {
+            width: 100%;
+        }
+
+        .event-infos-content {
+            font-size: 14px;
+            font-weight: 400;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .hr {
+            color: #CED4DA;
+            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+
+        .footer-table {
+            width: 100%;
+            margin-top: 1rem;
+            border-spacing: 0;
+        }
+
+        .footer-cell {
+            text-align: right;
+            border: none;
+            padding: 0;
+        }
+
+
+        .footer-content-container {
+            display: inline-block;
+            text-align: left;
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #CED4DA;
+        }
+
+        .footer-content {
+            font-size: 16px;
+            font-weight: 400;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-content:last-child {
+            margin-bottom: 0; /* Removes margin from the last item */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .empty-message {
+            margin-top: 1rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body class="container">
+
+<table class="header-table">
+    <tr>
+        <td class="header-logo">
+            <img th:src="'data:image/png;base64,' + ${logoHallelBase64}" alt="Logo Hallel" width="50"/>
+        </td>
+        <td class="header-text">
+            <h4 class="header-infos">Comunidade Católica Hallel</h4>
+        </td>
+    </tr>
+</table>
+<div class="body">
+    <h4 class="header-infos">Transações no evento</h4>
+    <div class="event-infos">
+        <label class="event-infos-content">Evento: <span class="event-infos-content" th:text="${event.getTitle()}">Nome evento</span></label>
+        <label class="event-infos-content">Data: <span class="event-infos-content"
+                                                       th:text="${#dates.format(event.getDate(), 'dd/MM/yyyy HH:mm')}">11/11/2011 11:11</span></label>
+        <label class="event-infos-content" th:if="${#bools.isTrue(filter)}">Filtrar por: <span th:text="${filter}">Entrada</span></label>
+    </div>
+    <hr class="hr"/>
+    <table th:if="${not #lists.isEmpty(transactions)}">
+        <thead>
+        <tr>
+            <th>Descrição</th>
+            <th>Tipo</th>
+            <th>Data</th>
+            <th>Valor</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="transaction : ${transactions}">
+            <td th:text="${transaction.getDescription()}">Participação</td>
+            <td th:text="${transaction.getTransactionType()}">Entrada</td>
+            <td th:text="${transaction.getDateTransaction() != null ? #dates.format(transaction.getDateTransaction(), 'dd/MM/yyyy HH:mm') : '--'}">11/11/2011 11:11</td>
+            <td th:text="${#numbers.formatCurrency(transaction.getValue())}">R$27,00</td>
+        </tr>
+        </tbody>
+    </table>
+    <div th:if="${#lists.isEmpty(transactions)}" class="empty-message">
+        <p>Nenhuma transação realizada neste evento.</p>
+    </div>
+</div>
+<table class="footer-table">
+    <tr>
+        <td class="footer-cell">
+            <div class="footer-content-container">
+                <label class="footer-content" th:if="${filter == null || filter.name() == 'ENTRADA'}">Entradas: <span th:text="${#numbers.formatCurrency(incoming)}">R$ 0,00</span></label>
+                <label class="footer-content" th:if="${filter == null || filter.name() == 'SAIDA'}">Saidas: <span th:text="'-' + ${#numbers.formatCurrency(outputs)}">R$ 0,00</span></label>
+                <label class="footer-content" th:if="${filter == null}">Saldo: <span th:text="${#numbers.formatCurrency(balance)}">R$ 0,00</span></label>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.EventParticipationException;
+import br.hallel.relational.api.app.event.exception.GenerateEventTransactionPDFException;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.TransactionType;
@@ -23,9 +24,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,8 +98,10 @@ public class AdminEventController {
 
     @GetMapping("/transaction/list-all/by-event/{eventId}")
     public ResponseEntity<Page<EventTransactionResponse>> listAllTransactionsByEvent(@PathVariable UUID eventId,
-                                                                                     @RequestParam(name = "page", defaultValue = "0") Integer page,
-                                                                                     @RequestParam(name = "size", defaultValue = "10") Integer size) {
+                                                                                     @RequestParam(name = "page", defaultValue = "0")
+                                                                                     Integer page,
+                                                                                     @RequestParam(name = "size", defaultValue = "10")
+                                                                                     Integer size) {
         return ResponseEntity.ok(eventService.listAllTransactionsByEvent(eventId, PageRequest.of(page, size)));
     }
 
@@ -216,7 +221,8 @@ public class AdminEventController {
 
     @PostMapping("/register-sale/food")
     @Operation(summary = "Record a food sale")
-    public ResponseEntity<EventTransactionResponse> registerSale(@RequestBody List<FoodSaleItemRequestDTO> foodSaleItems) {
+    public ResponseEntity<EventTransactionResponse> registerSale(
+            @RequestBody List<FoodSaleItemRequestDTO> foodSaleItems) {
         return ResponseEntity.ok(this.foodService.registerSale(foodSaleItems));
     }
 
@@ -255,12 +261,29 @@ public class AdminEventController {
 
     @PostMapping("/generate-food-payment/{eventId}")
     @Operation(summary = "Generates a PIX payment for food sales")
-    public ResponseEntity<PaymentFoodResponseDTO> generateFoodPayment(@RequestBody List<FoodSaleItemRequestDTO> saleItems,
-                                                                      @PathVariable(name = "eventId") UUID eventId) {
+    public ResponseEntity<PaymentFoodResponseDTO> generateFoodPayment(
+            @RequestBody List<FoodSaleItemRequestDTO> saleItems,
+            @PathVariable(name = "eventId") UUID eventId) {
 
-        return ResponseEntity.ok(this.foodService.createFoodPayment(saleItems,eventId));
+        return ResponseEntity.ok(this.foodService.createFoodPayment(saleItems, eventId));
     }
 
+    @GetMapping("/transaction/generate-pdf-transactions/{eventId}")
+    @Operation(summary = "Generate transaction's PDF of event")
+    public ResponseEntity<String> generateTransactionsEventPDF(@PathVariable(name = "eventId") UUID eventId,
+                                                               @Nullable
+                                                               @RequestParam(name = "filter", required = false)
+                                                               String filter) {
+        TransactionType transactionType = null;
+        if (StringUtils.hasText(filter) && !filter.contains("undefined")) {
+            try {
+                transactionType = TransactionType.valueOf(filter.toUpperCase());
+            } catch (Exception ignored) {
+            }
+        }
+
+        return ResponseEntity.ok(this.eventService.getTransactionEventPDF(eventId, transactionType));
+    }
 
 
 }
