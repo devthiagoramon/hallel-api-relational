@@ -49,7 +49,7 @@ public class ServerConfig implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowedMethods("*")
-                .allowedOrigins(allowedOrigins)
+                .allowedOriginPatterns(allowedOrigins) // AQUI FOI ALTERADO, ANTES : (allowedOrigin)
                 .allowCredentials(true);
     }
 }
