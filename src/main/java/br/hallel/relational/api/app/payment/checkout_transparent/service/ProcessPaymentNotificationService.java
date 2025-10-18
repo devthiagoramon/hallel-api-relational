@@ -101,7 +101,7 @@ public class ProcessPaymentNotificationService {
                 associate.setStatus(AssociatePaymentStatus.PAGO);
                 success = true;
 
-                template.convertAndSend("/topic/association/" + associate.getUser().getId(),
+                template.convertAndSend("/topic/payments/" + associate.getUser().getId(),
                         new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
                 break;
 

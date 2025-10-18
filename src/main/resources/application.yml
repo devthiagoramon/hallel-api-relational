@@ -76,10 +76,12 @@ springdoc:
     path: "/swagger-ui.html"
     enabled: true
 
+cors:
+  origin-patterns: http://localhost:5173,http://localhost:3000,https://comunidadecatolicahallel.com.br
 
 
 mercadopago:
   access:
     token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: https://21c8e8406401.ngrok-free.app/public/payments/webhooks/mercadopago
+    url: https://29d165c76eab.ngrok-free.app/public/payments/webhooks/mercadopago

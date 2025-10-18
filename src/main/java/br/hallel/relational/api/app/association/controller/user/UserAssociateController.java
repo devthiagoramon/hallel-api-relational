@@ -28,8 +28,7 @@ public class UserAssociateController {
 
     @PostMapping("/join")
     public ResponseEntity<AssociateResponse> createAssociate(
-            @RequestHeader("Authorization") String authorizationHeader
-            ,
+            @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody CreateAssociateRequestDTO dto
     ) {
         return ResponseEntity.ok(this.associateService.createAssociation(dto, jwtTokenProvider.getUserId(authorizationHeader)));

@@ -119,7 +119,8 @@ public class AssociateService {
         return new AssociatePayDetails(
                 qrCodeBase64,
                 lastPendingPayment.getPixTxid(),
-                lastPendingPayment.getValuePaid().doubleValue()
+                lastPendingPayment.getValuePaid().doubleValue(),
+                lastPendingPayment.getStatus()
         );
     }
 
