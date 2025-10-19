@@ -124,7 +124,10 @@ public class SecurityConfig {
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://comunidadecatolicahallel.com.br");
-        config.addAllowedOrigin("*");
+        if (getNgrokUrl() != null) {
+
+            config.addAllowedOrigin("*");
+        }
 
         String ngrokUrl = getNgrokUrl();
         if (ngrokUrl != null) {
