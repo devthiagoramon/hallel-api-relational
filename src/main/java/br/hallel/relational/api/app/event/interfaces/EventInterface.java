@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.event.dto.EventDTO;
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
+import br.hallel.relational.api.app.event.model.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,7 @@ public interface EventInterface {
 
     EventShortResponse listEventInScaleInfo(UUID id);
 
-    List<EventResponse> listEventsByTitleOrderByAsc(int page, int size);
+    List<EventResponse> listEventsByTitleOrderByAsc(int page, int size, EventStatus eventStatus);
     List<EventResponse> listEventsByTitle(String title, int page, int size);
     Page<EventResponse> listEventsByDateExp(Pageable pageable);
 

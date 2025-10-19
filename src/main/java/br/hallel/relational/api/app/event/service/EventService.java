@@ -19,7 +19,6 @@ import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -271,11 +270,15 @@ public class EventService implements EventInterface {
 
     @Override
     public List<EventResponse> listEventsByTitleOrderByAsc(int page,
-                                                           int size) {
+                                                           int size, EventStatus eventStatus) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Event> eventsPagination = this.repository.findByEventStatusNotOrderByTitleAsc(EventStatus.FINALIZADO,
-                pageable);
+        Page<Event> eventsPagination;
+        if (eventStatus == null){
+            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+        }else {
+            eventsPagination = this.repository.findByEventStatusOrderByTitleAsc(eventStatus, pageable);
+        }
 
         if (eventsPagination.isEmpty()) {
             eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);

@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
+import br.hallel.relational.api.app.event.dto.FilterEventDTO;
 import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +64,8 @@ public class PublicEventController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(this.eventService.listAllEventsByEventStatus(PageRequest.of(page, size), EventStatus.FINALIZADO));
+        return ResponseEntity.ok(
+                this.eventService.listAllEventsByEventStatus(PageRequest.of(page, size), EventStatus.FINALIZADO));
     }
 
     @GetMapping("/retreat/list-all")
@@ -102,9 +104,19 @@ public class PublicEventController {
     @GetMapping("/list-all/title/asc")
     public ResponseEntity<List<EventResponse>> getAllEventsByTitleAsc(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "filter", required = false, defaultValue = "undefined") String filter
     ) {
-        List<EventResponse> events = eventService.listEventsByTitleOrderByAsc(page, size);
+        EventStatus eventStatus = null;
+        if (!filter.equalsIgnoreCase("undefined")) {
+            FilterEventDTO filterEventDTO = FilterEventDTO.valueOf(filter);
+            switch (filterEventDTO) {
+                case FINALIZADOS -> eventStatus = EventStatus.FINALIZADO;
+                case OCORRENDO -> eventStatus = EventStatus.OCORRENDO;
+                case PROXIMOS -> eventStatus = EventStatus.AGENDADO;
+            }
+        }
+        List<EventResponse> events = eventService.listEventsByTitleOrderByAsc(page, size, eventStatus);
         if (events.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

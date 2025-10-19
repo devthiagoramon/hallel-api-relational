@@ -64,4 +64,6 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Page<Event> findAllByEventStatusAndEventType(EventStatus eventStatus, EventType eventType, Pageable pageable);
 
     Page<Event> findByEventStatusNotOrderByDateAsc(EventStatus eventStatus, Pageable pageable);
+
+    Page<Event> findByEventStatusOrderByTitleAsc(EventStatus eventStatus, Pageable pageable);
 }
