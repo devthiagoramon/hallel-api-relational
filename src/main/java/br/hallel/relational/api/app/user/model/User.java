@@ -4,6 +4,7 @@ import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
 import br.hallel.relational.api.app.security.model.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.nimbusds.jose.util.Pair;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -119,4 +120,5 @@ public class User implements Serializable, UserDetails {
     public String getUsername() {
         return this.email;
     }
+
 }

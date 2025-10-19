@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
@@ -30,6 +31,7 @@ public class EventResponseWithMinistryAssociated {
     private Double value;
     private EventType eventType;
     private boolean itsFree;
+    private EventStatus eventStatus;
     private List<MinistryResponse> ministries;
 
     public EventResponseWithMinistryAssociated(Event event) {

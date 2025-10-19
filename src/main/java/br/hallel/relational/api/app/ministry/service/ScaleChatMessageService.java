@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.service;
 
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.exception.EventScaleNotFoundException;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
@@ -15,21 +16,26 @@ import br.hallel.relational.api.app.ministry.model.*;
 import br.hallel.relational.api.app.ministry.repository.MessageScaleStatusRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatMessageRepository;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatParticipantRepository;
+import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
+import br.hallel.relational.api.app.user.model.User;
+import br.hallel.relational.api.app.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ScaleChatMessageService {
 
     private final ScaleChatMessageRepository scaleChatMessageRepository;
@@ -39,6 +45,7 @@ public class ScaleChatMessageService {
     private final MessageScaleStatusRepository messageScaleStatusRepository;
     private final FCMSenderService fcmSenderService;
     private final GoogleBucketService googleBucketService;
+    private final UserRepository userRepository;
 
     public ScaleChatMessageResponse sendTextMessage(ScaleChatMessageRequest dto) {
         log.info("Sending text message for scale {} ", dto.eventScaleId());
@@ -48,18 +55,20 @@ public class ScaleChatMessageService {
                         "Participant not found by id %s".formatted(dto.memberChatSenderId())));
         EventScale eventScale = scaleRepository.findById(dto.eventScaleId()).orElseThrow(
                 () -> new EventScaleNotFoundException("event.scale.not.found", dto.eventScaleId().toString()));
-        List<ScaleChatParticipant> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScale(
-                dto.eventScaleId()).stream().filter(part -> !part.getId().equals(dto.memberChatSenderId())).toList();
+        List<ScaleChatParticipantResponse> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScaleWhoNotSender(
+                dto.eventScaleId(), dto.memberChatSenderId());
 
         ScaleChatMessage messageSaved = scaleChatMessageRepository.save(
                 new ScaleChatMessage(eventScale, senderParticipant, dto.content(), dto.contentType()));
 
+        ScaleChatMessageResponse response = getScaleChatMessageResponse(eventScale, messageSaved);
 
         String destinationSocket = "/topic/scale/chat/" + eventScale.getId().toString();
 
-        simpMessagingTemplate.convertAndSend(destinationSocket, messageSaved);
-        return getScaleChatMessageResponseAndSendNotification(senderParticipant, eventScale, otherParticipants,
-                messageSaved);
+        simpMessagingTemplate.convertAndSend(destinationSocket, response);
+        sendNotificationsToParticipants(senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
+                otherParticipants, messageSaved, eventScale);
+        return response;
     }
 
     public ScaleChatMessageResponse sendFileMessage(MultipartFile file, ScaleChatMessageRequest dto) {
@@ -75,8 +84,8 @@ public class ScaleChatMessageService {
                         "Participant not found by id %s".formatted(dto.memberChatSenderId())));
         EventScale eventScale = scaleRepository.findById(dto.eventScaleId()).orElseThrow(
                 () -> new EventScaleNotFoundException("event.scale.not.found", dto.eventScaleId().toString()));
-        List<ScaleChatParticipant> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScale(
-                dto.eventScaleId()).stream().filter(part -> !part.getId().equals(dto.memberChatSenderId())).toList();
+        List<ScaleChatParticipantResponse> otherParticipants = scaleChatParticipantRepository.listParticipantsOfScaleWhoNotSender(
+                dto.eventScaleId(), dto.memberChatSenderId());
 
         ScaleChatMessage messageSaved = scaleChatMessageRepository.save(
                 new ScaleChatMessage(eventScale, senderParticipant, dto.contentType()));
@@ -87,28 +96,42 @@ public class ScaleChatMessageService {
         messageSaved.setContent(fileUrl);
 
         ScaleChatMessage messageUpdateWithContent = scaleChatMessageRepository.save(messageSaved);
-
+        ScaleChatMessageResponse response = getScaleChatMessageResponse(eventScale, messageUpdateWithContent);
         String destinationSocket = "/topic/scale/chat/" + eventScale.getId().toString();
 
-        simpMessagingTemplate.convertAndSend(destinationSocket, messageUpdateWithContent);
-
-        return getScaleChatMessageResponseAndSendNotification(senderParticipant, eventScale, otherParticipants,
-                messageUpdateWithContent);
+        simpMessagingTemplate.convertAndSend(destinationSocket, response);
+        sendNotificationsToParticipants(senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
+                otherParticipants, messageSaved, eventScale);
+        return response;
     }
 
-    private ScaleChatMessageResponse getScaleChatMessageResponseAndSendNotification(
-            ScaleChatParticipant senderParticipant,
-            EventScale eventScale,
-            List<ScaleChatParticipant> otherParticipants,
-            ScaleChatMessage message) {
-        for (ScaleChatParticipant otherParticipant : otherParticipants) {
-            messageScaleStatusRepository.save(
-                    new MessageScaleStatus(message, otherParticipant));
-            sendNotificationMessageSended(
-                    senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
-                    otherParticipant.getMemberEventScale().getMemberMinistry().getUser()
-                            .getDevicesUser(), message, eventScale);
+    @Async
+    public void sendNotificationsToParticipants(
+            String senderName,
+            List<ScaleChatParticipantResponse> participants,
+            ScaleChatMessage message,
+            EventScale eventScale) {
+
+        for (ScaleChatParticipantResponse participant : participants) {
+            try {
+                // Coloque sua lógica de envio aqui
+                sendNotificationMessageSended(
+                        senderName,
+                        participant.userParticipant().getDevicesUser(),
+                        message,
+                        eventScale
+                );
+            } catch (Exception e) {
+                // É CRUCIAL tratar exceções aqui para que um erro
+                // não pare o envio para os outros participantes.
+                log.error("Failed to send notification to participant {}", participant.userParticipant().getId(), e);
+            }
         }
+    }
+
+    private ScaleChatMessageResponse getScaleChatMessageResponse(
+            EventScale eventScale,
+            ScaleChatMessage message) {
 
         return new ScaleChatMessageResponse(
                 message.getId(),
@@ -207,8 +230,7 @@ public class ScaleChatMessageService {
                 ScaleMessageUpdateEventTypes.UPDATE,
                 messageUpdated
         );
-        simpMessagingTemplate.convertAndSend(destination, updateEvent);
-        return new ScaleChatMessageResponse(
+        ScaleChatMessageResponse response = new ScaleChatMessageResponse(
                 scaleChatMessage.getId(),
                 scaleChatMessage.getScale().getId(),
                 scaleChatMessage.getMemberChatSender().getId(),
@@ -220,14 +242,79 @@ public class ScaleChatMessageService {
                 MessageScaleDeliveryStatus.SENT,
                 scaleChatMessage.getVisibility()
         );
+        simpMessagingTemplate.convertAndSend(destination, response);
+        return response;
     }
 
     public Page<ScaleChatMessageResponse> listMessagesOfScaleChatForUser(UUID scaleId, UUID userId, Pageable pageable) {
-        return this.scaleChatMessageRepository.listMessagesWithStatus(
-                scaleId, userId, pageable);
+        ScaleChatParticipant scaleChatParticipant = getScaleChatParticipantByUserId(scaleId, userId);
+
+        Page<ScaleChatMessageResponseView> viewPage = this.scaleChatMessageRepository.listMessagesWithStatus(
+                scaleId, scaleChatParticipant.getId(), pageable);
+        return viewPage.map(view -> {
+                    MessageScaleDeliveryStatus status = (view.getAggregatedStatus() != null)
+                            ? MessageScaleDeliveryStatus.valueOf(view.getAggregatedStatus())
+                            : null;
+                    User user = this.userRepository.findById(view.getUserSenderId()).orElseThrow(
+                            () -> new UserNotFoundException("Usuário não encontrado", view.getUserSenderId().toString()));
+
+                    return new ScaleChatMessageResponse(
+                            view.getId(),
+                            view.getEventScaleId(),
+                            view.getParticipantSenderId(),
+                            user,
+                            view.getContent(),
+                            view.getContentType(),
+                            view.getSentAt(),
+                            view.getUpdatedAt(),
+                            status,
+                            view.getVisibility()
+                    );
+                }
+        );
+    }
+
+    private ScaleChatParticipant getScaleChatParticipantByUserId(UUID scaleId, UUID userId) {
+        return this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                        scaleId, userId)
+                .orElseThrow(() -> new EventParticipationException("Usuário não encontrado ou não participa do chat"));
     }
 
     public List<StatusReadingMessageUserResponse> listStatusDeliveryPerUser(UUID messageId) {
         return this.scaleChatMessageRepository.listStatusDeliverPerUser(messageId);
+    }
+
+
+    public MessageScaleDeliveryStatus readMessageForUser(UUID userId, UUID messageId) {
+        MessageScaleStatus messageScaleStatus = this.messageScaleStatusRepository.findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
+                messageId, userId).orElseThrow(
+                (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
+
+        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
+                .toString() + "/message/status";
+
+        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
+                messageId,
+                MessageScaleDeliveryStatus.READ
+        ));
+        messageScaleStatus.setStatus(MessageScaleDeliveryStatus.READ);
+        this.messageScaleStatusRepository.save(messageScaleStatus);
+        return messageScaleStatus.getStatus();
+    }
+
+    public MessageScaleDeliveryStatus userReceivedMessage(UUID messageId, UUID userId) {
+        MessageScaleStatus messageScaleStatus = this.messageScaleStatusRepository.findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
+                messageId, userId).orElseThrow(
+                (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
+        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
+                .toString() + "/message/status";
+
+        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
+                messageId,
+                MessageScaleDeliveryStatus.RECEIVED
+        ));
+        messageScaleStatus.setStatus(MessageScaleDeliveryStatus.RECEIVED);
+        this.messageScaleStatusRepository.save(messageScaleStatus);
+        return messageScaleStatus.getStatus();
     }
 }

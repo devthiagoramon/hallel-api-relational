@@ -1,5 +1,11 @@
 package br.hallel.relational.api.app.payment.checkout_transparent.service;
 
+import br.hallel.relational.api.app.association.exception.AssociateException;
+import br.hallel.relational.api.app.association.model.Associate;
+import br.hallel.relational.api.app.association.model.AssociationPayment;
+import br.hallel.relational.api.app.association.model.AssociatePaymentStatus;
+import br.hallel.relational.api.app.association.repository.AssociatePaymentRepository;
+import br.hallel.relational.api.app.association.repository.AssociateRepository;
 import br.hallel.relational.api.app.event.dto.PaymentStatusDTO;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -18,11 +24,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.*;
+import java.time.*;
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -35,6 +39,8 @@ public class ProcessPaymentNotificationService {
     private final SimpMessagingTemplate template;
     private final FoodTransactionRepository foodTransactionRepository;
     private final FoodRepository foodRepository;
+    private final AssociateRepository associateRepository;
+    private final AssociatePaymentRepository associatePaymentRepository;
 
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
@@ -54,9 +60,101 @@ public class ProcessPaymentNotificationService {
             return processFoodNotification(optionalFoodTransaction.get(), payment);
         }
 
+        Optional<AssociationPayment> optionalPayment =
+                this.associatePaymentRepository.findByMercadoPagoPaymentId(paymentId);
+
+        if (optionalPayment.isPresent()) {
+            AssociationPayment paymentTransaction = optionalPayment.get();
+            Associate associate = paymentTransaction.getAssociate();
+
+            Payment payment = mercadoPagoClient.getPaymentStatus(paymentId);
+
+            return processAssociatePayment(associate, payment);
+        }
+
         log.warn("Nenhuma participação de evento ou transação de alimento encontrada para o ID de pagamento: {}",
                 paymentId);
         return new ProcessNotificationResponseDTO(false, "not_found");
+    }
+
+    @Transactional
+    public ProcessNotificationResponseDTO processAssociatePayment(Associate associate, Payment payment) {
+        log.info("Processing association payment webhook for paymentId: {}", payment.getId());
+
+        String paymentStatus = payment.getStatus();
+        boolean success = false;
+        LocalDateTime paymentTime = LocalDateTime.now(ZoneOffset.UTC); // Garante fuso horário consistente
+
+
+        AssociationPayment paymentTransaction = associatePaymentRepository
+                .findByMercadoPagoPaymentId(payment.getId())
+                .orElseThrow(() -> new AssociateException("Associate Payment transaction not found for Mercado Pago ID: " + payment.getId()));
+
+        // 2. Mapeamento e Atualização dos STATUS
+        switch (paymentStatus) {
+            case "approved":
+                paymentTransaction.setStatus(AssociatePaymentStatus.PAGO);
+                paymentTransaction.setPaidDate(paymentTime);
+
+                updateAssociateRenewal(associate, paymentTransaction.getMonthsCovered(), paymentTime);
+
+                associate.setStatus(AssociatePaymentStatus.PAGO);
+                success = true;
+
+                template.convertAndSend("/topic/payments/" + associate.getUser().getId(),
+                        new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
+                break;
+
+            case "pending":
+                paymentTransaction.setStatus(AssociatePaymentStatus.PENDENTE);
+                break;
+
+            case "rejected":
+            case "cancelled":
+            case "refunded":
+            case "charged_back":
+            case "in_mediation":
+                paymentTransaction.setStatus(AssociatePaymentStatus.REJEITADO);
+
+                // Se o pagamento for rejeitado, a associação (se estiver pendente) deve ser suspensa.
+                if (associate.getStatus() == AssociatePaymentStatus.PENDENTE || associate.getStatus() == AssociatePaymentStatus.PAGO_ATRASADO) {
+                    associate.setStatus(AssociatePaymentStatus.SUSPENSO);
+                }
+                break;
+
+            default:
+                log.warn("Status de pagamento desconhecido: {}", paymentStatus);
+                paymentTransaction.setStatus(AssociatePaymentStatus.ERRO);
+                break;
+        }
+
+        // 3. Salva AMBAS as entidades
+        associatePaymentRepository.save(paymentTransaction);
+        associateRepository.save(associate);
+
+        return new ProcessNotificationResponseDTO(success, paymentStatus);
+    }
+
+    /**
+     * Lógica para calcular a próxima data de renovação no Associate (movida do método anterior).
+     * Esta lógica deve existir no seu ProcessPaymentNotificationService.
+     */
+    private void updateAssociateRenewal(Associate associate, int monthsCovered, LocalDateTime paymentTime) {
+        LocalDateTime currentRenewal = associate.getRenewalDate();
+
+        if (associate.getAssociateSince() == null) {
+            // 1. Primeiro pagamento de adesão
+            associate.setAssociateSince(paymentTime);
+            associate.setRenewalDate(paymentTime.plusMonths(monthsCovered));
+
+        } else if (currentRenewal == null || currentRenewal.isBefore(paymentTime)) {
+            // 2. Associação estava inativa/vencida (Reativação). Conta a partir de AGORA.
+            associate.setRenewalDate(paymentTime.plusMonths(monthsCovered));
+
+        } else {
+            // 3. Renovação antecipada. Adiciona o tempo no final do período atual.
+            associate.setRenewalDate(currentRenewal.plusMonths(monthsCovered));
+        }
     }
 
     @Transactional

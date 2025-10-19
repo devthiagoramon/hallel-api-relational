@@ -8,6 +8,7 @@ import br.hallel.relational.api.app.event.model.MemberEventScale;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatInfoResponse;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse;
 import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantUserResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
 import br.hallel.relational.api.app.ministry.repository.ScaleChatParticipantRepository;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -32,18 +32,16 @@ public class ScaleChatParticipantService {
     private final EventScaleRepository eventScaleRepository;
     private final MemberEventScaleRepository memberEventScaleRepository;
 
-    public List<ScaleChatParticipant> createScaleChat(UUID scaleId) {
+    public List<ScaleChatParticipantResponse> createScaleChat(UUID scaleId) {
         log.info("Creating scale chat of scale {}", scaleId);
         EventScale eventScale = eventScaleRepository.findById(scaleId)
                 .orElseThrow(() -> new EventScaleNotFoundException("event.scale.not.found", scaleId.toString()));
         List<MemberEventScale> membersScale = memberEventScaleRepository.findAllByEventScale_Id(scaleId);
-        List<ScaleChatParticipant> response = new ArrayList<>();
         for (MemberEventScale memberEventScale : membersScale) {
-            ScaleChatParticipant memberChatSaved = scaleChatParticipantRepository.save(
+            scaleChatParticipantRepository.save(
                     new ScaleChatParticipant(eventScale, memberEventScale));
-            response.add(memberChatSaved);
         }
-        return response;
+        return this.scaleChatParticipantRepository.listParticipantsWithUserModelByScaleId(scaleId);
     }
 
     public void deleteScaleChat(UUID scaleId) {
@@ -112,5 +110,11 @@ public class ScaleChatParticipantService {
                 .orElseThrow(() -> new EventParticipationException("Escala não existe"));
 
         return this.scaleChatParticipantRepository.save(new ScaleChatParticipant(eventScale, memberEventScaleUser));
+    }
+
+    public UUID getParticipantScaleIdByUserIdAndScaleId(UUID userId, UUID scaleId) {
+        return this.scaleChatParticipantRepository.findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(
+                        scaleId, userId).orElseThrow(() -> new EventParticipationException("User not found in this scale chat"))
+                .getId();
     }
 }

@@ -4,12 +4,9 @@ package br.hallel.relational.api.app.global.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.List;
 
 @Configuration
 public class ServerConfig implements WebMvcConfigurer {
@@ -17,6 +14,8 @@ public class ServerConfig implements WebMvcConfigurer {
 
     @Value("${cors.origin-patterns:default}")
     private String corsOriginPatterns = "";
+
+
 
     @Override
     public void configureContentNegotiation(
@@ -47,7 +46,7 @@ public class ServerConfig implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowedMethods("*")
-                .allowedOrigins(allowedOrigins)
+                .allowedOriginPatterns(allowedOrigins) // AQUI FOI ALTERADO, ANTES : (allowedOrigin)
                 .allowCredentials(true);
     }
 }

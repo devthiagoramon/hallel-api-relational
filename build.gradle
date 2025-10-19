@@ -66,6 +66,7 @@ dependencies {
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'org.testcontainers:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     implementation 'com.mercadopago:sdk-java:2.2.0', {
         exclude group: 'com.google.collections', module: 'google-collections'

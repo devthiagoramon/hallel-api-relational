@@ -36,45 +36,53 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-# Criação da instância do banco de dados PostgreSQL no RDS
-resource "aws_db_instance" "hallel_db_prod" {
-  allocated_storage    = 20
-  engine               = "postgres"
-  engine_version       = "16.10"
-  instance_class       = "db.t3.micro"
-  storage_type = "gp3"
 
-  identifier           = "hallel-db-${var.environment}"
+resource "aws_rds_cluster" "hallel_db_serverless" {
+  cluster_identifier = "hallel-db-prod-serverless"
+  engine             = "aurora-postgresql"
 
-  db_name              = "hallel_db"
-  username             = "halleladmin"
-  password             = random_password.db_password.result
+  engine_version     = "16.9"
 
-  # -- SEGURANÇA --
-  publicly_accessible  = false
+  engine_mode        = "provisioned"
+
+  database_name           = "hallel_db"
+  master_username         = "halleladmin"
+  master_password         = random_password.db_password.result
+
+  # Usa os recursos de rede que você já definiu em networking.tf
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
-  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
 
-  multi_az = false
+  # Configuração do Serverless v2
+  serverlessv2_scaling_configuration {
+    min_capacity = 0.5 # Mínimo quando ocioso (muito barato)
+    max_capacity = 4.0 # Máximo para picos de uso
+  }
+
   backup_retention_period = 7
-  skip_final_snapshot = false
-  final_snapshot_identifier = "hallel-db-${var.environment}-final-snapshot"
-
-  apply_immediately = false
-  auto_minor_version_upgrade = true
+  skip_final_snapshot     = false
+  final_snapshot_identifier = "hallel-db-prod-final-snapshot-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 
   tags = {
-    Name = "hallel-db-${var.environment}"
+    Name        = "hallel-db-${var.environment}-serverless"
     Environment = var.environment
   }
 
-  # Ignora mudanças na senha se ela for gerenciada fora do Terraform (ex: rotação de senhas)
   lifecycle {
-    ignore_changes = [password]
+    ignore_changes = [master_password]
   }
 }
 
+# --- NOVO: Instância necessária para o cluster Serverless v2 ---
+resource "aws_rds_cluster_instance" "hallel_db_serverless_instance" {
+  cluster_identifier = aws_rds_cluster.hallel_db_serverless.id
+  identifier         = "hallel-db-prod-serverless-instance-1"
+  engine             = aws_rds_cluster.hallel_db_serverless.engine
+  instance_class     = "db.serverless" # Classe de instância específica para Serverless
+}
+
 # --- FIM DA CONFIGURAÇÃO DO BANCO ----
+
 
 # --- CONFIGURAÇÃO DO SERVIDOR ---
 

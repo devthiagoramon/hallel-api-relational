@@ -38,7 +38,7 @@ public abstract class EventMapper {
                     .map(ministry -> new MinistrySimpleResponse(
                             ministry.getId(),
                             ministry.getTitle(),
-                            ministry.getImage()))
+                            ministry.getImage(), ministry.getMinistryType()))
                     .toList();
 
             response.setMinistriesAssocied(ministries);

@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -32,6 +34,8 @@ public class ScaleChatMessage {
     @Column(nullable = false, name = "content")
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "content_type", nullable = false)
     private ScaleMessageType contentType;
 
@@ -41,6 +45,8 @@ public class ScaleChatMessage {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "visibility")
     private ScaleChatMessageVisibility visibility;
 
@@ -55,11 +61,15 @@ public class ScaleChatMessage {
         this.memberChatSender = memberChatSender;
         this.content = content;
         this.contentType = contentType;
+        this.sentAt = OffsetDateTime.now();
+        this.setVisibility(ScaleChatMessageVisibility.VISIBLE);
     }
 
     public ScaleChatMessage(EventScale scale, ScaleChatParticipant memberChatSender, ScaleMessageType contentType) {
         this.scale = scale;
         this.memberChatSender = memberChatSender;
         this.contentType = contentType;
+        this.sentAt = OffsetDateTime.now();
+        this.setVisibility(ScaleChatMessageVisibility.VISIBLE);
     }
 }

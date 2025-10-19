@@ -259,4 +259,11 @@ public class EventIllegalArgumentHandler {
                 request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    public ResponseEntity<ExceptionResponse> handleGenerateEventTransactionPDFException(
+            GenerateEventTransactionPDFException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

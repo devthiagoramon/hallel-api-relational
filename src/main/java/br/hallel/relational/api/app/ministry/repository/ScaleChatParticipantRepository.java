@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.ministry.repository;
 
+import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,8 +32,37 @@ public interface ScaleChatParticipantRepository extends JpaRepository<ScaleChatP
                 JOIN fetch scp.memberEventScale mes
                 join fetch mes.memberMinistry mm
                 join fetch mm.user u
+                WHERE scp.id = :scaleChatParticipantId
             """)
     Optional<ScaleChatParticipant> listByIdWithUserInfo(@Param("scaleChatParticipantId") UUID scaleChatParticipantId);
 
     boolean existsScaleChatParticipantByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(UUID eventScaleId, UUID memberEventScaleMemberMinistryUserId);
+
+    @Query("""
+                select new br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse(
+                    scp.id,
+                    u
+                    ) from ScaleChatParticipant scp
+                JOIN scp.eventScale eventScale
+                JOIN scp.memberEventScale mes
+                join mes.memberMinistry mm
+                join mm.user u
+                WHERE eventScale.id = :scaleId
+            """)
+    List<ScaleChatParticipantResponse> listParticipantsWithUserModelByScaleId(@Param("scaleId") UUID scaleId);
+
+    Optional<ScaleChatParticipant> findScaleChatParticipantsByEventScale_IdAndMemberEventScale_MemberMinistry_User_Id(UUID eventScaleId, UUID memberEventScaleMemberMinistryUserId);
+
+    @Query("""
+                select new br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse(
+                    scp.id,
+                    u
+                    ) from ScaleChatParticipant scp
+                JOIN scp.eventScale eventScale
+                JOIN scp.memberEventScale mes
+                join mes.memberMinistry mm
+                join mm.user u
+                WHERE eventScale.id = :scaleId AND scp.id <> :memberSenderId
+            """)
+    List<ScaleChatParticipantResponse> listParticipantsOfScaleWhoNotSender(@Param("scaleId") UUID scaleId, @Param("memberSenderId") UUID memberSenderId);
 }

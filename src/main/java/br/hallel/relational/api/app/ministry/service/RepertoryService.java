@@ -27,12 +27,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RepertoryService implements RepertoryInterface {
 
-    private RepertoryRepository repository;
-    private EventScaleRepository scaleRepository;
-    private MinistryService ministryService;
-    private MinistryRepository ministryRepository;
-    private RepertoryDanceMinistryRepository repertoryDanceMinistryRepository;
-    private RepertoryMusicMinistryRepository repertoryMusicMinistryRepository;
+    private final RepertoryRepository repository;
+    private final EventScaleRepository scaleRepository;
+    private final MinistryService ministryService;
+    private final MinistryRepository ministryRepository;
+    private final RepertoryDanceMinistryRepository repertoryDanceMinistryRepository;
+    private final RepertoryMusicMinistryRepository repertoryMusicMinistryRepository;
 
     private final RepertoryMapper mapper;
     private final MinistryMapper ministryMapper;

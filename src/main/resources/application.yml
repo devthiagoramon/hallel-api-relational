@@ -4,6 +4,7 @@ MERCADOPAGO_NOTIFICATION_URL: ""
 PEPPER_SECRET: 0b5c1b6a6f0e9f1e1b2c3d4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e
 FIREBASE_FCM_TOKEN: AIzaSyB-ym4UH0PQahpZM9XzrrqCeQsJwnJdIos
 MERCADOPAGO_ACCESS_TOKEN: APP_USR-4555467526956218-082700-3a593e9193068d796699857780c741ce-2640484802
+JWT_SECRET: ZGFkNzMzYmMxODgxNmM5MGIxYjYwYzdlMmQ2YmFhOWYxMGU0YmMyY2JjYjdiM2U2NDk4MDUzYmY0ODBjN2U0MQ
 
 
 server:
@@ -13,6 +14,7 @@ security:
   password:
     pepper: ${PEPPER_SECRET}
   jwt:
+    secret: ${JWT_SECRET}
     token:
       expire-length: 2592000000
       expire-coordenador-length: 86400000
@@ -74,10 +76,12 @@ springdoc:
     path: "/swagger-ui.html"
     enabled: true
 
+cors:
+  origin-patterns: http://localhost:5173,http://localhost:3000,https://comunidadecatolicahallel.com.br
 
 
 mercadopago:
   access:
     token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: https://00dd5589b64c.ngrok-free.app/public/payments/webhooks/mercadopago
+    url: https://29d165c76eab.ngrok-free.app/public/payments/webhooks/mercadopago

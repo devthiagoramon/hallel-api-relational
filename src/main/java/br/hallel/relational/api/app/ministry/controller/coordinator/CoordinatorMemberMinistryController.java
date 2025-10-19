@@ -156,15 +156,6 @@ public class CoordinatorMemberMinistryController {
         return ResponseEntity.ok(this.eventService.listEventInScaleInfo(eventId));
     }
 
-    @GetMapping("/get-scale/{id}/{userId}")
-    public ResponseEntity<EventScaleWithInfos> getScaleById(
-            @PathVariable(name = "id") UUID eventScaleId,
-            @PathVariable(name = "userId") UUID userId) {
-
-        EventScaleWithInfos response = eventScaleService.getEventScaleWithInfos(eventScaleId, userId);
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/scale/list/members-can-participate/{scaleId}")
     public ResponseEntity<List<String>> listEventsMemberCanParticipate(
             @PathVariable(name = "scaleId") UUID scaleId

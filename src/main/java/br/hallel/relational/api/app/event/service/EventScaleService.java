@@ -133,7 +133,7 @@ public class EventScaleService implements ScaleInterface {
     }
 
     @Override
-    public EventScaleWithInfos getEventScaleWithInfos(UUID eventScaleId, UUID userId) {
+    public EventScaleWithInfos getEventScaleWithInfos(UUID eventScaleId) {
         EventScale eventScale = this.eventScaleRepository.findById(eventScaleId).orElseThrow(
                 () -> new EventScaleNotFoundException("event.scale.not.found", eventScaleId.toString())
         );

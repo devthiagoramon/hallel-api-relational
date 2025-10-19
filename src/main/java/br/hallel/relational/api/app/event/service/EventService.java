@@ -7,6 +7,7 @@ import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
@@ -16,8 +17,8 @@ import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -33,27 +35,19 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional
-
+@RequiredArgsConstructor
 public class EventService implements EventInterface {
 
-    @Autowired
-    private EventRepository repository;
-    @Autowired
-    private GoogleBucketService bucketService;
-    @Autowired
-    private MinistryRepository ministryRepository;
-    @Autowired
-    private EventScaleService eventScaleService;
-    @Autowired
-    private EventTransactionRepository eventTransactionRepository;
+    private final EventRepository repository;
+    private final GoogleBucketService bucketService;
+    private final MinistryRepository ministryRepository;
+    private final EventScaleService eventScaleService;
+    private final EventTransactionRepository eventTransactionRepository;
 
     private final EventMapper mapper;
     private final MinistryMapper ministryMapper;
+    private final PdfGenerationService pdfGenerationService;
 
-    public EventService(EventMapper eventMapper, MinistryMapper ministryMapper) {
-        this.mapper = eventMapper;
-        this.ministryMapper = ministryMapper;
-    }
 
     @Override
     public EventResponse create(EventDTO eventDTO,
@@ -138,7 +132,7 @@ public class EventService implements EventInterface {
     public Page<EventResponse> listAllEventsHomePage(Pageable pageable) {
         log.info("List all Events");
 
-        Page<Event> events = this.repository.findByEventStatusNot(EventStatus.FINALIZADO, pageable);
+        Page<Event> events = this.repository.findByEventStatusNotOrderByDateAsc(EventStatus.FINALIZADO, pageable);
         List<EventResponse> eventResponses = events.getContent().stream().map(this::eventToResponse)
                 .collect(Collectors.toList());
 
@@ -152,7 +146,8 @@ public class EventService implements EventInterface {
 
     public Page<EventResponse> listAllRetreatsAlreadyHappened(Pageable pageable) {
 
-        Page<Event> eventsPagination = this.repository.findAllByEventStatusAndEventType(EventStatus.FINALIZADO, EventType.RETIRO,
+        Page<Event> eventsPagination = this.repository.findAllByEventStatusAndEventType(EventStatus.FINALIZADO,
+                EventType.RETIRO,
                 pageable);
         if (eventsPagination.isEmpty()) {
             throw new EventListIsEmptyException("event.list.is.empty");
@@ -275,11 +270,15 @@ public class EventService implements EventInterface {
 
     @Override
     public List<EventResponse> listEventsByTitleOrderByAsc(int page,
-                                                           int size) {
+                                                           int size, EventStatus eventStatus) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Event> eventsPagination = this.repository.findByEventStatusNotOrderByTitleAsc(EventStatus.FINALIZADO,
-                pageable);
+        Page<Event> eventsPagination;
+        if (eventStatus == null){
+            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+        }else {
+            eventsPagination = this.repository.findByEventStatusOrderByTitleAsc(eventStatus, pageable);
+        }
 
         if (eventsPagination.isEmpty()) {
             eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
@@ -485,5 +484,43 @@ public class EventService implements EventInterface {
                 event.getEventType(),
                 event.getEventStatus()
         );
+    }
+
+    public String getTransactionEventPDF(UUID eventId, TransactionType filter) {
+
+        Event event = this.repository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("event.id.not.found", eventId.toString()));
+        List<EventTransaction> transactions = this.eventTransactionRepository.findAllByEvent_Id(eventId);
+
+        if (filter != null) {
+            transactions = transactions.stream().filter(t -> t.getTransactionType() == filter).toList();
+        }
+
+        Double balance = 0.0;
+        Double incomings = 0.0;
+        Double outgoings = 0.0;
+
+        if (!transactions.isEmpty()) {
+            for (EventTransaction transaction : transactions) {
+                if (transaction.getTransactionType() == TransactionType.ENTRADA) {
+                    balance += transaction.getValue();
+                    incomings += transaction.getValue();
+                } else if (transaction.getTransactionType() == TransactionType.SAIDA) {
+                    balance -= transaction.getValue();
+                    outgoings += transaction.getValue();
+                }
+            }
+        }
+        String pdfBase64;
+        try {
+            pdfBase64 = Base64.getEncoder()
+                    .encodeToString(
+                            this.pdfGenerationService.generatePDFTransactionsEvents(event, transactions, filter,
+                                    balance,
+                                    incomings, outgoings));
+        } catch (IOException e) {
+            throw new GenerateEventTransactionPDFException("Não foi possivel gerar o PDF de transações");
+        }
+        return pdfBase64;
     }
 }
