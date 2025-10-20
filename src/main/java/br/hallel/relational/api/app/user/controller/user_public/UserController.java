@@ -40,8 +40,9 @@ public class UserController {
             summary = "Update user preferences",
             description = "Route to update user preferences like notification"
     )
-    public ResponseEntity<UserProfilePreferencesResponse> updateUserPreferences(@PathVariable(name = "idUser") UUID idUser, @RequestBody
-                                                                                UserPreferencesDTO userPreferencesDTO) {
+    public ResponseEntity<UserProfilePreferencesResponse> updateUserPreferences(
+            @PathVariable(name = "idUser") UUID idUser, @RequestBody
+            UserPreferencesDTO userPreferencesDTO) {
         return ResponseEntity.ok(userService.updateUserPreferences(idUser, userPreferencesDTO));
     }
 
@@ -76,10 +77,19 @@ public class UserController {
     @Operation(summary = "Edit CPF User ", description = "Edit CPF user info")
     public ResponseEntity<UserEditProfileDTO> editCPFUser(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam (name = "cpf") String cpf
-    ){
-        System.out.println(tokenService.getUserId(authorizationHeader).toString());
+            @RequestParam(name = "cpf") String cpf
+    ) {
         return ResponseEntity.ok(this.userService.editCPF(
                 tokenService.getUserId(authorizationHeader), cpf));
+    }
+
+    @PatchMapping("/edit-phone-number")
+    @Operation(summary = "Edit Phone number of user", description = "Handles with updating the phone number of user")
+    public ResponseEntity<UserEditProfileDTO> editPhoneNumber(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam(name = "phoneNumber") String phoneNumber
+    ) {
+        return ResponseEntity.ok(
+                this.userService.editPhoneNumber(tokenService.getUserId(authorizationHeader), phoneNumber));
     }
 }

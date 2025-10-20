@@ -235,6 +235,23 @@ public class UserService implements UserInterface {
                 user.getDateBirth(), user.getCpf());
     }
 
+    public UserEditProfileDTO editPhoneNumber(UUID idUser, String phoneNumber) {
+
+        User user =
+                this.userRepository.findById(idUser).orElseThrow(() ->
+                        new UserNotFoundException("user.not.found", idUser.toString()));
+
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            throw new IllegalArgumentException("CPF cannot be null or empty");
+        }
+
+        user.setPhoneNumber(phoneNumber.replaceAll("\\D", ""));
+        this.userRepository.save(user);
+
+        return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
+                user.getDateBirth(), user.getCpf());
+    }
+
     public void registerLastActivity(String email, String token) {
         User user = (email != null)
                 ? userRepository.findByEmail(email)
