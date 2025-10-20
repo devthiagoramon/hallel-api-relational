@@ -19,4 +19,7 @@ public class EventParticipationAdmDTO {
     private StatusPaymentEventParticipation statusPayment;
     private UserFunctionInEvent userFunctionInEvent;
     private String community;
+    private String name;
+    private String email;
+    private String phoneNumber;
 }

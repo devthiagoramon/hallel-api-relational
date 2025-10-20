@@ -14,4 +14,7 @@ import java.util.UUID;
 public class EventParticipateDTO {
     private UUID eventId;
     private String community;
+    private String name;
+    private String email;
+    private String phoneNumber;
 }

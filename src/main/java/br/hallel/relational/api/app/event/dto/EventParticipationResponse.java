@@ -25,6 +25,12 @@ public class EventParticipationResponse {
 
     private String community;
 
+    private String name;
+
+    private String email;
+
+    private String phoneNumber;
+
     private Boolean hasParticipated;
 
     private UserFunctionInEvent userFunctionInEvent;
@@ -38,6 +44,9 @@ public class EventParticipationResponse {
                 .eventId(response.getEvent().getId())
                 .statusPaymentEventParticipation(response.getStatusPaymentEventParticipation())
                 .community(response.getCommunity())
+                .name(response.getName())
+                .email(response.getEmail())
+                .phoneNumber(response.getPhoneNumber())
                 .hasParticipated(response.getHasParticipated())
                 .userFunctionInEvent(response.getUserFunctionInEvent())
                 .qrCode(qrCode)

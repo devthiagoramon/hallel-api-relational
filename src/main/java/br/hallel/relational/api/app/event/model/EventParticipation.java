@@ -20,7 +20,7 @@ public class EventParticipation {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -33,6 +33,13 @@ public class EventParticipation {
 
     @Column(nullable = false)
     private String community;
+
+    @Column(nullable = false)
+    private String name;
+    @Column(nullable = false)
+    private String email;
+    @Column(nullable = false)
+    private String phoneNumber;
 
     @Column(nullable = false)
     private Boolean hasParticipated;
