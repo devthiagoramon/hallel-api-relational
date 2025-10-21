@@ -50,7 +50,9 @@ public class UserEventService {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
-        Optional<User> optionalUser = this.userRepository.findById(userId);
+        Optional<User> optionalUser = (userId != null)
+                ? this.userRepository.findById(userId)
+                : Optional.empty();
         if (optionalUser.isPresent()) {
 
             boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(optionalUser.get(), event);

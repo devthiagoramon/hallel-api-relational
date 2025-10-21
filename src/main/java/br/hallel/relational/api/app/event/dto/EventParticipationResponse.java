@@ -43,7 +43,7 @@ public class EventParticipationResponse {
     public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
         return EventParticipationResponse.builder()
                 .id(response.getId())
-                .userId(response.getUser().getId())
+                .userId(response.getUser() != null ? response.getUser().getId() : null)
                 .eventId(response.getEvent().getId())
                 .statusPaymentEventParticipation(response.getStatusPaymentEventParticipation())
                 .community(response.getCommunity())

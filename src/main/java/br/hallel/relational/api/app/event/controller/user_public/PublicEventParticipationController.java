@@ -23,12 +23,16 @@ public class PublicEventParticipationController {
 
     private final UserEventService userEventService;
     private final JwtTokenProvider jwtTokenProvider;
+
     @Operation(summary = "Join an event")
     @PostMapping("/join")
     public ResponseEntity<EventParticipationResponse> joinEvent(
-            @RequestHeader("Authorization") String authorizationHeader, @RequestBody EventParticipateDTO dto) {
-
-        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @RequestBody EventParticipateDTO dto) {
+        UUID userId = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            userId = jwtTokenProvider.getUserId(authorizationHeader);
+        }
         EventParticipationResponse response = userEventService.joinTheEvent(userId, dto);
         return ResponseEntity.ok(response);
     }

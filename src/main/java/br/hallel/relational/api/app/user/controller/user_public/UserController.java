@@ -92,4 +92,14 @@ public class UserController {
         return ResponseEntity.ok(
                 this.userService.editPhoneNumber(tokenService.getUserId(authorizationHeader), phoneNumber));
     }
+
+    @PatchMapping("/edit-date-birth")
+    @Operation(summary = "Edit Date birth of user", description = "Handles with updating the date birth of user")
+    public ResponseEntity<UserEditProfileDTO> editDateBirth(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody DateBirthUserDTO dto
+    ) {
+        return ResponseEntity.ok(
+                this.userService.editDateBirth(tokenService.getUserId(authorizationHeader), dto));
+    }
 }
