@@ -28,7 +28,7 @@ public class EventParticipation {
     private Event event;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "status_payment_event_participation")
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
 
     @Column(nullable = false)
@@ -38,10 +38,16 @@ public class EventParticipation {
     private String name;
     @Column(nullable = false)
     private String email;
-    @Column(nullable = false)
+    @Column(nullable = false, name = "phone_number")
     private String phoneNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "date_birth")
+    private OffsetDateTime dateBirth;
+
+    @Column(nullable = false, name = "is_married")
+    private Boolean isMarried;
+
+    @Column(nullable = false, name = "has_participated")
     private Boolean hasParticipated;
 
     @Enumerated(EnumType.STRING)

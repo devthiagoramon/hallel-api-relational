@@ -71,6 +71,8 @@ public class UserEventService {
         eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
         eventParticipation.setCommunity(dto.getCommunity());
+        eventParticipation.setIsMarried(dto.getIsMarried());
+        eventParticipation.setDateBirth(dto.getDateBirth());
 
         String qrCodeBase64 = null;
 
@@ -315,6 +317,8 @@ public class UserEventService {
                 participation.getName(),
                 participation.getEmail(),
                 participation.getPhoneNumber(),
+                participation.getDateBirth(),
+                participation.getIsMarried(),
                 participation.getHasParticipated(),
                 participation.getUserFunctionInEvent(),
                 null
@@ -417,11 +421,14 @@ public class UserEventService {
             eventParticipation.setName(user.getName());
             eventParticipation.setEmail(user.getEmail());
             eventParticipation.setPhoneNumber(user.getPhoneNumber());
+            eventParticipation.setDateBirth(user.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
         } else {
             eventParticipation.setName(dto.getName());
             eventParticipation.setEmail(dto.getEmail());
             eventParticipation.setPhoneNumber(dto.getPhoneNumber());
+            eventParticipation.setDateBirth(dto.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
         }
+        eventParticipation.setIsMarried(dto.getIsMarried());
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
         eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now()
                 .atOffset(ZoneOffset.UTC) : null);

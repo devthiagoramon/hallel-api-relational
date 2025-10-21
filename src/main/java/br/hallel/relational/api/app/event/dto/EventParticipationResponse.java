@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import lombok.*;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Builder
@@ -30,6 +31,8 @@ public class EventParticipationResponse {
     private String email;
 
     private String phoneNumber;
+    private OffsetDateTime dateBirth;
+    private Boolean isMarried;
 
     private Boolean hasParticipated;
 
@@ -47,6 +50,8 @@ public class EventParticipationResponse {
                 .name(response.getName())
                 .email(response.getEmail())
                 .phoneNumber(response.getPhoneNumber())
+                .dateBirth(response.getDateBirth())
+                .isMarried(response.getIsMarried())
                 .hasParticipated(response.getHasParticipated())
                 .userFunctionInEvent(response.getUserFunctionInEvent())
                 .qrCode(qrCode)

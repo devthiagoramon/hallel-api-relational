@@ -11,4 +11,9 @@ ADD COLUMN email VARCHAR(255) UNIQUE;
 ALTER TABLE event_participation
 ADD COLUMN phone_number varchar(255);
 
+ALTER TABLE event_participation
+ADD COLUMN date_birth DATE;
+
+ALTER TABLE event_participation
+ADD COLUMN is_married bool;
 
