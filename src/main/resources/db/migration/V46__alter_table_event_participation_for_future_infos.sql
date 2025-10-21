@@ -6,7 +6,7 @@ ALTER TABLE event_participation
 ADD COLUMN name VARCHAR(255);
 
 ALTER TABLE event_participation
-ADD COLUMN email VARCHAR(255) UNIQUE;
+ADD COLUMN email VARCHAR(255);
 
 ALTER TABLE event_participation
 ADD COLUMN phone_number varchar(255);
@@ -16,4 +16,7 @@ ADD COLUMN date_birth DATE;
 
 ALTER TABLE event_participation
 ADD COLUMN is_married bool;
+
+ALTER TABLE event_participation
+ADD CONSTRAINT uc_event_email UNIQUE (event_id, email);
 

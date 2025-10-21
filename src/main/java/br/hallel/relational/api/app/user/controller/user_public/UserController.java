@@ -77,7 +77,8 @@ public class UserController {
     @Operation(summary = "Edit CPF User ", description = "Edit CPF user info")
     public ResponseEntity<UserEditProfileDTO> editCPFUser(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam(name = "cpf") String cpf
+            @RequestParam(name = "cpf") String cpf,
+            @RequestParam(name = "userId", required = false) UUID userId
     ) {
         return ResponseEntity.ok(this.userService.editCPF(
                 tokenService.getUserId(authorizationHeader), cpf));
@@ -87,19 +88,25 @@ public class UserController {
     @Operation(summary = "Edit Phone number of user", description = "Handles with updating the phone number of user")
     public ResponseEntity<UserEditProfileDTO> editPhoneNumber(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam(name = "phoneNumber") String phoneNumber
+            @RequestParam(name = "phoneNumber") String phoneNumber,
+            @RequestParam(name = "userId", required = false) UUID userId
     ) {
         return ResponseEntity.ok(
-                this.userService.editPhoneNumber(tokenService.getUserId(authorizationHeader), phoneNumber));
+                this.userService.editPhoneNumber(
+                        userId.toString().equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
+                                userId, phoneNumber));
     }
 
     @PatchMapping("/edit-date-birth")
     @Operation(summary = "Edit Date birth of user", description = "Handles with updating the date birth of user")
     public ResponseEntity<UserEditProfileDTO> editDateBirth(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody DateBirthUserDTO dto
+            @RequestBody DateBirthUserDTO dto,
+            @RequestParam(name = "userId", required = false) UUID userId
     ) {
         return ResponseEntity.ok(
-                this.userService.editDateBirth(tokenService.getUserId(authorizationHeader), dto));
+                this.userService.editDateBirth(
+                        userId.toString().equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
+                                userId, dto));
     }
 }

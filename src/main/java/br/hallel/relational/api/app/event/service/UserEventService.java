@@ -422,8 +422,20 @@ public class UserEventService {
             User user = optionalUser.get();
             eventParticipation.setName(user.getName());
             eventParticipation.setEmail(user.getEmail());
-            eventParticipation.setPhoneNumber(user.getPhoneNumber());
-            eventParticipation.setDateBirth(user.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
+            if (user.getPhoneNumber() != null) {
+                eventParticipation.setPhoneNumber(user.getPhoneNumber());
+            } else {
+                eventParticipation.setPhoneNumber(dto.getPhoneNumber());
+            }
+            if (user.getDateBirth() != null) {
+                java.util.Date utilDate = user.getDateBirth();
+                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+                LocalDate localDate = sqlDate.toLocalDate();
+                OffsetDateTime birthDateAtUtc = localDate.atStartOfDay().atOffset(ZoneOffset.UTC);
+                eventParticipation.setDateBirth(birthDateAtUtc);
+            } else {
+                eventParticipation.setDateBirth(dto.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
+            }
         } else {
             eventParticipation.setName(dto.getName());
             eventParticipation.setEmail(dto.getEmail());
