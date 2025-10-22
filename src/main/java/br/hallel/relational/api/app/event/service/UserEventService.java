@@ -573,4 +573,11 @@ public class UserEventService {
         return this.eventParticipationRepository.isFrenteCaixa(userId, eventId, UserFunctionInEvent.FRENTE_CAIXA)
                 .isPresent();
     }
+
+    public Boolean removeParticipant(UUID participantId) {
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(participantId)
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
+        this.eventParticipationRepository.delete(eventParticipation);
+        return true;
+    }
 }

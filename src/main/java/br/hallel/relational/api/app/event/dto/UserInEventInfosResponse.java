@@ -23,6 +23,7 @@ public class UserInEventInfosResponse {
     private String userName;
     private String userEmail;
     private String phoneNumber;
+    private boolean isMarried;
     private OffsetDateTime dateBirth;
     private UserFunctionInEvent userFunctionInEvent;
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
@@ -32,7 +33,8 @@ public class UserInEventInfosResponse {
     public UserInEventInfosResponse toResponse(EventParticipation dto, int quantity) {
         return new UserInEventInfosResponse(dto.getId(), dto.getEvent().getId(),
                 dto.getUser() != null ? dto.getUser().getId() : null,
-                dto.getEvent().getTitle(), dto.getName(), dto.getEmail(), dto.getPhoneNumber(), dto.getDateBirth(),
+                dto.getEvent().getTitle(), dto.getName(), dto.getEmail(), dto.getPhoneNumber(), dto.getIsMarried(),
+                dto.getDateBirth(),
                 dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), dto.getCommunity(), quantity);
     }
 
