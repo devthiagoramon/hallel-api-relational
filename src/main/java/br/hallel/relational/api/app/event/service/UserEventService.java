@@ -408,7 +408,8 @@ public class UserEventService {
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
         log.info("Add participant as Admin");
         EventParticipation eventParticipation = new EventParticipation();
-        Optional<User> optionalUser = userRepository.findById(dto.getUserId());
+        Optional<User> optionalUser =
+                (dto.getUserId() != null) ? userRepository.findById(dto.getUserId()) : Optional.empty();
 
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
