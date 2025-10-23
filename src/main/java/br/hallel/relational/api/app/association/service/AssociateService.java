@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.association.service;
 
-import br.hallel.relational.api.app.association.dto.AssociatePayDetails;
-import br.hallel.relational.api.app.association.dto.AssociateResponse;
-import br.hallel.relational.api.app.association.dto.AssociationPaymentResponse;
-import br.hallel.relational.api.app.association.dto.CreateAssociateRequestDTO;
+import br.hallel.relational.api.app.association.dto.*;
 import br.hallel.relational.api.app.association.exception.AssociateException;
 import br.hallel.relational.api.app.association.exception.AssociateNotFoundException;
 import br.hallel.relational.api.app.association.exception.UserAlreadyAssociatedException;
@@ -27,6 +24,9 @@ import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -235,5 +235,22 @@ public class AssociateService {
     public Boolean verifyIfUserIsAssociated(UUID userId) {
         Optional<Associate> associateOptional = this.associateRepository.findByUser_Id(userId);
         return associateOptional.isPresent();
+    }
+
+    public Boolean removeAssociation(UUID associationId) {
+        Optional<Associate>  associateOptional = this.associateRepository.findByUser_Id(associationId);
+        if (associateOptional.isEmpty()) throw new AssociateException("Association not found by id: " + associationId);
+        Associate associate = associateOptional.get();
+        this.associateRepository.delete(associate);
+        return true;
+    }
+
+    public Page<AssociateWithUserResponse> listAllAssociateWithUserResponseService(Pageable pageable) {
+        return this.associateRepository.listAllWithUserResponse(pageable);
+    }
+
+    public Page<AssociateWithUserResponse> listAllASsociateWithUserResponseFilteredByPaymentStatus(
+            AssociatePaymentStatus status, Pageable pageable) {
+        return this.associateRepository.listAllWithUserResponseAndPaymentStatus(status, pageable);
     }
 }
