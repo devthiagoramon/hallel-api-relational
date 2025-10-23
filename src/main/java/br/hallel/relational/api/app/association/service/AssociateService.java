@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -112,7 +113,8 @@ public class AssociateService {
                     new PaymentStatusDTO(qrCodeBase64, lastPendingPayment.getPixTxid(),
                             StatusPaymentEventParticipation.PENDENTE));
         } catch (Exception e) {
-            log.error("Failed to retrieve Mercado Pago QR Code for payment ID {}", lastPendingPayment.getMercadoPagoPaymentId(), e);
+            log.error("Failed to retrieve Mercado Pago QR Code for payment ID {}",
+                    lastPendingPayment.getMercadoPagoPaymentId(), e);
             throw new RuntimeException("Failed to retrieve payment details.", e);
         }
 
@@ -198,7 +200,9 @@ public class AssociateService {
                 log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", user.getId(), qrCodeTxid);
 
             } else {
-                log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos para user ID {}.", user.getId());
+                log.error(
+                        "Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos para user ID {}.",
+                        user.getId());
                 throw new RuntimeException("Erro ao processar a resposta do Mercado Pago. Dados incompletos.");
             }
 
@@ -226,5 +230,10 @@ public class AssociateService {
         payment.setStatus(AssociatePaymentStatus.PENDENTE);
 
         return associatePaymentRepository.save(payment);
+    }
+
+    public Boolean verifyIfUserIsAssociated(UUID userId) {
+        Optional<Associate> associateOptional = this.associateRepository.findByUser_Id(userId);
+        return associateOptional.isPresent();
     }
 }
