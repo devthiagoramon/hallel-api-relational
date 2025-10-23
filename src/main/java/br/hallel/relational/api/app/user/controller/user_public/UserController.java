@@ -89,12 +89,12 @@ public class UserController {
     public ResponseEntity<UserEditProfileDTO> editPhoneNumber(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam(name = "phoneNumber") String phoneNumber,
-            @RequestParam(name = "userId", required = false) UUID userId
+            @RequestParam(name = "userId", required = false) String userId
     ) {
         return ResponseEntity.ok(
                 this.userService.editPhoneNumber(
-                        userId.toString().equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
-                                userId, phoneNumber));
+                        userId.equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
+                                UUID.fromString(userId), phoneNumber));
     }
 
     @PatchMapping("/edit-date-birth")
@@ -102,11 +102,11 @@ public class UserController {
     public ResponseEntity<UserEditProfileDTO> editDateBirth(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody DateBirthUserDTO dto,
-            @RequestParam(name = "userId", required = false) UUID userId
+            @RequestParam(name = "userId", required = false) String userId
     ) {
         return ResponseEntity.ok(
                 this.userService.editDateBirth(
-                        userId.toString().equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
-                                userId, dto));
+                        userId.equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
+                                UUID.fromString(userId), dto));
     }
 }

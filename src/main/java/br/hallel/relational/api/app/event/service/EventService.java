@@ -54,6 +54,11 @@ public class EventService implements EventInterface {
                                 MultipartFile fileImage,
                                 MultipartFile fileBanner) {
         log.info("Creating event...");
+
+        if (eventDTO.getDate().before(new Date())) {
+            throw new EventIllegalArumentException("Não foi possivel criar o evento: Data inválida!");
+        }
+
         if (eventDTO.getTitle() == null
                 || eventDTO.getDescription() == null
                 || eventDTO.getDate() == null) {
@@ -73,6 +78,7 @@ public class EventService implements EventInterface {
         eventToSave.setDuration(eventDTO.getDuration());
         eventToSave.setImage_url("");
         eventToSave.setBanner_url("");
+        eventToSave.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
         Event event = this.repository.save(eventToSave);
 
         if ((fileImage != null && !(fileImage.isEmpty()))
@@ -274,15 +280,15 @@ public class EventService implements EventInterface {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Event> eventsPagination;
-        if (eventStatus == null){
+        if (eventStatus == null) {
             eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-        }else {
+        } else {
             eventsPagination = this.repository.findByEventStatusOrderByTitleAsc(eventStatus, pageable);
         }
 
-        if (eventsPagination.isEmpty()) {
-            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-        }
+//        if (eventsPagination.isEmpty()) {
+//            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+//        }
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
