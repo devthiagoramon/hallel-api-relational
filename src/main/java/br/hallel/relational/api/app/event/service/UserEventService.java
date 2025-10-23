@@ -46,7 +46,7 @@ public class UserEventService {
     private final SimpMessagingTemplate template;
     private final PdfGenerationService pdfGenerationService;
 
-    public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
+    public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
@@ -77,11 +77,13 @@ public class UserEventService {
         eventParticipation.setDateBirth(dto.getDateBirth());
 
         String qrCodeBase64 = null;
+        boolean isAnonymous = optionalUser.isEmpty();
+        boolean isPaidEvent = !event.getItsFree() || event.getValue() > 0;
 
-        if ((!event.getItsFree() || event.getValue() > 0) && optionalUser.isPresent()) {
-            User user = optionalUser.get();
+        if (isPaidEvent) {
+            User user = !isAnonymous ? optionalUser.get() : null;
             try {
-                String fullName = user.getName();
+                String fullName = !isAnonymous ? user.getName() : dto.getName();
                 String firstName = "";
                 String lastName = "";
 
@@ -95,20 +97,21 @@ public class UserEventService {
                     }
                 }
 
-                if (user.getCpf() == null || user.getCpf().isEmpty()) {
+                boolean notHaveCpf = !isAnonymous ? user.getCpf() == null : dto.getCpf() == null;
+                if (notHaveCpf) {
                     throw new UserValidationException("User CPF is required to make the payment.");
                 }
 
                 CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
                         BigDecimal.valueOf(event.getValue()),
                         event.getTitle(),
-                        user.getEmail(),
+                        !isAnonymous ? user.getEmail() : dto.getEmail(),
                         firstName,
                         lastName,
-                        user.getCpf()
+                        !isAnonymous ? user.getCpf() : dto.getCpf()
                 );
 
-                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, userId);
+                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
 
                 if (payment != null && payment.getPointOfInteraction() != null &&
                         payment.getPointOfInteraction().getTransactionData() != null) {
@@ -118,12 +121,12 @@ public class UserEventService {
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
                     String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
 
-                    template.convertAndSend("/topic/payments/" + user.getId(),
+                    template.convertAndSend("/topic/payments/" + generatedPaymentId,
                             new PaymentStatusDTO(qrCodeBase64, linkCodePayment,
                                     StatusPaymentEventParticipation.PENDENTE));
 
 
-                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", userId,
+                    log.info("Pagamento Pix criado com sucesso de id {}. TXID: {}", generatedPaymentId,
                             eventParticipation.getPixTxid());
                 } else {
                     log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");

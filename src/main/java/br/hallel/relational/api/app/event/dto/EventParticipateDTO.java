@@ -18,6 +18,7 @@ public class EventParticipateDTO {
     private String name;
     private String email;
     private String phoneNumber;
+    private String cpf;
     private Boolean isMarried;
     private OffsetDateTime dateBirth;
 }
