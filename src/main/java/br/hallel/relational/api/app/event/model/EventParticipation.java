@@ -65,4 +65,8 @@ public class EventParticipation {
 
     @Column(name = "paid_date")
     private OffsetDateTime paidDate;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "event_invite_id")
+    private EventInvite eventInviteAssociated;
 }

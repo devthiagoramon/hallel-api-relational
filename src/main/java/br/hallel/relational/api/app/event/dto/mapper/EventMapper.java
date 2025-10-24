@@ -17,15 +17,9 @@ import java.util.Objects;
 )
 public abstract class EventMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "value", ignore = true)
-    @Mapping(target = "banner_url", ignore = true)
-    @Mapping(target = "image_url", ignore = true)
-    @Mapping(target = "ministriesAssocied", ignore = true)
-    @Mapping(target = "eventStatus", ignore = true)
-    public abstract EventResponse dtoToResponse(EventDTO eventDTO);
 
     @Mapping(target = "ministriesAssocied", ignore = true)
+    @Mapping(target = "schedules", source = "eventSchedules")
     public abstract EventResponse entityToResponse(Event event);
 
     @AfterMapping
@@ -47,22 +41,23 @@ public abstract class EventMapper {
 
     @Mapping(target = "scales", ignore = true)
     @Mapping(target = "eventType", ignore = true)
-    @Mapping(target = "schedule", ignore = true)
     @Mapping(target = "transactions", ignore = true)
     @Mapping(target = "itsFree", ignore = true)
     @Mapping(target = "participations", ignore = true)
     @Mapping(target = "foods", ignore = true)
     @Mapping(target = "eventStatus", ignore = true)
     @Mapping(target = "duration", ignore = true)
+    @Mapping(target = "eventSchedules", source = "schedules")
     public abstract Event responseToEntity(EventResponse eventResponse);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "value", ignore = true)
+
     @Mapping(target = "banner_url", ignore = true)
     @Mapping(target = "image_url", ignore = true)
     @Mapping(target = "scales", ignore = true)
     @Mapping(target = "eventType", ignore = true)
-    @Mapping(target = "schedule", ignore = true)
+    @Mapping(target = "eventSchedules", ignore = true)
+    @Mapping(target = "eventInvites", ignore = true)
     @Mapping(target = "transactions", ignore = true)
     @Mapping(target = "itsFree", ignore = true)
     @Mapping(target = "participations", ignore = true)

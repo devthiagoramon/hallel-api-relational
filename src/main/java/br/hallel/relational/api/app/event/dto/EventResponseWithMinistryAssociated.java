@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.EventStatus;
-import br.hallel.relational.api.app.event.model.EventType;
-import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.EventScale;
+import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,67 +25,12 @@ public class EventResponseWithMinistryAssociated {
     private String local_event_name;
     private Double local_event_longitude;
     private Double local_event_latitude;
-    private Double value;
+    private List<EventInvite> eventInvites;
+    private List<EventSchedule> eventSchedules;
     private EventType eventType;
     private boolean itsFree;
     private EventStatus eventStatus;
     private List<MinistryResponse> ministries;
 
-    public EventResponseWithMinistryAssociated(Event event) {
-        this.id = event.getId();
-        this.title = event.getTitle();
-        this.description = event.getDescription();
-        this.date = event.getDate();
-        this.banner_url = event.getBanner_url();
-        this.image_url = event.getImage_url();
-        this.isImportant = event.getIsImportant();
-        this.local_event_name = event.getLocal_event_name();
-        this.local_event_longitude = event.getLocal_event_longitude();
-        this.local_event_latitude = event.getLocal_event_latitude();
-        this.value = event.getValue();
-
-
-
-        if (event.getScales() != null) {
-            for (EventScale scale : event.getScales()) {
-                System.out.println(scale.getId());
-            }
-            this.ministries = event.getScales().stream()
-                    .map(EventScale::getMinistry)
-                    .filter(Objects::nonNull)
-                    .map(ministryEntity -> new MinistryResponse(
-                            ministryEntity.getId(),
-                            ministryEntity.getTitle(),
-                            ministryEntity.getDescription(),
-                            ministryEntity.getImage(),
-                            ministryEntity.getHasRepertoire(),
-                            ministryEntity.getMinistryType(),
-                            ministryEntity.getCoordinator(),
-                            ministryEntity.getViceCoordinator()
-                    ))
-                    .collect(Collectors.toList());
-        } else {
-            this.ministries = new ArrayList<>();
-        }
-    }
-
-    public EventResponseWithMinistryAssociated(UUID id, String title, String description, Date date,
-                                               String banner_url, String image_url, Boolean isImportant,
-                                               String local_event_name, Double local_event_longitude,
-                                               Double local_event_latitude, Double value,
-                                               List<MinistryResponse> ministries) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.date = date;
-        this.banner_url = banner_url;
-        this.image_url = image_url;
-        this.isImportant = isImportant;
-        this.local_event_name = local_event_name;
-        this.local_event_longitude = local_event_longitude;
-        this.local_event_latitude = local_event_latitude;
-        this.value = value;
-        this.ministries = ministries;
-    }
 
 }
