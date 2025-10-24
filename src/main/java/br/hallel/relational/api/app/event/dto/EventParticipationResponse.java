@@ -31,7 +31,9 @@ public class EventParticipationResponse {
     private String email;
 
     private String phoneNumber;
+
     private OffsetDateTime dateBirth;
+
     private Boolean isMarried;
 
     private Boolean hasParticipated;

@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
@@ -45,6 +46,7 @@ public class UserEventService {
     private final MercadoPagoClient mercadoPagoClient;
     private final SimpMessagingTemplate template;
     private final PdfGenerationService pdfGenerationService;
+    private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
@@ -80,8 +82,22 @@ public class UserEventService {
         boolean isAnonymous = optionalUser.isEmpty();
         boolean isPaidEvent = !event.getItsFree() || event.getValue() > 0;
 
+
+        User user = !isAnonymous ? optionalUser.get() : null;
+
+        Date birthDate = !isAnonymous ? user.getDateBirth() : Date.from(dto.getDateBirth().toInstant());
+        log.info("DATA DE NASCIMENTO DO USUÁRIO: {}", birthDate);
+        LocalDate birthLocalDate = new java.util.Date(birthDate.getTime())
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        int years = Period.between(birthLocalDate, LocalDate.now()).getYears();
+
+        //MÉTODO PRA VALIDAR A IDADE DO PARTICIPANTE E VERIFICAR SE A QUANTIDADE DE VAGAS NÃO ULTRAPASSOU O LIMITE
+        log.info("ANTES DE VALIDAR A IDADE");
+        validateAgeParticipant(years, event);
+
         if (isPaidEvent) {
-            User user = !isAnonymous ? optionalUser.get() : null;
             try {
                 String fullName = !isAnonymous ? user.getName() : dto.getName();
                 String firstName = "";
@@ -102,14 +118,16 @@ public class UserEventService {
                     throw new UserValidationException("User CPF is required to make the payment.");
                 }
 
-                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
-                        BigDecimal.valueOf(event.getValue()),
-                        event.getTitle(),
-                        !isAnonymous ? user.getEmail() : dto.getEmail(),
-                        firstName,
-                        lastName,
-                        !isAnonymous ? user.getCpf() : dto.getCpf()
-                );
+
+                CreatePixPaymentRequestDTO paymentRequestDTO =
+                        new CreatePixPaymentRequestDTO(
+                                BigDecimal.valueOf(event.getValue()),
+                                event.getTitle(),
+                                !isAnonymous ? user.getEmail() : dto.getEmail(),
+                                firstName,
+                                lastName,
+                                !isAnonymous ? user.getCpf() : dto.getCpf()
+                        );
 
                 Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
 
@@ -152,6 +170,44 @@ public class UserEventService {
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
         return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
 
+    }
+
+    private void validateAgeParticipant(int years, Event event) {
+        AgeGroup targetAgeGroup;
+
+        if (years <= 8) {
+            targetAgeGroup = AgeGroup.CHILD;
+
+        } else if (years <= 14) {
+            targetAgeGroup = AgeGroup.YOUNG;
+
+        } else if (years <= 30) {
+            targetAgeGroup = AgeGroup.TEEN;
+
+        } else if (years <= 120) {
+            targetAgeGroup = AgeGroup.ADULT;
+
+        } else {
+            throw new UserValidationException("A idade do usuário é inválida ou fora da faixa aceita (0 a 120 anos).");
+        }
+
+        if (targetAgeGroup == null) {
+            throw new UserValidationException("Não foi possível classificar a idade do usuário.");
+        }
+
+        LimitEventAgeGroup limit =
+                this.limitEventAgeGroupRepository.findByEventIdAndAgeGroup(event.getId(), targetAgeGroup)
+                        .orElseThrow(() -> new RuntimeException("Limite de vagas para a faixa etária " + targetAgeGroup.name() + " não configurado."));
+
+        log.info("GRUPO ACHADO para idade {}: {}", years, limit.getAgeGroup());
+
+        if (limit.getLimitQuantity() <= limit.getCurrentQuantity()) {
+            throw new UserValidationException("O limite de participantes para a faixa etária " + targetAgeGroup + " foi atingido.");
+        }
+
+        limit.setCurrentQuantity(limit.getCurrentQuantity() + 1);
+
+        this.limitEventAgeGroupRepository.save(limit);
     }
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {

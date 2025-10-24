@@ -7,6 +7,7 @@ import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
@@ -48,6 +49,7 @@ public class EventService implements EventInterface {
     private final MinistryMapper ministryMapper;
     private final PdfGenerationService pdfGenerationService;
 
+    private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
 
     @Override
     public EventResponse create(EventDTO eventDTO,
@@ -80,7 +82,7 @@ public class EventService implements EventInterface {
         eventToSave.setBanner_url("");
         eventToSave.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
         Event event = this.repository.save(eventToSave);
-
+        generateLimiteAgeGroupForEvent(event);
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
 
@@ -528,5 +530,28 @@ public class EventService implements EventInterface {
             throw new GenerateEventTransactionPDFException("Não foi possivel gerar o PDF de transações");
         }
         return pdfBase64;
+    }
+
+    public void generateLimiteAgeGroupForEvent(Event event) {
+        log.info("Generating limit age group for event {}", event.getId());
+        for (AgeGroup ageGroup : AgeGroup.values()) {
+            LimitEventAgeGroup limit = new LimitEventAgeGroup();
+
+            if (ageGroup.name() == AgeGroup.CHILD.name()) {
+                limit.setLimitQuantity(60);
+            } else if (ageGroup.name() == AgeGroup.YOUNG.name()) {
+                limit.setLimitQuantity(30);
+            } else if (ageGroup.name() == AgeGroup.TEEN.name()) {
+                limit.setLimitQuantity(20);
+            } else if (ageGroup.name() == AgeGroup.ADULT.name()) {
+                limit.setLimitQuantity(20);
+            }
+            limit.setAgeGroup(ageGroup);
+            limit.setCurrentQuantity(0);
+            limit.setEvent(event);
+            this.limitEventAgeGroupRepository.save(
+                    limit
+            );
+        }
     }
 }
