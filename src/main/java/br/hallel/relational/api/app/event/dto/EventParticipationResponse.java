@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.AgeGroup;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
@@ -42,6 +43,21 @@ public class EventParticipationResponse {
 
     private String qrCode;
 
+    private Boolean limiteIsReached;
+
+    private AgeGroup ageGroup;
+
+    public EventParticipationResponse(Boolean limiteIsReached, AgeGroup ageGroup, UUID eventId, UUID userId) {
+        this.limiteIsReached = limiteIsReached;
+        this.ageGroup = ageGroup;
+        this.eventId = eventId;
+        this.userId = userId;
+    }
+
+    public static EventParticipationResponse toEventParticipationLimitReached(
+            Boolean limiteIsReached, AgeGroup ageGroup, UUID eventId, UUID userId) {
+        return new EventParticipationResponse(limiteIsReached, ageGroup, eventId, userId);
+    }
     public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
         return EventParticipationResponse.builder()
                 .id(response.getId())

@@ -95,7 +95,15 @@ public class UserEventService {
 
         //MÉTODO PRA VALIDAR A IDADE DO PARTICIPANTE E VERIFICAR SE A QUANTIDADE DE VAGAS NÃO ULTRAPASSOU O LIMITE
         log.info("ANTES DE VALIDAR A IDADE");
-        validateAgeParticipant(years, event);
+
+        ValidateAgeParticipantResponse validateAgeResponse = validateAgeParticipant(years, event);
+        if (validateAgeResponse.limiteReached() != null && validateAgeResponse.limiteReached() == AgeGroup.EXCEDIDO) {
+
+            return EventParticipationResponse.toEventParticipationLimitReached(true,
+                    validateAgeResponse.ageGroup(),
+                    event.getId(),
+                    !isAnonymous ? user.getId() : null);
+        }
 
         if (isPaidEvent) {
             try {
@@ -172,7 +180,7 @@ public class UserEventService {
 
     }
 
-    private void validateAgeParticipant(int years, Event event) {
+    private ValidateAgeParticipantResponse validateAgeParticipant(int years, Event event) {
         AgeGroup targetAgeGroup;
 
         if (years <= 8) {
@@ -202,13 +210,16 @@ public class UserEventService {
         log.info("GRUPO ACHADO para idade {}: {}", years, limit.getAgeGroup());
 
         if (limit.getLimitQuantity() <= limit.getCurrentQuantity()) {
-            throw new UserValidationException("O limite de participantes para a faixa etária " + targetAgeGroup + " foi atingido.");
+            log.warn("O limite de participantes para a faixa etária " + targetAgeGroup + " foi atingido.");
+            return new ValidateAgeParticipantResponse(targetAgeGroup, AgeGroup.EXCEDIDO);
         }
 
         limit.setCurrentQuantity(limit.getCurrentQuantity() + 1);
 
         this.limitEventAgeGroupRepository.save(limit);
+        return new ValidateAgeParticipantResponse(targetAgeGroup, null);
     }
+
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
         log.info("Paying an event");
@@ -382,6 +393,8 @@ public class UserEventService {
                 participation.getIsMarried(),
                 participation.getHasParticipated(),
                 participation.getUserFunctionInEvent(),
+                null,
+                false,
                 null
         ));
     }
