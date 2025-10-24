@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import lombok.*;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Builder
@@ -25,6 +26,14 @@ public class EventParticipationResponse {
 
     private String community;
 
+    private String name;
+
+    private String email;
+
+    private String phoneNumber;
+    private OffsetDateTime dateBirth;
+    private Boolean isMarried;
+
     private Boolean hasParticipated;
 
     private UserFunctionInEvent userFunctionInEvent;
@@ -34,10 +43,15 @@ public class EventParticipationResponse {
     public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
         return EventParticipationResponse.builder()
                 .id(response.getId())
-                .userId(response.getUser().getId())
+                .userId(response.getUser() != null ? response.getUser().getId() : null)
                 .eventId(response.getEvent().getId())
                 .statusPaymentEventParticipation(response.getStatusPaymentEventParticipation())
                 .community(response.getCommunity())
+                .name(response.getName())
+                .email(response.getEmail())
+                .phoneNumber(response.getPhoneNumber())
+                .dateBirth(response.getDateBirth())
+                .isMarried(response.getIsMarried())
                 .hasParticipated(response.getHasParticipated())
                 .userFunctionInEvent(response.getUserFunctionInEvent())
                 .qrCode(qrCode)

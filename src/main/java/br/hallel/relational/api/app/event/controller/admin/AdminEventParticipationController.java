@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +87,11 @@ public class AdminEventParticipationController {
     @Operation(summary = "Add participation to event", description = "Handles the action of admin add new participants")
     public ResponseEntity<EventParticipationResponse> addParticipateAsAdmin(@RequestBody EventParticipationAdmDTO dto) {
         return ResponseEntity.ok(userEventService.addParticipateAsAdminService(dto));
+    }
+
+    @DeleteMapping("/remove/{participantId}")
+    public ResponseEntity<Boolean> removerParticipantAsAdmin(@PathVariable("participantId") UUID participantId) {
+        return ResponseEntity.ok(userEventService.removeParticipant(participantId));
     }
 
     @GetMapping("/user-comprovant")

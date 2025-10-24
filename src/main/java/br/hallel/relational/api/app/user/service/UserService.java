@@ -225,10 +225,27 @@ public class UserService implements UserInterface {
                         new UserNotFoundException("user.not.found", idUser.toString()));
 
         if (cpf == null || cpf.isEmpty()) {
-            throw new IllegalArgumentException("CPF cannot be null or empty");
+            throw new IllegalArgumentException("O CPF não pode ser nulo e nem vazio");
         }
 
         user.setCpf(cpf.replaceAll("\\D", ""));
+        this.userRepository.save(user);
+
+        return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
+                user.getDateBirth(), user.getCpf());
+    }
+
+    public UserEditProfileDTO editPhoneNumber(UUID idUser, String phoneNumber) {
+
+        User user =
+                this.userRepository.findById(idUser).orElseThrow(() ->
+                        new UserNotFoundException("user.not.found", idUser.toString()));
+
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            throw new IllegalArgumentException("O número não pode ser nulo e nem vazio");
+        }
+
+        user.setPhoneNumber(phoneNumber.replaceAll("\\D", ""));
         this.userRepository.save(user);
 
         return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
@@ -429,9 +446,26 @@ public class UserService implements UserInterface {
         User userById = this.getUserById(idUser);
 
         return new UserProfileWithPasswordResponse(userById.getId(), userById.getName(), userById.getEmail(),
-                userById.getPhoneNumber(), userById.getPassword(), userById.getDateBirth(), userById.getFileImageUrl(), userById.getCpf(),
+                userById.getPhoneNumber(), userById.getPassword(), userById.getDateBirth(), userById.getFileImageUrl(),
+                userById.getCpf(),
                 userById.getStatus(),
                 null, null);
 
+    }
+
+    public UserEditProfileDTO editDateBirth(UUID userId, DateBirthUserDTO dto) {
+        User user =
+                this.userRepository.findById(userId).orElseThrow(() ->
+                        new UserNotFoundException("user.not.found", userId.toString()));
+
+        if (dto.getDateBirth() == null || dto.getDateBirth().isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("Data de aniversário não pode estar no futuro e nem ser nula");
+        }
+
+        user.setDateBirth(Date.from(dto.getDateBirth().toInstant()));
+        this.userRepository.save(user);
+
+        return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
+                user.getDateBirth(), user.getCpf());
     }
 }

@@ -46,33 +46,44 @@ public class UserEventService {
     private final SimpMessagingTemplate template;
     private final PdfGenerationService pdfGenerationService;
 
-    public EventParticipationResponse joinTheEvent(UUID userId, EventParticipateDTO dto) {
+    public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
-        User user = this.userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException("user.not.found", userId.toString())
-        );
+        Optional<User> optionalUser = (userId != null)
+                ? this.userRepository.findById(userId)
+                : Optional.empty();
+        if (optionalUser.isPresent()) {
 
-        boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
-        if (alreadyParticipating) {
-            log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", userId,
-                    dto.getEventId());
-            throw new EventIllegalArumentException("User already participating in this event.");
+            boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(optionalUser.get(), event);
+            if (alreadyParticipating) {
+                log.warn("Usuário ID {} já está participando do evento ID {}. Lançando exceção.", userId,
+                        dto.getEventId());
+                throw new EventIllegalArumentException("User already participating in this event.");
+            }
         }
 
+
         EventParticipation eventParticipation = new EventParticipation();
-        eventParticipation.setUser(user);
+        optionalUser.ifPresent(eventParticipation::setUser);
         eventParticipation.setEvent(event);
+        eventParticipation.setEmail(dto.getEmail());
+        eventParticipation.setPhoneNumber(dto.getPhoneNumber());
+        eventParticipation.setName(dto.getName());
         eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
         eventParticipation.setCommunity(dto.getCommunity());
+        eventParticipation.setIsMarried(dto.getIsMarried());
+        eventParticipation.setDateBirth(dto.getDateBirth());
 
         String qrCodeBase64 = null;
+        boolean isAnonymous = optionalUser.isEmpty();
+        boolean isPaidEvent = !event.getItsFree() || event.getValue() > 0;
 
-        if (!event.getItsFree() || event.getValue() > 0) {
+        if (isPaidEvent) {
+            User user = !isAnonymous ? optionalUser.get() : null;
             try {
-                String fullName = user.getName();
+                String fullName = !isAnonymous ? user.getName() : dto.getName();
                 String firstName = "";
                 String lastName = "";
 
@@ -86,20 +97,21 @@ public class UserEventService {
                     }
                 }
 
-                if (user.getCpf() == null || user.getCpf().isEmpty()) {
+                boolean notHaveCpf = !isAnonymous ? user.getCpf() == null : dto.getCpf() == null;
+                if (notHaveCpf) {
                     throw new UserValidationException("User CPF is required to make the payment.");
                 }
 
                 CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
                         BigDecimal.valueOf(event.getValue()),
                         event.getTitle(),
-                        user.getEmail(),
+                        !isAnonymous ? user.getEmail() : dto.getEmail(),
                         firstName,
                         lastName,
-                        user.getCpf()
+                        !isAnonymous ? user.getCpf() : dto.getCpf()
                 );
 
-                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, userId);
+                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
 
                 if (payment != null && payment.getPointOfInteraction() != null &&
                         payment.getPointOfInteraction().getTransactionData() != null) {
@@ -109,12 +121,12 @@ public class UserEventService {
                     qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
                     String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
 
-                    template.convertAndSend("/topic/payments/" + user.getId(),
+                    template.convertAndSend("/topic/payments/" + generatedPaymentId,
                             new PaymentStatusDTO(qrCodeBase64, linkCodePayment,
                                     StatusPaymentEventParticipation.PENDENTE));
 
 
-                    log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", userId,
+                    log.info("Pagamento Pix criado com sucesso de id {}. TXID: {}", generatedPaymentId,
                             eventParticipation.getPixTxid());
                 } else {
                     log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
@@ -307,6 +319,11 @@ public class UserEventService {
                 participation.getEvent().getId(),
                 participation.getStatusPaymentEventParticipation(),
                 participation.getCommunity(),
+                participation.getName(),
+                participation.getEmail(),
+                participation.getPhoneNumber(),
+                participation.getDateBirth(),
+                participation.getIsMarried(),
                 participation.getHasParticipated(),
                 participation.getUserFunctionInEvent(),
                 null
@@ -394,8 +411,9 @@ public class UserEventService {
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
         log.info("Add participant as Admin");
         EventParticipation eventParticipation = new EventParticipation();
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("user.not.found", dto.getUserId().toString()));
+        Optional<User> optionalUser =
+                (dto.getUserId() != null) ? userRepository.findById(dto.getUserId()) : Optional.empty();
+
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
                         dto.getEventId().toString()));
@@ -403,36 +421,64 @@ public class UserEventService {
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
-        eventParticipation.setUser(user);
+        optionalUser.ifPresent(eventParticipation::setUser);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            eventParticipation.setName(user.getName());
+            eventParticipation.setEmail(user.getEmail());
+            if (user.getPhoneNumber() != null) {
+                eventParticipation.setPhoneNumber(user.getPhoneNumber());
+            } else {
+                eventParticipation.setPhoneNumber(dto.getPhoneNumber());
+            }
+            if (user.getDateBirth() != null) {
+                java.util.Date utilDate = user.getDateBirth();
+                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+                LocalDate localDate = sqlDate.toLocalDate();
+                OffsetDateTime birthDateAtUtc = localDate.atStartOfDay().atOffset(ZoneOffset.UTC);
+                eventParticipation.setDateBirth(birthDateAtUtc);
+            } else {
+                eventParticipation.setDateBirth(dto.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
+            }
+        } else {
+            eventParticipation.setName(dto.getName());
+            eventParticipation.setEmail(dto.getEmail());
+            eventParticipation.setPhoneNumber(dto.getPhoneNumber());
+            eventParticipation.setDateBirth(dto.getDateBirth().toInstant().atOffset(ZoneOffset.UTC));
+        }
+        eventParticipation.setIsMarried(dto.getIsMarried());
         eventParticipation.setHasParticipated(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO);
         eventParticipation.setPaidDate(dto.getStatusPayment() == StatusPaymentEventParticipation.PAGO ? Instant.now()
                 .atOffset(ZoneOffset.UTC) : null);
-        user.setCpf("05961055256");
-        if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE) {
-            CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
-                    BigDecimal.valueOf(event.getValue()),
-                    event.getTitle(),
-                    user.getEmail(),
-                    "",
-                    "",
-                    user.getCpf()
-            );
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setCpf("05961055256");
+            if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE) {
+                CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
+                        BigDecimal.valueOf(event.getValue()),
+                        event.getTitle(),
+                        user.getEmail(),
+                        "",
+                        "",
+                        user.getCpf()
+                );
 
-            try {
+                try {
 
-                Payment createPaymentUser = mercadoPagoClient.createPixPayment(paymentRequestDTO, user.getId());
-                eventParticipation.setMercadoPagoPaymentId(createPaymentUser.getId());
-            } catch (MPApiException apiException) {
-                log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
-                        apiException.getStatusCode(),
-                        apiException.getMessage(),
-                        apiException.getApiResponse().getContent());
-                throw new MercadoPagoAPIException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
-                        apiException.getMessage());
-            } catch (MPException | RuntimeException e) {
-                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
-                throw new MercadoPagoException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
-                        e.getMessage());
+                    Payment createPaymentUser = mercadoPagoClient.createPixPayment(paymentRequestDTO, user.getId());
+                    eventParticipation.setMercadoPagoPaymentId(createPaymentUser.getId());
+                } catch (MPApiException apiException) {
+                    log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
+                            apiException.getStatusCode(),
+                            apiException.getMessage(),
+                            apiException.getApiResponse().getContent());
+                    throw new MercadoPagoAPIException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
+                            apiException.getMessage());
+                } catch (MPException | RuntimeException e) {
+                    log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+                    throw new MercadoPagoException("Erro ao criar pagamento Pix. Por favor, tente novamente: " +
+                            e.getMessage());
+                }
             }
         }
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
@@ -529,5 +575,12 @@ public class UserEventService {
     public Boolean validateHasFrenteCaixa(UUID userId, UUID eventId) {
         return this.eventParticipationRepository.isFrenteCaixa(userId, eventId, UserFunctionInEvent.FRENTE_CAIXA)
                 .isPresent();
+    }
+
+    public Boolean removeParticipant(UUID participantId) {
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(participantId)
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
+        this.eventParticipationRepository.delete(eventParticipation);
+        return true;
     }
 }

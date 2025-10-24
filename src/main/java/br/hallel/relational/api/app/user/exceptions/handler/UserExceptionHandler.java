@@ -17,26 +17,13 @@ import java.util.Locale;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class UserExceptionHandler {
-    private final MessageSource messageSource;
 
 
     @ExceptionHandler(value = UserNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleUserNotFoundExcpetion(
             UserNotFoundException exception, WebRequest request) {
-        Locale locale = LocaleContextHolder.getLocale();
-
-        String messageKey = exception.getMessage();
-        Object[] args = new Object[]{exception.getUserId()};
-
-        String localizedMessage = messageSource.getMessage(messageKey, args, locale);
-
-        ExceptionResponse response = new ExceptionResponse(
-                localizedMessage,
-                new Date(),
-                request.getDescription(false)
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
 }

@@ -20,21 +20,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user/event/participation")
 @RequiredArgsConstructor
-@Tag(name = "Events - User participation", description = "Events User Participation part for public")
+@Tag(name = "Events - User participation", description = "Events User Participation part ")
 public class UserEventParticipationController {
 
     private final UserEventService userEventService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    @Operation(summary = "Join an event")
-    @PostMapping("/join")
-    public ResponseEntity<EventParticipationResponse> joinEvent(
-            @RequestHeader("Authorization") String authorizationHeader, @RequestBody EventParticipateDTO dto) {
-
-        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
-        EventParticipationResponse response = userEventService.joinTheEvent(userId, dto);
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/pay/{eventId}")
     @Operation(summary = "Pay an Event (or retreat)")

@@ -51,7 +51,7 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
                     JOIN u.roles r
                     WHERE u.id
                             NOT IN (
-                                SELECT ep.user.id FROM EventParticipation ep WHERE ep.event.id = :eventId
+                                SELECT ep.user.id FROM EventParticipation ep WHERE ep.event.id = :eventId AND ep.user IS NOT NULL
                             )
                     AND r.description = 'USER' AND SIZE(u.roles) = 1
             """)

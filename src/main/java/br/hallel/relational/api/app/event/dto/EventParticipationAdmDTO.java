@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
@@ -19,4 +20,9 @@ public class EventParticipationAdmDTO {
     private StatusPaymentEventParticipation statusPayment;
     private UserFunctionInEvent userFunctionInEvent;
     private String community;
+    private String name;
+    private String email;
+    private String phoneNumber;
+    private OffsetDateTime dateBirth;
+    private Boolean isMarried;
 }

@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.association.dto.AssociationPaymentResponse;
 import br.hallel.relational.api.app.association.dto.CreateAssociateRequestDTO;
 import br.hallel.relational.api.app.association.service.AssociateService;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,4 +58,12 @@ public class UserAssociateController {
         UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
         return ResponseEntity.ok(this.associateService.getAssociateInfoByUserId(userId));
     }
+
+    @GetMapping("/verify-if-is-associate")
+    @Operation(summary = "Verify if user is associated in system", description = "Handles verifing if user is associated")
+    public ResponseEntity<Boolean> verifyIfIsAssociate(@RequestHeader("Authorization") String authorizationHeader){
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        return ResponseEntity.ok(this.associateService.verifyIfUserIsAssociated(userId));
+    }
+
 }
