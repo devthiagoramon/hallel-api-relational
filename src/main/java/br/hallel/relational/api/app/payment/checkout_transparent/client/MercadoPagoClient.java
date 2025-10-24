@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.payment.checkout_transparent.client;
 
 import br.hallel.relational.api.app.event.exception.PaymentRefundException;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreateCardPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.user.model.User;
 import com.mercadopago.MercadoPagoConfig;
@@ -252,6 +253,43 @@ public class MercadoPagoClient {
 
         return payment;
     }
+
+    public Payment createCardPayment(CreateCardPaymentRequestDTO dto, UUID userId) throws MPException, MPApiException {
+        log.info("Criando pagamento com Cartão no Mercado Pago. Valor: {}", dto.amount());
+
+        String externalReference = userId.toString();
+        PaymentClient client = new PaymentClient();
+
+        PaymentPayerRequest payerRequest = PaymentPayerRequest.builder()
+                .email(dto.payerEmail())
+                .firstName(dto.payerFirstName())
+                .lastName(dto.payerLastName())
+                .identification(
+                        IdentificationRequest.builder()
+                                .type("CPF")
+                                .number(dto.payerIdentificationNumber())
+                                .build())
+                .build();
+
+        PaymentCreateRequest createRequest = PaymentCreateRequest.builder()
+                .transactionAmount(dto.amount())
+                .description(dto.description())
+                .token(dto.token()) // O token gerado pelo frontend
+                .installments(dto.installments()) // O número de parcelas
+                .paymentMethodId(dto.paymentMethodId()) // O ID do método (visa, master, etc.)
+                .payer(payerRequest)
+                .externalReference(externalReference)
+                .notificationUrl(notificationUrl)
+                .build();
+
+        // 3. Criação do Pagamento
+        Payment payment = client.create(createRequest);
+        log.info("Pagamento com Cartão criado com sucesso no Mercado Pago. Status: {}", payment.getStatus());
+
+        return payment;
+    }
+
+
 
     public String getPaymentPixCode(Long mercadoPagoPaymentId) throws MPException, MPApiException {
         PaymentClient client = new PaymentClient();
