@@ -184,16 +184,16 @@ public class UserEventService {
         AgeGroup targetAgeGroup;
 
         if (years <= 8) {
-            targetAgeGroup = AgeGroup.CHILD;
+            targetAgeGroup = AgeGroup.CRIANÇA;
 
         } else if (years <= 14) {
-            targetAgeGroup = AgeGroup.YOUNG;
-
-        } else if (years <= 30) {
             targetAgeGroup = AgeGroup.TEEN;
 
+        } else if (years <= 30) {
+            targetAgeGroup = AgeGroup.JOVEM;
+
         } else if (years <= 120) {
-            targetAgeGroup = AgeGroup.ADULT;
+            targetAgeGroup = AgeGroup.ADULTO;
 
         } else {
             throw new UserValidationException("A idade do usuário é inválida ou fora da faixa aceita (0 a 120 anos).");

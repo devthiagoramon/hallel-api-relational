@@ -537,13 +537,13 @@ public class EventService implements EventInterface {
         for (AgeGroup ageGroup : AgeGroup.values()) {
             LimitEventAgeGroup limit = new LimitEventAgeGroup();
 
-            if (ageGroup.name() == AgeGroup.CHILD.name()) {
+            if (ageGroup.name() == AgeGroup.CRIANÇA.name()) {
                 limit.setLimitQuantity(60);
-            } else if (ageGroup.name() == AgeGroup.YOUNG.name()) {
-                limit.setLimitQuantity(30);
             } else if (ageGroup.name() == AgeGroup.TEEN.name()) {
+                limit.setLimitQuantity(30);
+            } else if (ageGroup.name() == AgeGroup.JOVEM.name()) {
                 limit.setLimitQuantity(20);
-            } else if (ageGroup.name() == AgeGroup.ADULT.name()) {
+            } else if (ageGroup.name() == AgeGroup.ADULTO.name()) {
                 limit.setLimitQuantity(20);
             }
             limit.setAgeGroup(ageGroup);
