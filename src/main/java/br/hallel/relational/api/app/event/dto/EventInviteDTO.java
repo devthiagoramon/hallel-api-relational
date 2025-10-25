@@ -20,7 +20,6 @@ public class EventInviteDTO {
 
     private UUID id;
 
-    @NotNull(message = "Você deve passar o evento!")
     private UUID eventId;
 
     @NotNull(message = "Digite o nome do convite!")

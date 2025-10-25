@@ -34,10 +34,12 @@ public class EventDTO {
 
     @NotBlank(message = "Nome do local do evento não pode ser nulo")
     private String local_event_name;
-    @NotBlank(message = "Longitude do local do evento não pode ser nulo")
-    private double local_event_longitude;
-    @NotBlank(message = "Latitude do local do evento não pode ser nulo")
-    private double local_event_latitude;
+
+    @NotNull(message = "Longitude do local do evento não pode ser nula.")
+
+    private Double local_event_longitude;
+    @NotNull(message = "Latitude do local do evento não pode ser nula.")
+    private Double local_event_latitude;
 
     @Valid
     private List<EventInviteDTO> eventInviteDTOS;

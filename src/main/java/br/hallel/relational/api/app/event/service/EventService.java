@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.repository.EventInviteRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
@@ -52,6 +53,7 @@ public class EventService implements EventInterface {
     private final PdfGenerationService pdfGenerationService;
 
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
+    private final EventInviteRepository inviteRepository;
 
     @Override
     public EventResponse create(EventDTO eventDTO,
@@ -60,64 +62,54 @@ public class EventService implements EventInterface {
         log.info("Creating event...");
 
         if (eventDTO.getDate().before(new Date())) {
-            throw new EventIllegalArumentException("Não foi possivel criar o evento: Data inválida!");
+            throw new EventIllegalArumentException("Não foi possível criar o evento: Data inválida!");
         }
 
         if (eventDTO.getTitle() == null
                 || eventDTO.getDescription() == null
                 || eventDTO.getDate() == null) {
-
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
+
         log.info(eventDTO.getMinistryIds().toString());
 
-        boolean itsFreeValue = eventDTO.getItsFree();
-        Event eventToSave = mapper.dtoToEntity(eventDTO);
+        Event event = mapper.dtoToEntity(eventDTO);
+        event.setEventType(eventDTO.getEventType());
+        event.setItsFree(eventDTO.getItsFree());
+        event.setIsImportant(eventDTO.getIsImportant());
+        event.setDuration(eventDTO.getDuration());
+        event.setImage_url("");
+        event.setBanner_url("");
+        event.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
 
-        eventToSave.setEventType(eventDTO.getEventType());
+        event = this.repository.save(event);
 
-        eventToSave.setItsFree(itsFreeValue);
-        eventToSave.setIsImportant(eventDTO.getIsImportant());
-        eventToSave.setDuration(eventDTO.getDuration());
-        eventToSave.setImage_url("");
-        eventToSave.setBanner_url("");
-        eventToSave.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
-        Event event = this.repository.save(eventToSave);
+        // Sincroniza ingressos e agendas
         synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+
+        // Limites por faixa etária
         generateLimiteAgeGroupForEvent(event);
-        if ((fileImage != null && !(fileImage.isEmpty()))
-                && (fileBanner != null && !(fileBanner.isEmpty()))) {
 
-            String imageUrl = null;
-            String bannerImageUrl = null;
-
-            imageUrl = bucketService.sendFileToBucket(fileImage, GoogleBucketUtils
-                    .getImageName(
-                            eventToSave.getId().toString(),
-                            Event.class.getSimpleName(),
-                            "image"));
-
-            bannerImageUrl = bucketService.sendFileToBucket(fileBanner, GoogleBucketUtils
-                    .getImageName(
-                            eventToSave.getId().toString(),
-                            Event.class.getSimpleName(),
-                            "banner"));
+        // Salva imagens se existirem
+        if (fileImage != null && !fileImage.isEmpty() && fileBanner != null && !fileBanner.isEmpty()) {
+            String imageUrl = bucketService.sendFileToBucket(fileImage,
+                    GoogleBucketUtils.getImageName(event.getId().toString(), Event.class.getSimpleName(), "image"));
+            String bannerUrl = bucketService.sendFileToBucket(fileBanner,
+                    GoogleBucketUtils.getImageName(event.getId().toString(), Event.class.getSimpleName(), "banner"));
 
             event.setImage_url(imageUrl);
-            event.setBanner_url(bannerImageUrl);
-            log.info(eventToSave.getImage_url());
-            log.info(eventToSave.getBanner_url());
-
+            event.setBanner_url(bannerUrl);
         }
-        event = this.repository.save(eventToSave);
+
+        event = this.repository.save(event);
 
         for (UUID ministryId : eventDTO.getMinistryIds()) {
             log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
             eventScaleService.createScale(event, ministryId);
         }
 
-        return mapper.entityToResponse(this.repository.save(event));
+        return mapper.entityToResponse(event);
     }
 
     private void synchronizeEventInvites(Event event, List<EventInviteDTO> dtos) {
@@ -131,6 +123,7 @@ public class EventService implements EventInterface {
                 newInvite.setName(dto.getName());
                 newInvite.setDescription(dto.getDescription());
                 newInvite.setValue(dto.getValue());
+                newInvite.setEvent(event);
                 event.addInvite(newInvite);
             } else {
                 processedInviteIds.add(dto.getId());
@@ -139,17 +132,22 @@ public class EventService implements EventInterface {
                     existingInvite.setName(dto.getName());
                     existingInvite.setDescription(dto.getDescription());
                     existingInvite.setValue(dto.getValue());
+                    existingInvite.setEvent(event);
                 }
             }
         }
         event.getEventInvites()
                 .removeIf(invite -> invite.getId() != null && !processedInviteIds.contains(invite.getId()));
+
     }
 
     private void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {
         Map<UUID, EventSchedule> existingScheduleMap = event.getEventSchedules().stream()
                 .collect(Collectors.toMap(EventSchedule::getId, eventSchedule -> eventSchedule));
-
+        if(existingScheduleMap.isEmpty()){
+            log.warn("No events schedule found for event {}", event.getId());
+            return;
+        }
         Set<UUID> processedSchedulesIds = new HashSet<>();
         for (EventScheduleDTO dto : dtos) {
             if (dto.getId() == null) {

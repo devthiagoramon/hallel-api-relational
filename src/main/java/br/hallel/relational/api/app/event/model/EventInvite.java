@@ -19,6 +19,7 @@ import java.util.UUID;
 public class EventInvite {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.EAGER)
