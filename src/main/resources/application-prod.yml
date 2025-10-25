@@ -1,5 +1,7 @@
 # Todas as configurações e segredos serão injetados como variáveis de ambiente no deploy
 spring:
+  flyway:
+    ignore-migration-patterns: V49
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
