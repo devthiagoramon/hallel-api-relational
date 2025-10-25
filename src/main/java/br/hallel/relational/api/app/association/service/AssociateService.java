@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.association.service;
 
-import br.hallel.relational.api.app.association.dto.AssociatePayDetails;
-import br.hallel.relational.api.app.association.dto.AssociateResponse;
-import br.hallel.relational.api.app.association.dto.AssociationPaymentResponse;
-import br.hallel.relational.api.app.association.dto.CreateAssociateRequestDTO;
+import br.hallel.relational.api.app.association.dto.*;
 import br.hallel.relational.api.app.association.exception.AssociateException;
 import br.hallel.relational.api.app.association.exception.AssociateNotFoundException;
 import br.hallel.relational.api.app.association.exception.UserAlreadyAssociatedException;
@@ -27,6 +24,9 @@ import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -112,7 +113,8 @@ public class AssociateService {
                     new PaymentStatusDTO(qrCodeBase64, lastPendingPayment.getPixTxid(),
                             StatusPaymentEventParticipation.PENDENTE));
         } catch (Exception e) {
-            log.error("Failed to retrieve Mercado Pago QR Code for payment ID {}", lastPendingPayment.getMercadoPagoPaymentId(), e);
+            log.error("Failed to retrieve Mercado Pago QR Code for payment ID {}",
+                    lastPendingPayment.getMercadoPagoPaymentId(), e);
             throw new RuntimeException("Failed to retrieve payment details.", e);
         }
 
@@ -198,7 +200,9 @@ public class AssociateService {
                 log.info("Pagamento Pix criado com sucesso para o usuário ID {}. TXID: {}", user.getId(), qrCodeTxid);
 
             } else {
-                log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos para user ID {}.", user.getId());
+                log.error(
+                        "Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos para user ID {}.",
+                        user.getId());
                 throw new RuntimeException("Erro ao processar a resposta do Mercado Pago. Dados incompletos.");
             }
 
@@ -226,5 +230,27 @@ public class AssociateService {
         payment.setStatus(AssociatePaymentStatus.PENDENTE);
 
         return associatePaymentRepository.save(payment);
+    }
+
+    public Boolean verifyIfUserIsAssociated(UUID userId) {
+        Optional<Associate> associateOptional = this.associateRepository.findByUser_Id(userId);
+        return associateOptional.isPresent();
+    }
+
+    public Boolean removeAssociation(UUID associationId) {
+        Optional<Associate>  associateOptional = this.associateRepository.findByUser_Id(associationId);
+        if (associateOptional.isEmpty()) throw new AssociateException("Association not found by id: " + associationId);
+        Associate associate = associateOptional.get();
+        this.associateRepository.delete(associate);
+        return true;
+    }
+
+    public Page<AssociateWithUserResponse> listAllAssociateWithUserResponseService(Pageable pageable) {
+        return this.associateRepository.listAllWithUserResponse(pageable);
+    }
+
+    public Page<AssociateWithUserResponse> listAllASsociateWithUserResponseFilteredByPaymentStatus(
+            AssociatePaymentStatus status, Pageable pageable) {
+        return this.associateRepository.listAllWithUserResponseAndPaymentStatus(status, pageable);
     }
 }

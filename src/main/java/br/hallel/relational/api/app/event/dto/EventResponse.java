@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventInvite;
+import br.hallel.relational.api.app.event.model.EventSchedule;
 import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.EventType;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
@@ -25,7 +27,8 @@ public class EventResponse {
     private String local_event_name;
     private Double local_event_longitude;
     private Double local_event_latitude;
-    private Double value;
+    private List<EventSchedule> schedules;
+    private List<EventInvite> eventInvites;
     private List<MinistrySimpleResponse> ministriesAssocied;
     private EventType eventType;
     private EventStatus eventStatus;

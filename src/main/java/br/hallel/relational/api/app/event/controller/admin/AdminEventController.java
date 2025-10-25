@@ -50,7 +50,7 @@ public class AdminEventController {
 
     //** CRIANDO EVENTO **
     @PostMapping(value = "/create", consumes = "multipart/form-data")
-    public ResponseEntity<EventResponse> createEvent(@RequestPart(name = "request") EventDTO eventDTO,
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestPart(name = "request") EventDTO eventDTO,
                                                      @RequestPart(name = "image_url") MultipartFile img_url,
                                                      @RequestPart(name = "banner_url") MultipartFile banner_url) {
         return ResponseEntity.ok(eventService.create(eventDTO, img_url, banner_url));
@@ -58,7 +58,7 @@ public class AdminEventController {
 
     @PatchMapping(value = "/edit/{id}", consumes = "multipart/form-data")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable(name = "id") UUID id,
-                                                     @RequestPart(name = "request") EventDTO eventDTO,
+                                                     @Valid @RequestPart(name = "request") EventDTO eventDTO,
                                                      @RequestPart(name = "image_url", required = false)
                                                      MultipartFile img_url,
                                                      @RequestPart(name = "banner_url", required = false)

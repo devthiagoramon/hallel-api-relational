@@ -5,8 +5,10 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.repository.EventInviteRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
+import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
@@ -14,6 +16,7 @@ import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
 import br.hallel.relational.api.app.global.utils.NumberUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
+import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
@@ -28,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,65 +52,134 @@ public class EventService implements EventInterface {
     private final MinistryMapper ministryMapper;
     private final PdfGenerationService pdfGenerationService;
 
+    private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
+    private final EventInviteRepository inviteRepository;
 
     @Override
     public EventResponse create(EventDTO eventDTO,
                                 MultipartFile fileImage,
                                 MultipartFile fileBanner) {
         log.info("Creating event...");
+
+        if (eventDTO.getDate().before(new Date())) {
+            throw new EventIllegalArumentException("Não foi possível criar o evento: Data inválida!");
+        }
+
         if (eventDTO.getTitle() == null
                 || eventDTO.getDescription() == null
                 || eventDTO.getDate() == null) {
-
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
+
         log.info(eventDTO.getMinistryIds().toString());
-        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
-        boolean itsFreeValue = value == 0;
-        Event eventToSave = mapper.dtoToEntity(eventDTO);
 
-        eventToSave.setEventType(eventDTO.getEventType());
+        Event event = mapper.dtoToEntity(eventDTO);
+        event.setEventType(eventDTO.getEventType());
+        event.setItsFree(eventDTO.getItsFree());
+        event.setIsImportant(eventDTO.getIsImportant());
+        event.setDuration(eventDTO.getDuration());
+        event.setImage_url("");
+        event.setBanner_url("");
+        event.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
 
-        eventToSave.setValue(value);
-        eventToSave.setItsFree(itsFreeValue);
-        eventToSave.setIsImportant(eventDTO.getIsImportant());
-        eventToSave.setDuration(eventDTO.getDuration());
-        eventToSave.setImage_url("");
-        eventToSave.setBanner_url("");
-        Event event = this.repository.save(eventToSave);
+        event = this.repository.save(event);
 
-        if ((fileImage != null && !(fileImage.isEmpty()))
-                && (fileBanner != null && !(fileBanner.isEmpty()))) {
+        // Sincroniza ingressos e agendas
+        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
+        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
 
-            String imageUrl = null;
-            String bannerImageUrl = null;
+        // Limites por faixa etária
+        generateLimiteAgeGroupForEvent(event);
 
-            imageUrl = bucketService.sendFileToBucket(fileImage, GoogleBucketUtils
-                    .getImageName(
-                            eventToSave.getId().toString(),
-                            Event.class.getSimpleName(),
-                            "image"));
-
-            bannerImageUrl = bucketService.sendFileToBucket(fileBanner, GoogleBucketUtils
-                    .getImageName(
-                            eventToSave.getId().toString(),
-                            Event.class.getSimpleName(),
-                            "banner"));
+        // Salva imagens se existirem
+        if (fileImage != null && !fileImage.isEmpty() && fileBanner != null && !fileBanner.isEmpty()) {
+            String imageUrl = bucketService.sendFileToBucket(fileImage,
+                    GoogleBucketUtils.getImageName(event.getId().toString(), Event.class.getSimpleName(), "image"));
+            String bannerUrl = bucketService.sendFileToBucket(fileBanner,
+                    GoogleBucketUtils.getImageName(event.getId().toString(), Event.class.getSimpleName(), "banner"));
 
             event.setImage_url(imageUrl);
-            event.setBanner_url(bannerImageUrl);
-            log.info(eventToSave.getImage_url());
-            log.info(eventToSave.getBanner_url());
-
+            event.setBanner_url(bannerUrl);
         }
-        event = this.repository.save(eventToSave);
+
+        event = this.repository.save(event);
 
         for (UUID ministryId : eventDTO.getMinistryIds()) {
             log.info("Creating event scale in event {} with ministry {}", event.getId(), ministryId);
             eventScaleService.createScale(event, ministryId);
         }
 
-        return mapper.entityToResponse(this.repository.save(event));
+        return mapper.entityToResponse(event);
+    }
+
+    private void synchronizeEventInvites(Event event, List<EventInviteDTO> dtos) {
+        Map<UUID, EventInvite> existingInvitesMap = event.getEventInvites().stream()
+                .collect(Collectors.toMap(EventInvite::getId, eventInvite -> eventInvite));
+
+        Set<UUID> processedInviteIds = new HashSet<>();
+        for (EventInviteDTO dto : dtos) {
+            if (dto.getId() == null) {
+                EventInvite newInvite = new EventInvite();
+                newInvite.setName(dto.getName());
+                newInvite.setDescription(dto.getDescription());
+                newInvite.setValue(dto.getValue());
+                newInvite.setEvent(event);
+                event.addInvite(newInvite);
+            } else {
+                processedInviteIds.add(dto.getId());
+                EventInvite existingInvite = existingInvitesMap.get(dto.getId());
+                if (existingInvite != null) {
+                    existingInvite.setName(dto.getName());
+                    existingInvite.setDescription(dto.getDescription());
+                    existingInvite.setValue(dto.getValue());
+                    existingInvite.setEvent(event);
+                }
+            }
+        }
+        event.getEventInvites()
+                .removeIf(invite -> invite.getId() != null && !processedInviteIds.contains(invite.getId()));
+
+    }
+
+    private void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {
+        Map<UUID, EventSchedule> existingScheduleMap = event.getEventSchedules().stream()
+                .collect(Collectors.toMap(EventSchedule::getId, eventSchedule -> eventSchedule));
+
+        Set<UUID> processedSchedulesIds = new HashSet<>();
+        for (EventScheduleDTO dto : dtos) {
+            if (dto.getId() == null) {
+                EventSchedule newSchedule = new EventSchedule();
+                newSchedule.setDescription(dto.getDescription());
+                if (dto.getMinistryId() != null) {
+                    Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
+                            () -> new MinistryNotFoundException(
+                                    "Não foi possivel encontrar o ministério para associar a programação do evento",
+                                    dto.getMinistryId().toString()));
+                    newSchedule.setMinistry(ministry);
+                }
+                newSchedule.setCreatedAt(OffsetDateTime.now());
+                newSchedule.setDate(dto.getDate());
+                event.addSchedule(newSchedule);
+            } else {
+                processedSchedulesIds.add(dto.getId());
+                EventSchedule existingSchedule = existingScheduleMap.get(dto.getId());
+                if (existingSchedule != null) {
+                    existingSchedule.setDescription(dto.getDescription());
+                    if (dto.getMinistryId() != null) {
+                        Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
+                                () -> new MinistryNotFoundException(
+                                        "Não foi possivel encontrar o ministério para associar a programação do evento",
+                                        dto.getMinistryId().toString()));
+                        existingSchedule.setMinistry(ministry);
+                    }
+                    existingSchedule.setDate(dto.getDate());
+                    existingSchedule.setEditedAt(OffsetDateTime.now());
+
+                }
+            }
+        }
+        event.getEventSchedules()
+                .removeIf(schedule -> schedule.getId() != null && !processedSchedulesIds.contains(schedule.getId()));
     }
 
 
@@ -212,10 +285,11 @@ public class EventService implements EventInterface {
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
-        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
-        boolean itsFreeValue = value == 0;
+        boolean itsFreeValue = eventDTO.getItsFree();
+
+        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         event.setItsFree(itsFreeValue);
-        event.setValue(value);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
             String imageUrl = null;
@@ -274,15 +348,15 @@ public class EventService implements EventInterface {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Event> eventsPagination;
-        if (eventStatus == null){
+        if (eventStatus == null) {
             eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-        }else {
+        } else {
             eventsPagination = this.repository.findByEventStatusOrderByTitleAsc(eventStatus, pageable);
         }
 
-        if (eventsPagination.isEmpty()) {
-            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
-        }
+//        if (eventsPagination.isEmpty()) {
+//            eventsPagination = this.repository.findAllByOrderByTitleAsc(pageable);
+//        }
 
         List<EventResponse> listResponse =
                 eventsPagination.stream()
@@ -479,7 +553,8 @@ public class EventService implements EventInterface {
                 event.getLocal_event_name(),
                 event.getLocal_event_longitude(),
                 event.getLocal_event_latitude(),
-                event.getValue(),
+                event.getEventSchedules(),
+                event.getEventInvites(),
                 null,
                 event.getEventType(),
                 event.getEventStatus()
@@ -522,5 +597,34 @@ public class EventService implements EventInterface {
             throw new GenerateEventTransactionPDFException("Não foi possivel gerar o PDF de transações");
         }
         return pdfBase64;
+    }
+
+    public void generateLimiteAgeGroupForEvent(Event event) {
+        log.info("Generating limit age group for event {}", event.getId());
+        for (AgeGroup ageGroup : AgeGroup.values()) {
+
+            if (ageGroup == AgeGroup.EXCEDIDO) {
+                continue;
+            }
+
+            LimitEventAgeGroup limit = new LimitEventAgeGroup();
+
+            if (ageGroup == AgeGroup.CRIANCA) {
+                limit.setLimitQuantity(120);
+            } else if (ageGroup == AgeGroup.TEEN) {
+                limit.setLimitQuantity(90);
+            } else if (ageGroup == AgeGroup.JOVEM) {
+                limit.setLimitQuantity(80);
+            } else if (ageGroup == AgeGroup.ADULTO) {
+                limit.setLimitQuantity(80);
+            }
+
+            limit.setAgeGroup(ageGroup);
+            limit.setCurrentQuantity(0);
+            limit.setEvent(event);
+            this.limitEventAgeGroupRepository.save(
+                    limit
+            );
+        }
     }
 }
