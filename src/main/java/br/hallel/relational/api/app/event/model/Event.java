@@ -2,10 +2,12 @@ package br.hallel.relational.api.app.event.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -55,8 +57,13 @@ public class Event {
     @Column(name = "is_important", nullable = false)
     private Boolean isImportant = false;
 
-    @Column(name = "value", nullable = false)
-    private Double value = 0.0;
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
+    @JsonManagedReference
+    private List<EventInvite> eventInvites = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
+    @JsonManagedReference
+    private List<EventSchedule> eventSchedules = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     @ToString.Exclude
@@ -71,16 +78,6 @@ public class Event {
     @Column(name = "event_type", nullable = true)
     private EventType eventType;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "event_schedule",
-            joinColumns = @JoinColumn(name = "event_id")
-    )
-    @Column(name = "activity")
-    @JsonIgnore
-    @ToString.Exclude
-    private List<String> schedule;
-
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<EventTransaction> transactions;
@@ -92,5 +89,28 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Foods> foods;
+
+    public void addInvite(EventInvite invite) {
+        if (eventInvites == null) {
+            eventInvites = new ArrayList<>();
+            eventInvites.add(invite);
+            invite.setEvent(this);
+        } else {
+            eventInvites.add(invite);
+            invite.setEvent(this);
+        }
+    }
+
+    public void addSchedule(EventSchedule schedule) {
+        if (eventSchedules != null) {
+            this.eventSchedules.add(schedule);
+            schedule.setEvent(this);
+        } else {
+            this.eventSchedules = new ArrayList<>();
+            this.eventSchedules.add(schedule);
+            eventSchedules.add(schedule);
+            schedule.setEvent(this);
+        }
+    }
 
 }

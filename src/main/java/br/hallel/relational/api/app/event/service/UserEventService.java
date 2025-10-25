@@ -3,10 +3,7 @@ package br.hallel.relational.api.app.event.service;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
-import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
-import br.hallel.relational.api.app.event.repository.EventRepository;
-import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
-import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
+import br.hallel.relational.api.app.event.repository.*;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
@@ -47,12 +44,16 @@ public class UserEventService {
     private final SimpMessagingTemplate template;
     private final PdfGenerationService pdfGenerationService;
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
+    private final EventInviteRepository eventInviteRepository;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
+
+        Optional<EventInvite> eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+
         Optional<User> optionalUser = (userId != null)
                 ? this.userRepository.findById(userId)
                 : Optional.empty();
@@ -81,7 +82,7 @@ public class UserEventService {
 
         String qrCodeBase64 = null;
         boolean isAnonymous = optionalUser.isEmpty();
-        boolean isPaidEvent = !event.getItsFree() || event.getValue() > 0;
+        boolean isPaidEvent = eventInviteOptional.isPresent();
 
 
         User user = !isAnonymous ? optionalUser.get() : null;
@@ -107,6 +108,8 @@ public class UserEventService {
         }
 
         if (isPaidEvent) {
+            EventInvite eventInvite = eventInviteOptional.get();
+            eventParticipation.setEventInviteAssociated(eventInvite);
             try {
                 String fullName = !isAnonymous ? user.getName() : dto.getName();
                 String firstName = "";
@@ -137,7 +140,7 @@ public class UserEventService {
 
                 CreatePixPaymentRequestDTO paymentRequestDTO =
                         new CreatePixPaymentRequestDTO(
-                                BigDecimal.valueOf(event.getValue()),
+                                BigDecimal.valueOf(eventInvite.getValue()),
                                 event.getTitle(),
                                 !isAnonymous ? user.getEmail() : dto.getEmail(),
                                 firstName,
@@ -213,7 +216,8 @@ public class UserEventService {
 
         LimitEventAgeGroup limit =
                 this.limitEventAgeGroupRepository.findByEventIdAndAgeGroup(event.getId(), targetAgeGroup)
-                        .orElseThrow(() -> new RuntimeException("Limite de vagas para a faixa etária " + targetAgeGroup.name() + " não configurado."));
+                        .orElseThrow(() -> new RuntimeException(
+                                "Limite de vagas para a faixa etária " + targetAgeGroup.name() + " não configurado."));
 
         log.info("GRUPO ACHADO para idade {}: {}", years, limit.getAgeGroup());
 
@@ -270,7 +274,7 @@ public class UserEventService {
 
         return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes),
                 participation.getPixTxid(),
-                event.getValue());
+                participation.getEventInviteAssociated().getValue());
     }
 
 
@@ -353,7 +357,7 @@ public class UserEventService {
         if (dto.amountPaid() != null) {
             participation.setAmountPaid(dto.amountPaid());
 
-            if (dto.amountPaid() >= participation.getEvent().getValue()) {
+            if (dto.amountPaid() >= participation.getEventInviteAssociated().getValue()) {
                 participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
 
                 EventTransaction transaction = new EventTransaction();
@@ -491,6 +495,8 @@ public class UserEventService {
         Optional<User> optionalUser =
                 (dto.getUserId() != null) ? userRepository.findById(dto.getUserId()) : Optional.empty();
 
+        Optional<EventInvite> eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
                         dto.getEventId().toString()));
@@ -530,9 +536,10 @@ public class UserEventService {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setCpf("05961055256");
-            if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE) {
+            if (user.getCpf() != null && dto.getStatusPayment() == StatusPaymentEventParticipation.PENDENTE && eventInviteOptional.isPresent()) {
+                EventInvite eventInvite = eventInviteOptional.get();
                 CreatePixPaymentRequestDTO paymentRequestDTO = new CreatePixPaymentRequestDTO(
-                        BigDecimal.valueOf(event.getValue()),
+                        BigDecimal.valueOf(eventInvite.getValue()),
                         event.getTitle(),
                         user.getEmail(),
                         "",
@@ -603,7 +610,7 @@ public class UserEventService {
         }
 
         return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
-                event.getValue(),
+                participation.getEventInviteAssociated().getValue(),
                 participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
     }

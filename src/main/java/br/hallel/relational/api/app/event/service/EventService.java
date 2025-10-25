@@ -15,6 +15,7 @@ import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
 import br.hallel.relational.api.app.global.utils.NumberUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
+import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,13 +70,12 @@ public class EventService implements EventInterface {
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
         log.info(eventDTO.getMinistryIds().toString());
-        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
-        boolean itsFreeValue = value == 0;
+
+        boolean itsFreeValue = eventDTO.getItsFree();
         Event eventToSave = mapper.dtoToEntity(eventDTO);
 
         eventToSave.setEventType(eventDTO.getEventType());
 
-        eventToSave.setValue(value);
         eventToSave.setItsFree(itsFreeValue);
         eventToSave.setIsImportant(eventDTO.getIsImportant());
         eventToSave.setDuration(eventDTO.getDuration());
@@ -82,6 +83,8 @@ public class EventService implements EventInterface {
         eventToSave.setBanner_url("");
         eventToSave.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
         Event event = this.repository.save(eventToSave);
+        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
+        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
         generateLimiteAgeGroupForEvent(event);
         if ((fileImage != null && !(fileImage.isEmpty()))
                 && (fileBanner != null && !(fileBanner.isEmpty()))) {
@@ -115,6 +118,73 @@ public class EventService implements EventInterface {
         }
 
         return mapper.entityToResponse(this.repository.save(event));
+    }
+
+    private void synchronizeEventInvites(Event event, List<EventInviteDTO> dtos) {
+        Map<UUID, EventInvite> existingInvitesMap = event.getEventInvites().stream()
+                .collect(Collectors.toMap(EventInvite::getId, eventInvite -> eventInvite));
+
+        Set<UUID> processedInviteIds = new HashSet<>();
+        for (EventInviteDTO dto : dtos) {
+            if (dto.getId() == null) {
+                EventInvite newInvite = new EventInvite();
+                newInvite.setName(dto.getName());
+                newInvite.setDescription(dto.getDescription());
+                newInvite.setValue(dto.getValue());
+                event.addInvite(newInvite);
+            } else {
+                processedInviteIds.add(dto.getId());
+                EventInvite existingInvite = existingInvitesMap.get(dto.getId());
+                if (existingInvite != null) {
+                    existingInvite.setName(dto.getName());
+                    existingInvite.setDescription(dto.getDescription());
+                    existingInvite.setValue(dto.getValue());
+                }
+            }
+        }
+        event.getEventInvites()
+                .removeIf(invite -> invite.getId() != null && !processedInviteIds.contains(invite.getId()));
+    }
+
+    private void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {
+        Map<UUID, EventSchedule> existingScheduleMap = event.getEventSchedules().stream()
+                .collect(Collectors.toMap(EventSchedule::getId, eventSchedule -> eventSchedule));
+
+        Set<UUID> processedSchedulesIds = new HashSet<>();
+        for (EventScheduleDTO dto : dtos) {
+            if (dto.getId() == null) {
+                EventSchedule newSchedule = new EventSchedule();
+                newSchedule.setDescription(dto.getDescription());
+                if (dto.getMinistryId() != null) {
+                    Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
+                            () -> new MinistryNotFoundException(
+                                    "Não foi possivel encontrar o ministério para associar a programação do evento",
+                                    dto.getMinistryId().toString()));
+                    newSchedule.setMinistry(ministry);
+                }
+                newSchedule.setDate(dto.getDate());
+                event.addSchedule(newSchedule);
+
+            } else {
+                processedSchedulesIds.add(dto.getId());
+                EventSchedule existingSchedule = existingScheduleMap.get(dto.getId());
+                if (existingSchedule != null) {
+                    existingSchedule.setDescription(dto.getDescription());
+                    if (dto.getMinistryId() != null) {
+                        Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
+                                () -> new MinistryNotFoundException(
+                                        "Não foi possivel encontrar o ministério para associar a programação do evento",
+                                        dto.getMinistryId().toString()));
+                        existingSchedule.setMinistry(ministry);
+                    }
+                    existingSchedule.setDate(dto.getDate());
+                    existingSchedule.setEditedAt(OffsetDateTime.now());
+
+                }
+            }
+        }
+        event.getEventSchedules()
+                .removeIf(schedule -> schedule.getId() != null && !processedSchedulesIds.contains(schedule.getId()));
     }
 
 
@@ -220,10 +290,8 @@ public class EventService implements EventInterface {
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
-        Double value = NumberUtils.extrairEConverterParaDouble(eventDTO.getValue());
-        boolean itsFreeValue = value == 0;
+        boolean itsFreeValue = eventDTO.getItsFree();
         event.setItsFree(itsFreeValue);
-        event.setValue(value);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
             String imageUrl = null;
@@ -487,7 +555,8 @@ public class EventService implements EventInterface {
                 event.getLocal_event_name(),
                 event.getLocal_event_longitude(),
                 event.getLocal_event_latitude(),
-                event.getValue(),
+                event.getEventSchedules(),
+                event.getEventInvites(),
                 null,
                 event.getEventType(),
                 event.getEventStatus()

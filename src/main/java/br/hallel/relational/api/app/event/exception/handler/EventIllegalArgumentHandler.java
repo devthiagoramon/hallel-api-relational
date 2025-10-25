@@ -266,4 +266,13 @@ public class EventIllegalArgumentHandler {
                 request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(EventInviteNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleEventNotFoundExceptionHandler(
+            EventInviteNotFoundException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
 }

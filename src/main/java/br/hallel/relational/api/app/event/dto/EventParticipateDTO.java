@@ -21,4 +21,5 @@ public class EventParticipateDTO {
     private String cpf;
     private Boolean isMarried;
     private OffsetDateTime dateBirth;
+    private UUID eventInviteId;
 }
