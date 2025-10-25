@@ -6,6 +6,6 @@ CREATE TABLE
                               limit_quantity INT NOT NULL,
                               current_quantity INT NOT NULL,
 
-                              FOREIGN KEY (event_id) REFERENCES "events" ON DELETE CASCADE
+                              FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
