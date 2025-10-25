@@ -20,9 +20,6 @@ public class EventScheduleDTO {
 
     private UUID id;
 
-    @NotNull(message = "Indique qual evento a atividade pertence!")
-    private UUID event_id;
-
     @NotNull(message = "Campo 'description' não pode ser nulo!")
     @NotBlank(message = "Digite a descrição da atividade")
     private String description;

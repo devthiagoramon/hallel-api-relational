@@ -20,6 +20,7 @@ import java.util.UUID;
 public class EventSchedule {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.EAGER)

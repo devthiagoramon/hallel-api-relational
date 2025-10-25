@@ -20,8 +20,6 @@ public class EventInviteDTO {
 
     private UUID id;
 
-    private UUID eventId;
-
     @NotNull(message = "Digite o nome do convite!")
     @NotBlank(message = "Nome do convite inválido!")
     private String name;

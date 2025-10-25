@@ -144,10 +144,7 @@ public class EventService implements EventInterface {
     private void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {
         Map<UUID, EventSchedule> existingScheduleMap = event.getEventSchedules().stream()
                 .collect(Collectors.toMap(EventSchedule::getId, eventSchedule -> eventSchedule));
-        if(existingScheduleMap.isEmpty()){
-            log.warn("No events schedule found for event {}", event.getId());
-            return;
-        }
+
         Set<UUID> processedSchedulesIds = new HashSet<>();
         for (EventScheduleDTO dto : dtos) {
             if (dto.getId() == null) {
@@ -160,9 +157,9 @@ public class EventService implements EventInterface {
                                     dto.getMinistryId().toString()));
                     newSchedule.setMinistry(ministry);
                 }
+                newSchedule.setCreatedAt(OffsetDateTime.now());
                 newSchedule.setDate(dto.getDate());
                 event.addSchedule(newSchedule);
-
             } else {
                 processedSchedulesIds.add(dto.getId());
                 EventSchedule existingSchedule = existingScheduleMap.get(dto.getId());
@@ -289,6 +286,9 @@ public class EventService implements EventInterface {
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
         boolean itsFreeValue = eventDTO.getItsFree();
+
+        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         event.setItsFree(itsFreeValue);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
