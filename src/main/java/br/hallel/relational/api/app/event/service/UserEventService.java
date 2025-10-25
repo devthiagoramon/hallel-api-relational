@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.email.EmailService;
+import br.hallel.relational.api.app.email.service.EmailService;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 
