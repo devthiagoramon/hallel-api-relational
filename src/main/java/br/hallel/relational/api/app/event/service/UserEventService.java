@@ -49,6 +49,7 @@ public class UserEventService {
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
+
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
@@ -121,8 +122,15 @@ public class UserEventService {
                     }
                 }
 
-                boolean notHaveCpf = !isAnonymous ? user.getCpf() == null : dto.getCpf() == null;
-                if (notHaveCpf) {
+                String cpfParaPagamento = null;
+
+                if (!isAnonymous && user.getCpf() != null) {
+                    cpfParaPagamento = user.getCpf();
+                } else if (dto.getCpf() != null) {
+                    cpfParaPagamento = dto.getCpf();
+                }
+
+                if (cpfParaPagamento == null || cpfParaPagamento.isEmpty()) {
                     throw new UserValidationException("User CPF is required to make the payment.");
                 }
 
@@ -134,7 +142,7 @@ public class UserEventService {
                                 !isAnonymous ? user.getEmail() : dto.getEmail(),
                                 firstName,
                                 lastName,
-                                !isAnonymous ? user.getCpf() : dto.getCpf()
+                                cpfParaPagamento
                         );
 
                 Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
@@ -184,7 +192,7 @@ public class UserEventService {
         AgeGroup targetAgeGroup;
 
         if (years <= 8) {
-            targetAgeGroup = AgeGroup.CRIANÇA;
+            targetAgeGroup = AgeGroup.CRIANCA;
 
         } else if (years <= 14) {
             targetAgeGroup = AgeGroup.TEEN;

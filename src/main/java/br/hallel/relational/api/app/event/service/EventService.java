@@ -535,17 +535,23 @@ public class EventService implements EventInterface {
     public void generateLimiteAgeGroupForEvent(Event event) {
         log.info("Generating limit age group for event {}", event.getId());
         for (AgeGroup ageGroup : AgeGroup.values()) {
+
+            if (ageGroup == AgeGroup.EXCEDIDO) {
+                continue;
+            }
+
             LimitEventAgeGroup limit = new LimitEventAgeGroup();
 
-            if (ageGroup.name() == AgeGroup.CRIANÇA.name()) {
-                limit.setLimitQuantity(60);
-            } else if (ageGroup.name() == AgeGroup.TEEN.name()) {
-                limit.setLimitQuantity(30);
-            } else if (ageGroup.name() == AgeGroup.JOVEM.name()) {
-                limit.setLimitQuantity(20);
-            } else if (ageGroup.name() == AgeGroup.ADULTO.name()) {
-                limit.setLimitQuantity(20);
+            if (ageGroup == AgeGroup.CRIANCA) {
+                limit.setLimitQuantity(120);
+            } else if (ageGroup == AgeGroup.TEEN) {
+                limit.setLimitQuantity(90);
+            } else if (ageGroup == AgeGroup.JOVEM) {
+                limit.setLimitQuantity(80);
+            } else if (ageGroup == AgeGroup.ADULTO) {
+                limit.setLimitQuantity(80);
             }
+
             limit.setAgeGroup(ageGroup);
             limit.setCurrentQuantity(0);
             limit.setEvent(event);
