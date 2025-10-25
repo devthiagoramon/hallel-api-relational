@@ -6,16 +6,16 @@
 -- -- =========================================================================
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('76b24d91-3e84-4701-a7b1-0ee0ada63f48', '54451953-43d4-41af-a9dc-684db7c023c3', 'CHILD', 60 , 0),
---     ('9fefa88c-0a33-467a-adcc-55c84c14ff6c', '54451953-43d4-41af-a9dc-684db7c023c3', 'YOUNG', 30 , 0),
---     ('d63e204d-fcf8-43f8-baba-4d37ac235a67', '54451953-43d4-41af-a9dc-684db7c023c3', 'TEEN', 20  , 0),
---     ('b97406a6-8f43-4ca2-a52a-eaa46308f256', '54451953-43d4-41af-a9dc-684db7c023c3', 'ADULT', 20, 0);
+--     ('76b24d91-3e84-4701-a7b1-0ee0ada63f48', '54451953-43d4-41af-a9dc-684db7c023c3', 'CRIANCA', 60 , 0),
+--     ('9fefa88c-0a33-467a-adcc-55c84c14ff6c', '54451953-43d4-41af-a9dc-684db7c023c3', 'TEEN', 30 , 0),
+--     ('d63e204d-fcf8-43f8-baba-4d37ac235a67', '54451953-43d4-41af-a9dc-684db7c023c3', 'JOVEM', 20  , 0),
+--     ('b97406a6-8f43-4ca2-a52a-eaa46308f256', '54451953-43d4-41af-a9dc-684db7c023c3', 'ADULTO', 20, 0);
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('1efc5e3b-c761-4ae5-aedb-3a67debee57e', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'CHILD', 60 , 0),
---     ('2af896b9-fb37-4490-87aa-412995ce3341', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'YOUNG', 30 , 0),
---     ('a2dac7ea-43fb-4946-8bb0-5c2a9a921097', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'TEEN', 20  , 0),
---     ('7dfbeff7-47b8-42ec-a167-212446613ed6', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'ADULT', 20, 0);
+--     ('1efc5e3b-c761-4ae5-aedb-3a67debee57e', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'CRIANCA', 60 , 0),
+--     ('2af896b9-fb37-4490-87aa-412995ce3341', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'TEEN', 30 , 0),
+--     ('a2dac7ea-43fb-4946-8bb0-5c2a9a921097', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'JOVEM', 20  , 0),
+--     ('7dfbeff7-47b8-42ec-a167-212446613ed6', 'a1b2c3d4-e5f6-7890-ab12-cdef34567890', 'ADULTO', 20, 0);
 --
 --
 -- -- =========================================================================
@@ -23,10 +23,10 @@
 -- -- =========================================================================
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('8bff2f8b-339b-4e74-b804-27f8aa0a78ed', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'CHILD', 60 , 0),
---     ('7cae8c1d-3b0e-4103-91c7-4921dedb36d7', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'YOUNG', 30 , 0),
---     ('530174db-545a-44c0-a803-e4ab6c1d01df', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'TEEN', 20  , 0),
---     ('8ea128e1-0b1a-4763-a61f-92b31af357c1', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'ADULT', 20, 0);
+--     ('8bff2f8b-339b-4e74-b804-27f8aa0a78ed', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'CRIANCA', 60 , 0),
+--     ('7cae8c1d-3b0e-4103-91c7-4921dedb36d7', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'TEEN', 30 , 0),
+--     ('530174db-545a-44c0-a803-e4ab6c1d01df', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'JOVEM', 20  , 0),
+--     ('8ea128e1-0b1a-4763-a61f-92b31af357c1', '7cf1d168-d06f-453a-8033-ab94206b78fe', 'ADULTO', 20, 0);
 --
 --
 -- -- =========================================================================
@@ -34,10 +34,10 @@
 -- -- =========================================================================
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('0ea5c949-5ccc-4a59-afaa-5a84863dcc6d', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'CHILD', 60 , 0),
---     ('37d93dd3-8d93-469f-b148-6d90786be7c3', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'YOUNG', 30 , 0),
---     ('50544f97-52b2-493e-8729-c7e90e02b522', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'TEEN', 20  , 0),
---     ('e5852cc2-e8f2-4f96-b028-722ca4b774cf', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'ADULT', 20, 0);
+--     ('0ea5c949-5ccc-4a59-afaa-5a84863dcc6d', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'CRIANCA', 60 , 0),
+--     ('37d93dd3-8d93-469f-b148-6d90786be7c3', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'TEEN', 30 , 0),
+--     ('50544f97-52b2-493e-8729-c7e90e02b522', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'JOVEM', 20  , 0),
+--     ('e5852cc2-e8f2-4f96-b028-722ca4b774cf', 'af537317-4ddf-47da-afe4-c592d8d16ad7', 'ADULTO', 20, 0);
 --
 --
 -- -- =========================================================================
@@ -45,10 +45,10 @@
 -- -- =========================================================================
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('08d11936-775d-4468-878a-88f7caae7967', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'CHILD', 60 , 0),
---     ('2ef849f0-fe7b-4e9e-8e85-3eaece9c70f5', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'YOUNG', 30 , 0),
---     ('808d1fd2-f435-4546-8fd8-4db2011edd54', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'TEEN', 20  , 0),
---     ('1badf038-f9a0-43cf-8f56-33dd85b45327', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'ADULT', 20, 0);
+--     ('08d11936-775d-4468-878a-88f7caae7967', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'CRIANCA', 60 , 0),
+--     ('2ef849f0-fe7b-4e9e-8e85-3eaece9c70f5', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'TEEN', 30 , 0),
+--     ('808d1fd2-f435-4546-8fd8-4db2011edd54', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'JOVEM', 20  , 0),
+--     ('1badf038-f9a0-43cf-8f56-33dd85b45327', 'f15dfabb-923c-4010-8c64-1432414e82ca', 'ADULTO', 20, 0);
 --
 --
 -- -- =========================================================================
@@ -56,7 +56,7 @@
 -- -- =========================================================================
 -- INSERT INTO limit_event_age_group (id, event_id, age_group, limit_quantity, current_quantity)
 -- VALUES
---     ('dfc81073-b0bd-48a2-ad11-800b4b0d6894', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'CHILD', 60 , 0),
---     ('c13aaabc-ec4d-4da9-846e-446a70650baa', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'YOUNG', 30 , 0),
---     ('e55843e1-43f5-4ff0-a2da-341f2ef386af', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'TEEN', 20  , 0),
---     ('68f9806e-810e-4dbd-8c1d-5c14281fc0bd', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'ADULT', 20, 0);
+--     ('dfc81073-b0bd-48a2-ad11-800b4b0d6894', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'CRIANCA', 60 , 0),
+--     ('c13aaabc-ec4d-4da9-846e-446a70650baa', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'TEEN', 30 , 0),
+--     ('e55843e1-43f5-4ff0-a2da-341f2ef386af', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'JOVEM', 20  , 0),
+--     ('68f9806e-810e-4dbd-8c1d-5c14281fc0bd', '310572e6-0ff1-4f4f-93db-c24e1862caf3', 'ADULTO', 20, 0);

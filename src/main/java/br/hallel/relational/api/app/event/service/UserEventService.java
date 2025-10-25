@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
+import br.hallel.relational.api.app.email.EmailService;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 
@@ -45,6 +47,7 @@ public class UserEventService {
     private final PdfGenerationService pdfGenerationService;
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
     private final EventInviteRepository eventInviteRepository;
+    private final EmailService emailService;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
@@ -52,7 +55,10 @@ public class UserEventService {
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
 
-        Optional<EventInvite> eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+        Optional<EventInvite> eventInviteOptional = Optional.empty();
+        if (dto.getEventInviteId() != null) {
+            eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+        }
 
         Optional<User> optionalUser = (userId != null)
                 ? this.userRepository.findById(userId)
@@ -82,6 +88,7 @@ public class UserEventService {
 
         String qrCodeBase64 = null;
         boolean isAnonymous = optionalUser.isEmpty();
+
         boolean isPaidEvent = eventInviteOptional.isPresent();
 
 
@@ -181,6 +188,12 @@ public class UserEventService {
                 throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
             }
         } else {
+
+            emailService.sendComprovantEventParticipation(
+                    user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
+                            ZoneId.systemDefault()
+                    ).toLocalDateTime(), event.getTitle(), event.getId().toString()
+            );
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
         }
@@ -267,6 +280,11 @@ public class UserEventService {
             template.convertAndSend("/topic/payments/" + user.getId(),
                     new PaymentStatusDTO(qrCode, participation.getPixTxid(),
                             StatusPaymentEventParticipation.PENDENTE));
+            emailService.sendComprovantEventParticipation(
+                    user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
+                            ZoneId.systemDefault()
+                    ).toLocalDateTime(), event.getTitle(), event.getId().toString()
+            );
         } catch (Exception e) {
             log.error(e.getMessage());
         }

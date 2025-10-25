@@ -192,39 +192,39 @@ public class EmailService {
             helper.setSubject("Lembrete: Sua Associação Hallel Vence em Breve!");
 
             String html = """
-                <html>
-                    <body style="font-family: Arial, sans-serif; color: #333;">
-                        <div style="max-width: 600px; margin: auto; padding: 20px; background: #ebfff0; border: 1px solid #c9e6d0; border-radius: 10px;">
-                            <h2 style="color: #4CAF50;">Não perca seus benefícios, %s! 🔔</h2>
-                            <p style="font-size: 16px;">
-                                Agradecemos por fazer parte da nossa comunidade! Queremos lembrar que sua associação está programada para vencer em <b>%s</b>.
-                            </p>
-                            <p style="font-size: 16px;">
-                                Renove agora para garantir a continuidade de todos os seus benefícios e acesso.
-                            </p>
-                            
-                            <h3 style="color: #333;">Detalhes da Renovação:</h3>
-                            <ul style="list-style: none; padding: 0; font-size: 16px;">
-                                <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ %.2f</li>
-                                <li style="margin-bottom: 5px;"><strong>Vencimento:</strong> %s</li>
-                            </ul>
-                            
-                            <div style="text-align: center; margin-top: 30px;">
-                                <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]" 
-                                   style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                    Renovar Agora
-                                </a>
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333;">
+                            <div style="max-width: 600px; margin: auto; padding: 20px; background: #ebfff0; border: 1px solid #c9e6d0; border-radius: 10px;">
+                                <h2 style="color: #4CAF50;">Não perca seus benefícios, %s! 🔔</h2>
+                                <p style="font-size: 16px;">
+                                    Agradecemos por fazer parte da nossa comunidade! Queremos lembrar que sua associação está programada para vencer em <b>%s</b>.
+                                </p>
+                                <p style="font-size: 16px;">
+                                    Renove agora para garantir a continuidade de todos os seus benefícios e acesso.
+                                </p>
+                    
+                                <h3 style="color: #333;">Detalhes da Renovação:</h3>
+                                <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                    <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ %.2f</li>
+                                    <li style="margin-bottom: 5px;"><strong>Vencimento:</strong> %s</li>
+                                </ul>
+                    
+                                <div style="text-align: center; margin-top: 30px;">
+                                    <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]" 
+                                       style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                        Renovar Agora
+                                    </a>
+                                </div>
+                    
+                                <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                    Se você já renovou recentemente, por favor, desconsidere esta mensagem.
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 💚</p>
                             </div>
-                            
-                            <p style="font-size: 14px; color: #888; margin-top: 30px;">
-                                Se você já renovou recentemente, por favor, desconsidere esta mensagem.
-                            </p>
-                            <br/>
-                            <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 💚</p>
-                        </div>
-                    </body>
-                </html>
-                """.formatted(name, formattedRenewalDate, value, formattedRenewalDate);
+                        </body>
+                    </html>
+                    """.formatted(name, formattedRenewalDate, value, formattedRenewalDate);
 
             helper.setText(html, true);
             mailSender.send(message);
@@ -236,4 +236,65 @@ public class EmailService {
             return false;
         }
     }
+    public Boolean sendComprovantEventParticipation(String to, String name,
+                                                    LocalDateTime eventDate,
+                                                    String eventTitle,
+                                                    String eventId) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from);
+            helper.setTo(to);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String formattedEventDate = eventDate.format(formatter);
+
+            helper.setSubject("Comprovante de Participação no Evento: " + eventTitle);
+
+            String html = """
+            <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                    <div style="max-width: 600px; margin: auto; padding: 20px; background: #f0f9ff; border: 1px solid #b3e5fc; border-radius: 10px;">
+                        <h2 style="color: #0288d1;">Olá, %s! ✅</h2>
+                        <p style="font-size: 16px;">
+                            Este é o seu comprovante de participação no evento <b>%s</b>.
+                        </p>
+                        <h3 style="color: #0288d1;">Detalhes do Evento:</h3>
+                        <ul style="list-style: none; padding: 0; font-size: 16px;">
+                            <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> %s</li>
+                        </ul>
+                        
+                        <p style="font-size: 16px;">
+                            Guarde este comprovante para referência futura. Obrigado por participar do evento!
+                        </p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="https://comunidadecatolicahallel.com.br/evento/%s" 
+                               style="background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                Ver Evento
+                            </a>
+                        </div>
+                        
+                        <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                            Se você tiver alguma dúvida sobre sua participação, entre em contato com nossa equipe.
+                        </p>
+                        <br/>
+                        <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
+                    </div>
+                </body>
+            </html>
+            """.formatted(name, eventTitle, formattedEventDate,eventId);
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            log.info("Comprovante de participação enviado para: {}", to);
+            return true;
+        } catch (Exception e) {
+            log.error("Erro ao enviar comprovante para {}: {}", to, e.getMessage());
+            return false;
+        }
+    }
+
 }
