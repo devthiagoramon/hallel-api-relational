@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.schedules;
 import br.hallel.relational.api.app.association.model.Associate;
 import br.hallel.relational.api.app.association.model.AssociatePaymentStatus;
 import br.hallel.relational.api.app.association.repository.AssociateRepository;
-import br.hallel.relational.api.app.email.EmailService;
+import br.hallel.relational.api.app.email.service.EmailService;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;

@@ -183,6 +183,8 @@ public class EventService implements EventInterface {
     }
 
 
+
+
     @Override
     public Page<EventResponse> listAllEvents(Pageable pageable) {
         Page<Event> eventsPage = this.repository.findAll(pageable);
