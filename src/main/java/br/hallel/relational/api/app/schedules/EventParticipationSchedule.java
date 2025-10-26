@@ -1,17 +1,19 @@
 package br.hallel.relational.api.app.schedules;
 
+import br.hallel.relational.api.app.email.service.EmailService;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -20,12 +22,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EventParticipationSchedule {
 
-    @Autowired
-    private EventParticipationRepository eventParticipationRepository;
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventParticipationRepository eventParticipationRepository;
+    private final EventRepository eventRepository;
+    private final EmailService emailService;
 
     @Scheduled(cron = "0 30 * * * *", zone = "America/Manaus")
     @Transactional
@@ -48,7 +50,6 @@ public class EventParticipationSchedule {
                         .toLocalDateTime();
                 LocalDateTime endTime;
                 if (event.getDuration() != null) {
-
                     endTime = startTime.plus(event.getDuration());
                 } else {
                     endTime = startTime.plusHours(10);
@@ -97,4 +98,58 @@ public class EventParticipationSchedule {
             log.error(e.getCause().toString());
         }
     }
+
+    @Scheduled(cron = "0 0 * * * *", zone = "America/Manaus") // Executa todo início de hora
+    @Transactional
+    public void sendEmailRemindEventParticipation() {
+        ZoneId zone = ZoneId.of("America/Manaus");
+        LocalDateTime now = LocalDateTime.now(zone);
+
+        // Início e fim do dia atual
+        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusSeconds(1);
+
+        Date startDate = Date.from(startOfDay.atZone(zone).toInstant());
+        Date endDate = Date.from(endOfDay.atZone(zone).toInstant());
+
+        // Busca todos os eventos que ocorrem HOJE
+        List<Event> todayEvents = eventRepository.findByDateBetweenOrderByDateAsc(startDate, endDate);
+
+        if (todayEvents.isEmpty()) {
+            log.info("Nenhum evento encontrado para hoje ({})", now.toLocalDate());
+            return;
+        }
+
+        for (Event event : todayEvents) {
+            LocalDateTime eventTime = event.getDate().toInstant().atZone(zone).toLocalDateTime();
+
+            Duration untilEvent = Duration.between(now, eventTime);
+
+            // Caso 1: início do dia → mandar lembrete geral
+            if (now.getHour() == 6) {
+                sendReminderForEvent(event, true);
+            }
+
+            if (!untilEvent.isNegative() && untilEvent.toMinutes() <= 60 && untilEvent.toMinutes() >= 0) {
+                sendReminderForEvent(event, false);
+            }
+        }
+    }
+
+    private void sendReminderForEvent(Event event, boolean isMorningReminder) {
+        List<EventParticipation> participants = eventParticipationRepository.findAllByEvent_Id(event.getId());
+
+        for (EventParticipation participant : participants) {
+            this.emailService.sendEventParticipationReminderEmail(
+                    participant.getEmail(),
+                    participant.getName(),
+                    event.getDate().toInstant().atZone(ZoneId.of("America/Manaus")).toLocalDateTime(),
+                    event.getTitle(),
+                    event.getId().toString(),
+                    isMorningReminder
+            );
+        }
+    }
+
 }
+
