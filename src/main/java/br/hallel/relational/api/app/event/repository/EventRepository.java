@@ -55,6 +55,13 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     List<Event> findByEventStatusNot(EventStatus eventStatus);
 
+    List<Event> findByDateBetweenOrderByDateAsc(
+            Date startOfDay,
+            Date endOfDay
+    );
+
+
+
     Page<Event> findByEventStatusNot(EventStatus eventStatus, Pageable pageable);
 
     Page<Event> findByEventStatus(EventStatus eventStatus, Pageable pageable);
@@ -66,4 +73,5 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     Page<Event> findByEventStatusNotOrderByDateAsc(EventStatus eventStatus, Pageable pageable);
 
     Page<Event> findByEventStatusOrderByTitleAsc(EventStatus eventStatus, Pageable pageable);
+
 }

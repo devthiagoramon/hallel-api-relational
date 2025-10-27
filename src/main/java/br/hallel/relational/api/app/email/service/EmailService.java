@@ -236,10 +236,75 @@ public class EmailService {
             return false;
         }
     }
-    public Boolean sendComprovantEventParticipation(String to, String name,
-                                                    LocalDateTime eventDate,
-                                                    String eventTitle,
-                                                    String eventId) {
+
+    public void sendEventParticipationReminderEmail(String to, String name, LocalDateTime eventDate,
+                                                    String eventTitle, String eventId, boolean isMorningReminder) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from);
+            helper.setTo(to);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String formattedEventDate = eventDate.format(formatter);
+
+            String subject = isMorningReminder
+                    ? "Lembrete: O evento " + eventTitle + " é hoje! 🎉"
+                    : "Falta 1 hora para o evento " + eventTitle + " começar ⏰";
+
+            String greeting = isMorningReminder
+                    ? "Estamos animados para o seu evento de hoje!"
+                    : "Está quase na hora! ⏰";
+
+            String html = """
+                    <html>
+                      <body style="font-family: Arial, sans-serif; color: #333;">
+                        <div style="max-width: 600px; margin: auto; padding: 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;">
+                            <h2 style="color: #f57c00;">Olá, %s! 👋</h2>
+                            <p style="font-size: 16px;">%s</p>
+                    
+                            <p style="font-size: 16px;">
+                                O evento <b>%s</b> acontecerá em breve!
+                            </p>
+                    
+                            <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                <li><strong>Data e Hora:</strong> %s</li>
+                            </ul>
+                    
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="https://comunidadecatolicahallel.com.br/evento/%s"
+                                   style="background-color: #f57c00; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                   Ver Detalhes do Evento
+                                </a>
+                            </div>
+                    
+                            <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                Se não puder comparecer, avise nossa equipe para liberarmos sua vaga para outro participante.
+                            </p>
+                            <br/>
+                            <p style="font-size: 14px; color: #888;">Com carinho, <br/>Equipe Hallel 💚</p>
+                        </div>
+                      </body>
+                    </html>
+                    """.formatted(name, greeting, eventTitle, formattedEventDate, eventId);
+
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            log.info("Lembrete de evento enviado para: {}", to);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar lembrete de evento para {}: {}", to, e.getMessage());
+            throw new IllegalStateException("Falha ao enviar e-mail de lembrete", e);
+        }
+    }
+
+    public void sendComprovantEventParticipation(String to, String name,
+                                                 LocalDateTime eventDate,
+                                                 String eventTitle,
+                                                 String eventId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -253,47 +318,47 @@ public class EmailService {
             helper.setSubject("Comprovante de Participação no Evento: " + eventTitle);
 
             String html = """
-            <html>
-                <body style="font-family: Arial, sans-serif; color: #333;">
-                    <div style="max-width: 600px; margin: auto; padding: 20px; background: #f0f9ff; border: 1px solid #b3e5fc; border-radius: 10px;">
-                        <h2 style="color: #0288d1;">Olá, %s! ✅</h2>
-                        <p style="font-size: 16px;">
-                            Este é o seu comprovante de participação no evento <b>%s</b>.
-                        </p>
-                        <h3 style="color: #0288d1;">Detalhes do Evento:</h3>
-                        <ul style="list-style: none; padding: 0; font-size: 16px;">
-                            <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> %s</li>
-                        </ul>
-                        
-                        <p style="font-size: 16px;">
-                            Guarde este comprovante para referência futura. Obrigado por participar do evento!
-                        </p>
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <a href="https://comunidadecatolicahallel.com.br/evento/%s" 
-                               style="background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                Ver Evento
-                            </a>
-                        </div>
-                        
-                        <p style="font-size: 14px; color: #888; margin-top: 30px;">
-                            Se você tiver alguma dúvida sobre sua participação, entre em contato com nossa equipe.
-                        </p>
-                        <br/>
-                        <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
-                    </div>
-                </body>
-            </html>
-            """.formatted(name, eventTitle, formattedEventDate,eventId);
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333;">
+                            <div style="max-width: 600px; margin: auto; padding: 20px; background: #f0f9ff; border: 1px solid #b3e5fc; border-radius: 10px;">
+                                <h2 style="color: #0288d1;">Olá, %s! ✅</h2>
+                                <p style="font-size: 16px;">
+                                    Este é o seu comprovante de participação no evento <b>%s</b>.
+                                </p>
+                                <h3 style="color: #0288d1;">Detalhes do Evento:</h3>
+                                <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                    <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> %s</li>
+                                </ul>
+                    
+                                <p style="font-size: 16px;">
+                                    Guarde este comprovante para referência futura. Obrigado por participar do evento!
+                                </p>
+                    
+                                <div style="text-align: center; margin-top: 30px;">
+                                    <a href="https://comunidadecatolicahallel.com.br/evento/%s" 
+                                       style="background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                        Ver Evento
+                                    </a>
+                                </div>
+                    
+                                <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                    Se você tiver alguma dúvida sobre sua participação, entre em contato com nossa equipe.
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
+                            </div>
+                        </body>
+                    </html>
+                    """.formatted(name, eventTitle, formattedEventDate, eventId);
 
             helper.setText(html, true);
             mailSender.send(message);
 
             log.info("Comprovante de participação enviado para: {}", to);
-            return true;
+
         } catch (Exception e) {
             log.error("Erro ao enviar comprovante para {}: {}", to, e.getMessage());
-            return false;
+            throw new IllegalStateException("Falha ao enviar email de confirmação", e);
         }
     }
 
