@@ -237,8 +237,15 @@ public class EmailService {
         }
     }
 
-    public void sendEventParticipationReminderEmail(String to, String name, LocalDateTime eventDate,
-                                                    String eventTitle, String eventId, boolean isMorningReminder) {
+    public void sendEventParticipationReminderEmail(
+            String to,
+            String name,
+            LocalDateTime eventDate,
+            String eventTitle,
+            String eventId,
+            boolean isMorningReminder,
+            boolean isPaid
+    ) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -257,37 +264,127 @@ public class EmailService {
                     ? "Estamos animados para o seu evento de hoje!"
                     : "Está quase na hora! ⏰";
 
-            String html = """
-                    <html>
-                      <body style="font-family: Arial, sans-serif; color: #333;">
-                        <div style="max-width: 600px; margin: auto; padding: 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;">
-                            <h2 style="color: #f57c00;">Olá, %s! 👋</h2>
-                            <p style="font-size: 16px;">%s</p>
+            // 👇 Botão condicional
+            String buttonHtml = isPaid
+                    ? """
+                      <a href="https://comunidadecatolicahallel.com.br/evento/%s"
+                         style="background-color: #388e3c; color: white; padding: 14px 24px;
+                                text-decoration: none; border-radius: 8px; font-weight: bold;
+                                display: inline-block; font-size: 16px;">
+                         Ver Detalhes do Evento
+                      </a>
+                    """.formatted(eventId)
+                    : """
+                      <a href="https://comunidadecatolicahallel.com.br/evento/%s?abrirPagamento=true"
+                         style="background-color: #f57c00; color: white; padding: 14px 24px;
+                                text-decoration: none; border-radius: 8px; font-weight: bold;
+                                display: inline-block; font-size: 16px;">
+                         Finalizar Pagamento
+                      </a>
+                    """.formatted(eventId);
+
+            // HTML principal
+            String htmlTemplate = """
+                    <!DOCTYPE html>
+                    <html lang="pt-BR">
+                      <head>
+                        <meta charset="UTF-8" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                        <title>Lembrete de Evento</title>
+                        <style>
+                          body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #f3f4f6;
+                            font-family: Arial, sans-serif;
+                            color: #333;
+                          }
+                          .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background: #ffffff;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                          }
+                          .header {
+                            background: linear-gradient(135deg, #4caf50, #2e7d32);
+                            color: white;
+                            text-align: center;
+                            padding: 30px 20px;
+                          }
+                          .header h1 {
+                            margin: 0;
+                            font-size: 24px;
+                          }
+                          .content {
+                            padding: 25px 20px;
+                            text-align: center;
+                          }
+                          .content p {
+                            font-size: 16px;
+                            line-height: 1.5;
+                            margin-bottom: 15px;
+                          }
+                          .event-info {
+                            background: #f9fbe7;
+                            border-left: 4px solid #cddc39;
+                            margin: 20px auto;
+                            padding: 15px;
+                            border-radius: 8px;
+                            text-align: left;
+                            width: 85%%; /* <- escapado */
+                          }
+                          .footer {
+                            text-align: center;
+                            font-size: 13px;
+                            color: #777;
+                            padding: 15px;
+                            background: #fafafa;
+                          }
+                          @media (max-width: 600px) {
+                            .content p { font-size: 15px; }
+                            .event-info { width: 95%%; } /* <- escapado */
+                            .header h1 { font-size: 20px; }
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="container">
+                          <div class="header">
+                            <h1>Olá, %s! 👋</h1>
+                          </div>
                     
-                            <p style="font-size: 16px;">
-                                O evento <b>%s</b> acontecerá em breve!
+                          <div class="content">
+                            <p>%s</p>
+                    
+                            <p>
+                              O evento <strong>%s</strong> acontecerá em breve:
                             </p>
                     
-                            <ul style="list-style: none; padding: 0; font-size: 16px;">
-                                <li><strong>Data e Hora:</strong> %s</li>
-                            </ul>
-                    
-                            <div style="text-align: center; margin-top: 30px;">
-                                <a href="https://comunidadecatolicahallel.com.br/evento/%s"
-                                   style="background-color: #f57c00; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                   Ver Detalhes do Evento
-                                </a>
+                            <div class="event-info">
+                              <p><strong>Data e Hora:</strong> %s</p>
                             </div>
                     
-                            <p style="font-size: 14px; color: #888; margin-top: 30px;">
-                                Se não puder comparecer, avise nossa equipe para liberarmos sua vaga para outro participante.
+                            <div style="margin-top: 30px;">
+                              %s
+                            </div>
+                    
+                            <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                              Se não puder comparecer, avise nossa equipe para liberarmos sua vaga.
                             </p>
-                            <br/>
-                            <p style="font-size: 14px; color: #888;">Com carinho, <br/>Equipe Hallel 💚</p>
+                          </div>
+                    
+                          <div class="footer">
+                            <p>Com carinho 💚<br>Equipe Hallel</p>
+                          </div>
                         </div>
                       </body>
                     </html>
-                    """.formatted(name, greeting, eventTitle, formattedEventDate, eventId);
+                    """;
+
+            // 👇 Importante: escapar todos os '%' antes de formatar
+            String html = htmlTemplate.formatted(name, greeting, eventTitle, formattedEventDate, buttonHtml);
 
             helper.setSubject(subject);
             helper.setText(html, true);
@@ -301,10 +398,12 @@ public class EmailService {
         }
     }
 
+
     public void sendComprovantEventParticipation(String to, String name,
                                                  LocalDateTime eventDate,
                                                  String eventTitle,
-                                                 String eventId) {
+                                                 String eventId,
+                                                 String whatsAppGroupLink) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -316,6 +415,19 @@ public class EmailService {
             String formattedEventDate = eventDate.format(formatter);
 
             helper.setSubject("Comprovante de Participação no Evento: " + eventTitle);
+
+            // O bloco do WhatsApp agora é uma célula de tabela, se existir.
+            String whatsAppCell = "";
+            if (whatsAppGroupLink != null && !whatsAppGroupLink.trim().isEmpty()) {
+                whatsAppCell = """
+                        <td style="padding: 0 5px;">
+                            <a href="%s" 
+                               style="display: inline-block; background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                Acessar Grupo WhatsApp
+                            </a>
+                        </td>
+                        """.formatted(whatsAppGroupLink);
+            }
 
             String html = """
                     <html>
@@ -331,14 +443,22 @@ public class EmailService {
                                 </ul>
                     
                                 <p style="font-size: 16px;">
-                                    Guarde este comprovante para referência futura. Obrigado por participar do evento!
+                                    Guarde este comprovante para referência futura. Utilize os botões abaixo para acessar o evento ou o grupo de informações.
                                 </p>
                     
                                 <div style="text-align: center; margin-top: 30px;">
-                                    <a href="https://comunidadecatolicahallel.com.br/evento/%s" 
-                                       style="background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                        Ver Evento
-                                    </a>
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: auto;">
+                                        <tr>
+                                            <td style="padding: 0 5px;">
+                                                <a href="https://comunidadecatolicahallel.com.br/evento/%s" 
+                                                   style="display: inline-block; background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                                    Ver Evento
+                                                </a>
+                                            </td>
+                    
+                                            %s 
+                                        </tr>
+                                    </table>
                                 </div>
                     
                                 <p style="font-size: 14px; color: #888; margin-top: 30px;">
@@ -349,7 +469,7 @@ public class EmailService {
                             </div>
                         </body>
                     </html>
-                    """.formatted(name, eventTitle, formattedEventDate, eventId);
+                    """.formatted(name, eventTitle, formattedEventDate, eventId, whatsAppCell);
 
             helper.setText(html, true);
             mailSender.send(message);

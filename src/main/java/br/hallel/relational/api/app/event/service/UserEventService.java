@@ -191,7 +191,8 @@ public class UserEventService {
             emailService.sendComprovantEventParticipation(
                     user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
                             ZoneId.systemDefault()
-                    ).toLocalDateTime(), event.getTitle(), event.getId().toString()
+                    ).toLocalDateTime(), event.getTitle(), event.getId().toString(),
+                    event.getWhatsAppGroupLink()
             );
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
@@ -279,11 +280,6 @@ public class UserEventService {
             template.convertAndSend("/topic/payments/" + user.getId(),
                     new PaymentStatusDTO(qrCode, participation.getPixTxid(),
                             StatusPaymentEventParticipation.PENDENTE));
-            emailService.sendComprovantEventParticipation(
-                    user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(), event.getTitle(), event.getId().toString()
-            );
         } catch (Exception e) {
             log.error(e.getMessage());
         }

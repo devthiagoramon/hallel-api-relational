@@ -14,6 +14,8 @@ import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.dto.mapper.UserMapper;
+import br.hallel.relational.api.app.user.exceptions.RoleNotFoundException;
+import br.hallel.relational.api.app.user.exceptions.UpdateRoleUserException;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.interfaces.UserInterface;
 import br.hallel.relational.api.app.user.model.*;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -186,18 +189,21 @@ public class UserService implements UserInterface {
 
 
     @Override
-    public Page<UserProfileResponse> listAllUsers(int page, int size) {
+    public Page<UserProfileResponseWithRole> listAllUsers(int page, int size, String nameFiltered,
+                                                          FilterAuthorietiesDTO filterAuthorietiesDTO) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = this.userRepository.searchAllByOrderByNameAsc(pageable);
+        Page<User> users = this.userRepository.searchAllByOrderByNameAsc(nameFiltered,
+                filterAuthorietiesDTO != null ? filterAuthorietiesDTO.toString() : null, pageable);
         return users.map((user -> {
             Date date = getLastAccessDate(user);
-            return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, date);
+            return new UserProfileResponseWithRole(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, date,
+                    user.getRoles().stream().map(Role::getDescription).toList());
         }));
     }
 
     @Override
-    public Page<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
+    public Page<UserProfileResponseWithRole> listAllUsersByName(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         //
@@ -205,7 +211,23 @@ public class UserService implements UserInterface {
 //            throw new UserNotFoundException("User not found by name: " + name);
 //        }
 
-        return this.userRepository.searchUserProfilesByName(name, pageable);
+        Page<User> users = this.userRepository.searchUserProfilesByName(name, pageable);
+        return users.map(user -> {
+            Date date = getLastAccessDate(user);
+            return new UserProfileResponseWithRole(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPhoneNumber(),
+                    user.getDateBirth(),
+                    user.getFileImageUrl(),
+                    user.getCpf(),
+                    user.getStatus(),
+                    null,
+                    date,
+                    user.getRoles().stream().map(Role::getDescription).toList()
+            );
+        });
     }
 
     @Override
@@ -467,5 +489,56 @@ public class UserService implements UserInterface {
 
         return new UserEditProfileDTO(user.getName(), user.getEmail(), user.getPhoneNumber(),
                 user.getDateBirth(), user.getCpf());
+    }
+
+    public UserProfileResponse updateRoleOfUser(UpdateRoleUserDTO dto) {
+        User user = this.userRepository.findById(dto.getUserId())
+                .orElseThrow(
+                        () -> new UserNotFoundException("Usuário não encontrado pelo id", dto.getUserId().toString()));
+
+        Set<Role> currentUserRoles = user.getRoles();
+
+        if (dto.getRoleNameAdd() != null && !dto.getRoleNameAdd().isEmpty()) {
+
+            List<Role> rolesToAdd = this.roleRepository.findByDescriptionIn(dto.getRoleNameAdd());
+
+
+            if (rolesToAdd.size() != dto.getRoleNameAdd().size()) {
+                throw new RoleNotFoundException("Um ou mais papéis para adicionar não foram encontrados.");
+            }
+
+            for (Role role : rolesToAdd) {
+                if (currentUserRoles.contains(role)) {
+                    throw new UpdateRoleUserException("Usuário já poussi o papel: " + role.getDescription());
+                } else {
+                    user.getRoles().add(role);
+                }
+
+            }
+        }
+
+        if (dto.getRoleNameRemove() != null && !dto.getRoleNameRemove().isEmpty()) {
+            Set<String> rolesToremoveNames = dto.getRoleNameRemove().stream()
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toSet());
+
+            currentUserRoles.removeIf(role ->
+                    rolesToremoveNames.contains(role.getDescription().toUpperCase()));
+        }
+
+        this.userRepository.save(user);
+
+        return new UserProfileResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getDateBirth(),
+                user.getFileImageUrl(),
+                user.getCpf(),
+                user.getStatus(),
+                null,
+                null
+        );
     }
 }
