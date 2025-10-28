@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.user.controller.admin;
 
 import br.hallel.relational.api.app.user.dto.CreateEditUser;
+import br.hallel.relational.api.app.user.dto.UpdateRoleUserDTO;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.dto.UserProfileWithPasswordResponse;
 import br.hallel.relational.api.app.user.service.UserService;
@@ -67,5 +68,10 @@ public class AdminUserController {
     @Operation(summary = "Activate user in system", description = "Handles activate user account")
     public ResponseEntity<UserProfileResponse> activateUser(@PathVariable("idUser") UUID idUser) {
         return ResponseEntity.ok(userService.activateUser(idUser));
+    }
+
+    @PatchMapping("/update/role")
+    public ResponseEntity<UserProfileResponse> updateRoleUser(UpdateRoleUserDTO dto){
+        return ResponseEntity.ok(this.userService.updateRoleOfUser(dto));
     }
 }

@@ -1,6 +1,8 @@
 package br.hallel.relational.api.app.user.exceptions.handler;
 
 import br.hallel.relational.api.app.global.model.ExceptionResponse;
+import br.hallel.relational.api.app.user.exceptions.RoleNotFoundException;
+import br.hallel.relational.api.app.user.exceptions.UpdateRoleUserException;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -22,8 +24,25 @@ public class UserExceptionHandler {
     @ExceptionHandler(value = UserNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleUserNotFoundExcpetion(
             UserNotFoundException exception, WebRequest request) {
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(), request.getDescription(false));
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(value = UpdateRoleUserException.class)
+    public ResponseEntity<ExceptionResponse> handleUpdateRoleUserExcpetion(UpdateRoleUserException exception,
+                                                                           WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = RoleNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleRoleNotFoundExcpetion(
+            RoleNotFoundException exception, WebRequest request
+    ) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
 }
