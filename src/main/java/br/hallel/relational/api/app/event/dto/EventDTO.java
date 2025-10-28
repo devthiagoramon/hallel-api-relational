@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,5 +51,8 @@ public class EventDTO {
     @NotNull(message = "O tipo do evento não pode ser nulo")
     private EventType eventType;
     private Boolean itsFree;
+
+    private String whatsAppGroupLink;
+
 
 }

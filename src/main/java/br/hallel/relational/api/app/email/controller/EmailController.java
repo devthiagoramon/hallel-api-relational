@@ -2,9 +2,11 @@ package br.hallel.relational.api.app.email.controller;
 
 import br.hallel.relational.api.app.email.service.EmailService;
 import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 
+@Slf4j
 @RestController
 @RequestMapping("/public/email")
 @RequiredArgsConstructor
@@ -37,7 +40,8 @@ public class EmailController {
                             ZoneId.systemDefault()
                     ).toLocalDateTime(),
                     user.getEvent().getTitle(),
-                    user.getEvent().getId().toString()
+                    user.getEvent().getId().toString(),
+                    user.getEvent().getWhatsAppGroupLink()
             );
 
         }
@@ -51,6 +55,14 @@ public class EmailController {
         List<EventParticipation> allByEventId =
                 this.eventParticipationRepository.findAllByEvent_Id(eventId);
         for (EventParticipation user : allByEventId) {
+            boolean isPaid = user.getStatusPaymentEventParticipation() ==
+                    StatusPaymentEventParticipation.PAGO;
+            log.info(
+                    "Enviando email de lembrete para {} sobre o evento {}. Pago: {}",
+                    user.getEmail(),
+                    user.getEvent().getTitle(),
+                    isPaid
+            );
             emailService.sendEventParticipationReminderEmail(
                     user.getEmail(),
                     user.getName(),
@@ -59,7 +71,8 @@ public class EmailController {
                     ).toLocalDateTime(),
                     user.getEvent().getTitle(),
                     user.getEvent().getId().toString(),
-                    false
+                    false,
+                    isPaid
             );
 
         }
