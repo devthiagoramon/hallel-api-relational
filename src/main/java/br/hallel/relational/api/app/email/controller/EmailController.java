@@ -51,7 +51,7 @@ public class EmailController {
     @PostMapping("/send-remind")
     public ResponseEntity<String> sendRemindEmailParticipation(
             @RequestParam UUID eventId
-    ){
+    ) {
         List<EventParticipation> allByEventId =
                 this.eventParticipationRepository.findAllByEvent_Id(eventId);
         for (EventParticipation user : allByEventId) {
@@ -78,4 +78,35 @@ public class EmailController {
         }
         return ResponseEntity.ok("Notificação enviada!");
     }
+
+    @PostMapping("/send-refund")
+    public ResponseEntity<String> sendRefundEmailParticipation(
+            @RequestParam UUID eventId
+    ) {
+        List<EventParticipation> allByEventId =
+                this.eventParticipationRepository.findAllByEvent_Id(eventId);
+        for (EventParticipation user : allByEventId) {
+            boolean isPaid = user.getStatusPaymentEventParticipation() ==
+                    StatusPaymentEventParticipation.PAGO;
+            log.info(
+                    "Enviando email de lembrete para {} sobre o evento {}. Estornado: {}",
+                    user.getEmail(),
+                    user.getEvent().getTitle(),
+                    isPaid
+            );
+            emailService.sendRefundEventParticipation(
+                    user.getEmail(),
+                    user.getName(),
+                    user.getEvent().getDate().toInstant().atZone(
+                            ZoneId.systemDefault()
+                    ).toLocalDateTime(),
+                    user.getEvent().getTitle(),
+                    user.getAmountPaid()
+                    );
+
+        }
+        return ResponseEntity.ok("Notificação enviada!");
+    }
+
+
 }

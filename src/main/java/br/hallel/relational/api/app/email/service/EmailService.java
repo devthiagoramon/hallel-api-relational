@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -33,6 +34,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String from;
 
+    @Async
     public void sendMail(String to, String subject, String text) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -51,6 +53,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendAdminMail(String to, String email, String url) {
         try {
 
@@ -65,6 +68,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public boolean sendBirthDayEmail(String to, String subject, String name, User user, LocalDate today) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -114,6 +118,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public boolean sendBillingAssociate(String to, String subject, String name, Double value, LocalDateTime renewalDate) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -178,6 +183,7 @@ public class EmailService {
     }
 
 
+    @Async
     public boolean sendRenewalEmail(String to, String name, Double value, LocalDateTime renewalDate) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -237,6 +243,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendEventParticipationReminderEmail(
             String to,
             String name,
@@ -399,6 +406,7 @@ public class EmailService {
     }
 
 
+    @Async
     public void sendComprovantEventParticipation(String to, String name,
                                                  LocalDateTime eventDate,
                                                  String eventTitle,
@@ -481,5 +489,59 @@ public class EmailService {
             throw new IllegalStateException("Falha ao enviar email de confirmação", e);
         }
     }
+
+    @Async
+    public void sendRefundEventParticipation(String to, String name,
+                                             LocalDateTime eventDate,
+                                             String eventTitle,
+                                             Double amountRefunded) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from);
+            helper.setTo(to);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String formattedEventDate = eventDate.format(formatter);
+
+            helper.setSubject("Confirmação de saída do Evento: " + eventTitle);
+
+            String html = """
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333;">
+                            <div style="max-width: 600px; margin: auto; padding: 20px; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 10px;">
+                                <h2 style="color: #f57c00;">Olá, %s!</h2>
+                                <p style="font-size: 16px;">
+                                    Você saiu do evento <b>%s</b>.
+                                </p>
+                                <h3 style="color: #f57c00;">Detalhes do Evento:</h3>
+                                <ul style="list-style: none; padding: 0; font-size: 16px;">
+                                    <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> %s</li>
+                                </ul>
+                                <p style="font-size: 16px;">
+                                    O valor pago de <b>R$ %.2f</b> foi estornado com sucesso.
+                                </p>
+                                <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                                    Se tiver dúvidas, entre em contato com nossa equipe.
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
+                            </div>
+                        </body>
+                    </html>
+                    """.formatted(name, eventTitle, formattedEventDate, amountRefunded);
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            log.info("Email de saída do evento enviado para: {}", to);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email de saída do evento para {}: {}", to, e.getMessage());
+            throw new IllegalStateException("Falha ao enviar email de saída do evento", e);
+        }
+    }
+
 
 }

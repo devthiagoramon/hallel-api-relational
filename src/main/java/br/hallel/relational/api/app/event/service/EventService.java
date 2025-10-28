@@ -9,6 +9,7 @@ import br.hallel.relational.api.app.event.repository.EventInviteRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
+import br.hallel.relational.api.app.event.utils.EventUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
@@ -54,6 +55,8 @@ public class EventService implements EventInterface {
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
     private final EventInviteRepository inviteRepository;
 
+    private final EventUtils eventUtils;
+
     @Override
     public EventResponse create(EventDTO eventDTO,
                                 MultipartFile fileImage,
@@ -84,8 +87,8 @@ public class EventService implements EventInterface {
         event = this.repository.save(event);
 
         // Sincroniza ingressos e agendas
-        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
-        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+        eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
+        eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
 
         // Limites por faixa etária
         generateLimiteAgeGroupForEvent(event);
@@ -111,85 +114,13 @@ public class EventService implements EventInterface {
         return mapper.entityToResponse(event);
     }
 
-    private void synchronizeEventInvites(Event event, List<EventInviteDTO> dtos) {
-        Map<UUID, EventInvite> existingInvitesMap = event.getEventInvites().stream()
-                .collect(Collectors.toMap(EventInvite::getId, eventInvite -> eventInvite));
-
-        Set<UUID> processedInviteIds = new HashSet<>();
-        for (EventInviteDTO dto : dtos) {
-            if (dto.getId() == null) {
-                EventInvite newInvite = new EventInvite();
-                newInvite.setName(dto.getName());
-                newInvite.setDescription(dto.getDescription());
-                newInvite.setValue(dto.getValue());
-                newInvite.setEvent(event);
-                event.addInvite(newInvite);
-            } else {
-                processedInviteIds.add(dto.getId());
-                EventInvite existingInvite = existingInvitesMap.get(dto.getId());
-                if (existingInvite != null) {
-                    existingInvite.setName(dto.getName());
-                    existingInvite.setDescription(dto.getDescription());
-                    existingInvite.setValue(dto.getValue());
-                    existingInvite.setEvent(event);
-                }
-            }
-        }
-        event.getEventInvites()
-                .removeIf(invite -> invite.getId() != null && !processedInviteIds.contains(invite.getId()));
-
-    }
-
-    private void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {
-        Map<UUID, EventSchedule> existingScheduleMap = event.getEventSchedules().stream()
-                .collect(Collectors.toMap(EventSchedule::getId, eventSchedule -> eventSchedule));
-
-        Set<UUID> processedSchedulesIds = new HashSet<>();
-        for (EventScheduleDTO dto : dtos) {
-            if (dto.getId() == null) {
-                EventSchedule newSchedule = new EventSchedule();
-                newSchedule.setDescription(dto.getDescription());
-                if (dto.getMinistryId() != null) {
-                    Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
-                            () -> new MinistryNotFoundException(
-                                    "Não foi possivel encontrar o ministério para associar a programação do evento",
-                                    dto.getMinistryId().toString()));
-                    newSchedule.setMinistry(ministry);
-                }
-                newSchedule.setCreatedAt(OffsetDateTime.now());
-                newSchedule.setDate(dto.getDate());
-                event.addSchedule(newSchedule);
-            } else {
-                processedSchedulesIds.add(dto.getId());
-                EventSchedule existingSchedule = existingScheduleMap.get(dto.getId());
-                if (existingSchedule != null) {
-                    existingSchedule.setDescription(dto.getDescription());
-                    if (dto.getMinistryId() != null) {
-                        Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
-                                () -> new MinistryNotFoundException(
-                                        "Não foi possivel encontrar o ministério para associar a programação do evento",
-                                        dto.getMinistryId().toString()));
-                        existingSchedule.setMinistry(ministry);
-                    }
-                    existingSchedule.setDate(dto.getDate());
-                    existingSchedule.setEditedAt(OffsetDateTime.now());
-
-                }
-            }
-        }
-        event.getEventSchedules()
-                .removeIf(schedule -> schedule.getId() != null && !processedSchedulesIds.contains(schedule.getId()));
-    }
-
-
-
 
     @Override
     public Page<EventResponse> listAllEvents(Pageable pageable) {
         Page<Event> eventsPage = this.repository.findAll(pageable);
 
         List<EventResponse> eventResponses = eventsPage.getContent().stream()
-                .map(this::eventToResponse)
+                .map(EventResponse::eventToResponse)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(eventResponses, pageable, eventsPage.getTotalElements());
@@ -199,7 +130,7 @@ public class EventService implements EventInterface {
         log.info("Listing events by event status {}", eventStatus);
         Page<Event> event = this.repository.findByEventStatus(eventStatus, pageable);
         List<EventResponse> eventResponses =
-                event.stream().map(this::eventToResponse).collect(Collectors.toList());
+                event.stream().map(EventResponse::eventToResponse).collect(Collectors.toList());
         return new PageImpl<>(eventResponses, pageable, event.getTotalElements());
     }
 
@@ -207,7 +138,7 @@ public class EventService implements EventInterface {
         log.info("List all Events");
 
         Page<Event> events = this.repository.findByEventStatusNotOrderByDateAsc(EventStatus.FINALIZADO, pageable);
-        List<EventResponse> eventResponses = events.getContent().stream().map(this::eventToResponse)
+        List<EventResponse> eventResponses = events.getContent().stream().map(EventResponse::eventToResponse)
                 .collect(Collectors.toList());
 
         if (events.isEmpty()) {
@@ -288,8 +219,8 @@ public class EventService implements EventInterface {
         event.setEventType(eventDTO.getEventType());
         boolean itsFreeValue = eventDTO.getItsFree();
 
-        synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
-        synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
+        eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+        eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         event.setItsFree(itsFreeValue);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
@@ -542,25 +473,7 @@ public class EventService implements EventInterface {
 
     }
 
-    private EventResponse eventToResponse(Event event) {
-        return new EventResponse(
-                event.getId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getDate(),
-                event.getBanner_url(),
-                event.getImage_url(),
-                event.getIsImportant(),
-                event.getLocal_event_name(),
-                event.getLocal_event_longitude(),
-                event.getLocal_event_latitude(),
-                event.getEventSchedules(),
-                event.getEventInvites(),
-                null,
-                event.getEventType(),
-                event.getEventStatus()
-        );
-    }
+
 
     public String getTransactionEventPDF(UUID eventId, TransactionType filter) {
 

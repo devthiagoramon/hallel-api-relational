@@ -5,6 +5,7 @@ import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.*;
+import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
@@ -47,6 +48,7 @@ public class UserEventService {
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
     private final EventInviteRepository eventInviteRepository;
     private final EmailService emailService;
+    private final EventParticipationUtils eventParticipationUtils;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
@@ -90,25 +92,27 @@ public class UserEventService {
 
         boolean isPaidEvent = eventInviteOptional.isPresent();
 
-
         User user = !isAnonymous ? optionalUser.get() : null;
 
-        Date birthDate = !isAnonymous ? user.getDateBirth() : Date.from(dto.getDateBirth().toInstant());
-        log.info("DATA DE NASCIMENTO DO USUÁRIO: {}", birthDate);
-        LocalDate birthLocalDate = new java.util.Date(birthDate.getTime())
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
-        int years = Period.between(birthLocalDate, LocalDate.now()).getYears();
+        Date birthDate = !isAnonymous
+                ? user.getDateBirth()
+                : Date.from(dto.getDateBirth().toInstant());
+        log.info("Data de nascimento do usuário: {}", birthDate);
+        LocalDate birthLocalDate;
 
-        //MÉTODO PRA VALIDAR A IDADE DO PARTICIPANTE E VERIFICAR SE A QUANTIDADE DE VAGAS NÃO ULTRAPASSOU O LIMITE
-        log.info("ANTES DE VALIDAR A IDADE");
+        if (birthDate instanceof java.sql.Date sqlDate) {
+            birthLocalDate = sqlDate.toLocalDate();
+        } else {
+            birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
 
-        ValidateAgeParticipantResponse validateAgeResponse = validateAgeParticipant(years, event);
-        if (validateAgeResponse.limiteReached() != null && validateAgeResponse.limiteReached() == AgeGroup.EXCEDIDO) {
+        int years = eventParticipationUtils.calculateAge(birthLocalDate);
+        ValidateAgeParticipantResponse validation =
+                eventParticipationUtils.validateAgeParticipant(years, event);
 
+        if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
             return EventParticipationResponse.toEventParticipationLimitReached(true,
-                    validateAgeResponse.ageGroup(),
+                    validation.ageGroup(),
                     event.getId(),
                     !isAnonymous ? user.getId() : null);
         }
@@ -118,19 +122,9 @@ public class UserEventService {
             eventParticipation.setEventInviteAssociated(eventInvite);
             try {
                 String fullName = !isAnonymous ? user.getName() : dto.getName();
-                String firstName = "";
-                String lastName = "";
-
-                if (fullName != null && !fullName.isEmpty()) {
-                    String[] names = fullName.split(" ");
-                    if (names.length > 0) {
-                        firstName = names[0];
-                    }
-                    if (names.length > 1) {
-                        lastName = String.join(" ", java.util.Arrays.copyOfRange(names, 1, names.length));
-                    }
-                }
-
+                String[] nameParts = eventParticipationUtils.splitFullName(fullName);
+                String firstName = nameParts[0];
+                String lastName = nameParts[1];
                 String cpfParaPagamento = null;
 
                 if (!isAnonymous && user.getCpf() != null) {
@@ -204,47 +198,6 @@ public class UserEventService {
 
     }
 
-    private ValidateAgeParticipantResponse validateAgeParticipant(int years, Event event) {
-        AgeGroup targetAgeGroup;
-
-        if (years <= 8) {
-            targetAgeGroup = AgeGroup.CRIANCA;
-
-        } else if (years <= 14) {
-            targetAgeGroup = AgeGroup.TEEN;
-
-        } else if (years <= 30) {
-            targetAgeGroup = AgeGroup.JOVEM;
-
-        } else if (years <= 120) {
-            targetAgeGroup = AgeGroup.ADULTO;
-
-        } else {
-            throw new UserValidationException("A idade do usuário é inválida ou fora da faixa aceita (0 a 120 anos).");
-        }
-
-        if (targetAgeGroup == null) {
-            throw new UserValidationException("Não foi possível classificar a idade do usuário.");
-        }
-
-        LimitEventAgeGroup limit =
-                this.limitEventAgeGroupRepository.findByEventIdAndAgeGroup(event.getId(), targetAgeGroup)
-                        .orElseThrow(() -> new RuntimeException(
-                                "Limite de vagas para a faixa etária " + targetAgeGroup.name() + " não configurado."));
-
-        log.info("GRUPO ACHADO para idade {}: {}", years, limit.getAgeGroup());
-
-        if (limit.getLimitQuantity() <= limit.getCurrentQuantity()) {
-            log.warn("O limite de participantes para a faixa etária " + targetAgeGroup + " foi atingido.");
-            return new ValidateAgeParticipantResponse(targetAgeGroup, AgeGroup.EXCEDIDO);
-        }
-
-        limit.setCurrentQuantity(limit.getCurrentQuantity() + 1);
-
-        this.limitEventAgeGroupRepository.save(limit);
-        return new ValidateAgeParticipantResponse(targetAgeGroup, null);
-    }
-
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
         log.info("Paying an event");
@@ -292,14 +245,16 @@ public class UserEventService {
 
 
     public boolean leaveTheEvent(UUID eventId, UUID userId) {
-        Event event = this.eventRepository.findById(eventId).orElseThrow(
+        this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
         this.userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException("user.not.found", userId.toString())
         );
 
-
+        log.debug("Leave the event");
+        log.debug("User ID: {}",userId);
+        log.debug("Event ID: {}",eventId);
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventParticipationException(
                         "participation.event.not.found"

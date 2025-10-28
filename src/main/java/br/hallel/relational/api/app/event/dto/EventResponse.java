@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.EventInvite;
-import br.hallel.relational.api.app.event.model.EventSchedule;
-import br.hallel.relational.api.app.event.model.EventStatus;
-import br.hallel.relational.api.app.event.model.EventType;
+import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,4 +29,24 @@ public class EventResponse {
     private List<MinistrySimpleResponse> ministriesAssocied;
     private EventType eventType;
     private EventStatus eventStatus;
+
+    public static EventResponse eventToResponse(Event event) {
+        return new EventResponse(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDate(),
+                event.getBanner_url(),
+                event.getImage_url(),
+                event.getIsImportant(),
+                event.getLocal_event_name(),
+                event.getLocal_event_longitude(),
+                event.getLocal_event_latitude(),
+                event.getEventSchedules(),
+                event.getEventInvites(),
+                null,
+                event.getEventType(),
+                event.getEventStatus()
+        );
+    }
 }

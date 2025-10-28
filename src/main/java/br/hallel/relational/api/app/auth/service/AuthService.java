@@ -79,10 +79,9 @@ public class AuthService {
         return tokenResponse;
     }
 
-    public TokenDTO singUp(
-            SingUpRequest request
-    ) {
+    public TokenDTO singUp(SingUpRequest request) {
         log.info("Creating user in system...");
+
         List<Role> rolesBD = roleRepository.findAll();
         Role userRole = rolesBD.stream()
                 .filter(role -> role.getDescription().equals("USER"))
@@ -97,28 +96,30 @@ public class AuthService {
         user.setDateBirth(null);
         user.setRoles(Set.of(userRole));
         user.setPushNotification(false);
-        if (userRepository.
-                findByEmail(request.getEmail()).isPresent()) {
+        user.setStatus(UserAccountStatus.ENABLED);
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new AuthRequestException("User already exists in Database");
         }
 
-        var tokenResponse = new TokenDTO();
-        log.info("Antes do token...");
-        tokenResponse = jwtTokenProvider.createAccessToken(user.getId(), request.getEmail(), user.getRoles()
-                .stream()
-                .map(Role::getDescription)
-                .toList());
-        user.setToken(tokenResponse.getAccessToken());
-
         User userSaved = userRepository.save(user);
 
-        UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), rolesBD.stream()
-                .filter(item -> item.getDescription()
-                        .equals("USER"))
-                .toList()
-                .get(0)
-                .getId());
+        log.info("Gerando token...");
+        var tokenResponse = jwtTokenProvider.createAccessToken(
+                userSaved.getId(),
+                userSaved.getEmail(),
+                userSaved.getRoles().stream().map(Role::getDescription).toList()
+        );
+
+        userSaved.setToken(tokenResponse.getAccessToken());
+        userRepository.save(userSaved);
+
+        UserRoleIds userRoleIds = new UserRoleIds(
+                userSaved.getId(),
+                userRole.getId()
+        );
         userRoleRepository.save(new UserRole(userRoleIds));
+
         log.info("SAVING MEMBER...");
 
         return tokenResponse;
