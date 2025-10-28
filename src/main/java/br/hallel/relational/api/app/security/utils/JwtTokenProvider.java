@@ -18,10 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class JwtTokenProvider {
@@ -143,17 +140,42 @@ public class JwtTokenProvider {
     public boolean verifyAdminRoleExisting(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
-        return roles.contains("ADMIN");
+        if (roles == null || roles.isEmpty()) {
+            return false;
+        }
+        List<String> rolesDeAdmin = List.of(
+                "ADMIN",
+                "ADMIN_USER",
+                "ADMIN_EVENT",
+                "ADMIN_ASSOCIADO",
+                "ADMIN_FINANCEIRO",
+                "ADMIN_MINISTERIO"
+        );
+        return !Collections.disjoint(roles, rolesDeAdmin);
     }
 
 
     public boolean validateTokenOfAdmin(String token) {
-        DecodedJWT decodedJWT = decodedToken(token);
+        List<String> rolesDeAdmin = List.of(
+                "ADMIN",
+                "ADMIN_USER",
+                "ADMIN_EVENT",
+                "ADMIN_ASSOCIADO",
+                "ADMIN_FINANCEIRO",
+                "ADMIN_MINISTERIO"
+        );
+
         try {
+            DecodedJWT decodedJWT = decodedToken(token);
             if (decodedJWT.getExpiresAt().before(new Date())) {
                 return false;
             }
-            return decodedJWT.getClaim("roles").asList(String.class).contains("ADMIN");
+            List<String> rolesDoUsuario = decodedJWT.getClaim("roles").asList(String.class);
+            if (rolesDoUsuario == null || rolesDoUsuario.isEmpty()) {
+                return false;
+            }
+            return !Collections.disjoint(rolesDoUsuario, rolesDeAdmin);
+
         } catch (Exception e) {
             throw new InvalidJwtAuthenticationException("Expired or invalid JWT token!");
         }
