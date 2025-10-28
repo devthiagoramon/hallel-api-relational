@@ -189,18 +189,21 @@ public class UserService implements UserInterface {
 
 
     @Override
-    public Page<UserProfileResponse> listAllUsers(int page, int size) {
+    public Page<UserProfileResponseWithRole> listAllUsers(int page, int size, String nameFiltered,
+                                                          FilterAuthorietiesDTO filterAuthorietiesDTO) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = this.userRepository.searchAllByOrderByNameAsc(pageable);
+        Page<User> users = this.userRepository.searchAllByOrderByNameAsc(nameFiltered,
+                filterAuthorietiesDTO != null ? filterAuthorietiesDTO.toString() : null, pageable);
         return users.map((user -> {
             Date date = getLastAccessDate(user);
-            return new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
-                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, date);
+            return new UserProfileResponseWithRole(user.getId(), user.getName(), user.getEmail(), user.getPhoneNumber(),
+                    user.getDateBirth(), user.getFileImageUrl(), user.getCpf(), user.getStatus(), null, date,
+                    user.getRoles().stream().map(Role::getDescription).toList());
         }));
     }
 
     @Override
-    public Page<UserProfileResponse> listAllUsersByName(String name, int page, int size) {
+    public Page<UserProfileResponseWithRole> listAllUsersByName(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         //
@@ -208,7 +211,23 @@ public class UserService implements UserInterface {
 //            throw new UserNotFoundException("User not found by name: " + name);
 //        }
 
-        return this.userRepository.searchUserProfilesByName(name, pageable);
+        Page<User> users = this.userRepository.searchUserProfilesByName(name, pageable);
+        return users.map(user -> {
+            Date date = getLastAccessDate(user);
+            return new UserProfileResponseWithRole(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPhoneNumber(),
+                    user.getDateBirth(),
+                    user.getFileImageUrl(),
+                    user.getCpf(),
+                    user.getStatus(),
+                    null,
+                    date,
+                    user.getRoles().stream().map(Role::getDescription).toList()
+            );
+        });
     }
 
     @Override
@@ -489,9 +508,12 @@ public class UserService implements UserInterface {
             }
 
             for (Role role : rolesToAdd) {
-                if (!currentUserRoles.contains(role)) {
+                if (currentUserRoles.contains(role)) {
                     throw new UpdateRoleUserException("Usuário já poussi o papel: " + role.getDescription());
+                } else {
+                    user.getRoles().add(role);
                 }
+
             }
         }
 

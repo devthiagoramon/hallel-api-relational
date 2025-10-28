@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.user.repository;
 
+import br.hallel.relational.api.app.user.dto.FilterAuthorietiesDTO;
 import br.hallel.relational.api.app.user.dto.UserProfileResponse;
 import br.hallel.relational.api.app.user.dto.UserShortResponse;
 import br.hallel.relational.api.app.user.model.User;
@@ -20,34 +21,55 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
     @Query("""
-               SELECT u
-                FROM User u
-                            JOIN u.roles r
-                WHERE r.description = 'USER' AND SIZE(u.roles) = 1
+            SELECT DISTINCT u
+            FROM User u
+            LEFT JOIN u.roles r
+            WHERE
+            (
+                :nameFiltered IS NULL\s
+                OR :nameFiltered = ''\s
+                OR u.name LIKE CONCAT('%', :nameFiltered, '%')
+            )
+            AND
+            (
+                :roleName IS NULL
+                OR :roleName = 'ALL'
+                OR r.description = :roleName
+            )
+            AND
+            (
+                :roleName IS NULL
+                OR :roleName = 'ALL'
+                OR :roleName != 'USER'
+                OR
+                (
+                    :roleName = 'USER' AND SIZE(u.roles) = 1
+                )
+            )
+            AND
+            (
+                :roleName IS NULL
+                OR :roleName = 'ALL'
+                OR :roleName != 'ASSOCIADO'
+                OR
+                (
+                    :roleName = 'ASSOCIADO' AND SIZE(u.roles) = 2
+                )
+            )
+            ORDER BY u.name ASC
             """)
-    Page<User> searchAllByOrderByNameAsc(Pageable pageable);
+    Page<User> searchAllByOrderByNameAsc(@Param("nameFiltered") String nameFiltered, @Param("roleName") String roleName, Pageable pageable);
 
     List<UserProfileResponse> findAllByNameContainingIgnoreCase(
             String name, Pageable pageable);
 
     @Query("""
-                SELECT new br.hallel.relational.api.app.user.dto.UserProfileResponse(
-                    u.id,
-                    u.name,
-                    u.email,
-                    u.phoneNumber,
-                    u.dateBirth,
-                    u.fileImageUrl,
-                    u.cpf,
-                    u.status,
-                    NULL,
-                    NULL
-                )
+                SELECT u
                 FROM User u
                             JOIN u.roles r
-                WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')) AND r.description = 'USER' AND SIZE(u.roles) = 1
+                WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))
             """)
-    Page<UserProfileResponse> searchUserProfilesByName(@Param("name") String name, Pageable pageable);
+    Page<User> searchUserProfilesByName(@Param("name") String name, Pageable pageable);
 
 
     UUID id(UUID id);

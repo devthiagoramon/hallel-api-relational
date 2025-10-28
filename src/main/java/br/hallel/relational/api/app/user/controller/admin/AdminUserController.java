@@ -1,9 +1,6 @@
 package br.hallel.relational.api.app.user.controller.admin;
 
-import br.hallel.relational.api.app.user.dto.CreateEditUser;
-import br.hallel.relational.api.app.user.dto.UpdateRoleUserDTO;
-import br.hallel.relational.api.app.user.dto.UserProfileResponse;
-import br.hallel.relational.api.app.user.dto.UserProfileWithPasswordResponse;
+import br.hallel.relational.api.app.user.dto.*;
 import br.hallel.relational.api.app.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,14 +28,28 @@ public class AdminUserController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<Page<UserProfileResponse>> listAllUsers(
+    public ResponseEntity<Page<UserProfileResponseWithRole>> listAllUsers(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.listAllUsers(page, size));
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "filter", required = false) String filterAuthorities
+    ) {
+
+        String nameFiltered = null;
+        FilterAuthorietiesDTO filterAuthorietiesDTO = null;
+
+        if (name != null && !name.equalsIgnoreCase("undefined")) {
+            nameFiltered = name;
+        }
+
+        if (filterAuthorities != null && !filterAuthorities.equalsIgnoreCase("undefined")) {
+            filterAuthorietiesDTO = FilterAuthorietiesDTO.valueOf(filterAuthorities);
+        }
+        return ResponseEntity.ok(userService.listAllUsers(page, size, nameFiltered, filterAuthorietiesDTO));
     }
 
     @GetMapping("/list-all/by-name/{name}")
-    public ResponseEntity<Page<UserProfileResponse>> listAllUsersByName(
+    public ResponseEntity<Page<UserProfileResponseWithRole>> listAllUsersByName(
             @PathVariable(name = "name") String name,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -71,7 +82,8 @@ public class AdminUserController {
     }
 
     @PatchMapping("/update/role")
-    public ResponseEntity<UserProfileResponse> updateRoleUser(UpdateRoleUserDTO dto){
+    @Operation(summary = "Update role of user in system", description = "Handles when admin want to update the role of user in system")
+    public ResponseEntity<UserProfileResponse> updateRoleUser(@RequestBody UpdateRoleUserDTO dto) {
         return ResponseEntity.ok(this.userService.updateRoleOfUser(dto));
     }
 }
