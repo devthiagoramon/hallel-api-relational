@@ -78,6 +78,10 @@ public class Event {
     @Column(name = "event_type", nullable = true)
     private EventType eventType;
 
+    @Column(name = "whatsapp_group_link", nullable = true)
+    @JsonIgnore
+    private String whatsAppGroupLink;
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<EventTransaction> transactions;
@@ -89,6 +93,7 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Foods> foods;
+
 
     public void addInvite(EventInvite invite) {
         if (eventInvites == null) {

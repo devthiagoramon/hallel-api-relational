@@ -13,7 +13,6 @@ import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
-import br.hallel.relational.api.app.global.utils.NumberUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
 import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
@@ -80,8 +79,8 @@ public class EventService implements EventInterface {
         event.setDuration(eventDTO.getDuration());
         event.setImage_url("");
         event.setBanner_url("");
+        event.setWhatsAppGroupLink(eventDTO.getWhatsAppGroupLink());
         event.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
-
         event = this.repository.save(event);
 
         // Sincroniza ingressos e agendas

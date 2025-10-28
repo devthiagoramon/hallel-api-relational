@@ -140,16 +140,22 @@ public class EventParticipationSchedule {
         List<EventParticipation> participants = eventParticipationRepository.findAllByEvent_Id(event.getId());
 
         for (EventParticipation participant : participants) {
-            this.emailService.sendEventParticipationReminderEmail(
+
+            boolean isPaid = participant.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO;
+
+            emailService.sendEventParticipationReminderEmail(
                     participant.getEmail(),
                     participant.getName(),
                     event.getDate().toInstant().atZone(ZoneId.of("America/Manaus")).toLocalDateTime(),
                     event.getTitle(),
                     event.getId().toString(),
-                    isMorningReminder
+                    isMorningReminder,
+                    isPaid
             );
+
+            log.info("Lembrete de evento enviado para {} (status: {})",
+                    participant.getEmail(), participant.getStatusPaymentEventParticipation());
         }
     }
-
 }
 

@@ -31,6 +31,6 @@ public class EventResponseWithMinistryAssociated {
     private boolean itsFree;
     private EventStatus eventStatus;
     private List<MinistryResponse> ministries;
-
+    private String whatsAppGroupLink;
 
 }
