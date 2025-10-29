@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class EventService implements EventInterface {
+public  class EventService implements EventInterface {
 
     private final EventRepository repository;
     private final GoogleBucketService bucketService;
@@ -322,6 +322,11 @@ public class EventService implements EventInterface {
 
     }
 
+    @Override
+    public List<EventShortResponse> listEventsImportantThatWillHappen() {
+        return this.repository.listEventThatWillHappenImportants();
+    }
+
     public List<EventSimpleResponse> listAllEventsByMinistryId(UUID ministryId) {
         return this.ministryRepository.findAllEventsByMinistryId(ministryId);
     }
@@ -472,7 +477,6 @@ public class EventService implements EventInterface {
         return response;
 
     }
-
 
 
     public String getTransactionEventPDF(UUID eventId, TransactionType filter) {

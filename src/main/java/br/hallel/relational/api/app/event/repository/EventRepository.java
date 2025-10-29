@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
+import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventStatus;
@@ -74,4 +75,21 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     Page<Event> findByEventStatusOrderByTitleAsc(EventStatus eventStatus, Pageable pageable);
 
+    @Query("""
+            select new br.hallel.relational.api.app.event.dto.EventShortResponse(
+                e.id,
+                e.title,
+                e.date,
+                e.image_url,
+                e.banner_url,
+                e.itsFree,
+                e.eventType,
+                e.local_event_name,
+                e.eventStatus
+                ) FROM Event e
+                WHERE e.isImportant = true
+                AND e.eventStatus <> 'FINALIZADO'
+                ORDER BY e.date ASC
+            """)
+    List<EventShortResponse> listEventThatWillHappenImportants();
 }

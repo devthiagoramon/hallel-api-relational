@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
+import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.FilterEventDTO;
 import br.hallel.relational.api.app.event.model.EventStatus;
 import br.hallel.relational.api.app.event.service.EventService;
@@ -137,5 +138,11 @@ public class PublicEventController {
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(this.eventService.listEventsByDateExp(PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/list-all/importants")
+    @Operation(summary = "List all important events that will happen", description = "Handles listing all important events that will happen in community")
+    public ResponseEntity<List<EventShortResponse>> getAllEventsByImportants() {
+        return ResponseEntity.ok(this.eventService.listEventsImportantThatWillHappen());
     }
 }
