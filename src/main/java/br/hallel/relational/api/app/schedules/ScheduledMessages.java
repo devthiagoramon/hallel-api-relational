@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.schedules;
 import br.hallel.relational.api.app.association.model.Associate;
 import br.hallel.relational.api.app.association.model.AssociatePaymentStatus;
 import br.hallel.relational.api.app.association.repository.AssociateRepository;
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;
@@ -27,7 +27,7 @@ public class ScheduledMessages {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private EmailService emailService;
+    private EmailEventParticipationService emailEventParticipationService;
     @Autowired
     private AssociateRepository associateRepository;
 
@@ -42,7 +42,7 @@ public class ScheduledMessages {
         for (User user : users) {
             if (user.getBirthdayEmailSentIn() == null
                     || !user.getBirthdayEmailSentIn().isEqual(today)) {
-                emailService.sendBirthDayEmail(user.getEmail(),
+                emailEventParticipationService.sendBirthDayEmail(user.getEmail(),
                         "Feliz Aniversário, " + user.getName() + "!", user.getName(), user, today);
 
             }
@@ -93,7 +93,7 @@ public class ScheduledMessages {
             // Regra de Negócio: Marca como SUSPENSO
             associate.setStatus(AssociatePaymentStatus.SUSPENSO);
 
-            emailService.sendBillingAssociate(
+            emailEventParticipationService.sendBillingAssociate(
                     associate.getUser().getEmail(),
                     "Atenção: Sua Associação Hallel Foi Suspensa",
                     associate.getUser().getName(),
@@ -131,7 +131,7 @@ public class ScheduledMessages {
         for (Associate associate : renewalCandidates) {
             log.info("Enviando aviso de renovação para o Associado ID: {}", associate.getId());
 
-            this.emailService.sendRenewalEmail(
+            this.emailEventParticipationService.sendRenewalEmail(
                     associate.getUser().getEmail(),
                     associate.getUser().getName(),
                     associate.getValueAssociation(),

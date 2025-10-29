@@ -1,10 +1,12 @@
 package br.hallel.relational.api.app.auth.service;
 
 import br.hallel.relational.api.app.auth.dto.LoginRequest;
-import br.hallel.relational.api.app.auth.dto.SingUpRequest;
+import br.hallel.relational.api.app.auth.dto.SignUpRequest;
 import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.AuthRequestException;
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailAuthService;
+import br.hallel.relational.api.app.event.model.EventParticipation;
+import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.security.admin.TokenAdminValidationCode;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
@@ -16,6 +18,7 @@ import br.hallel.relational.api.app.user.model.UserRole;
 import br.hallel.relational.api.app.user.model.UserRoleIds;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.repository.UserRoleRepository;
+import br.hallel.relational.api.app.user.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -42,9 +45,10 @@ public class AuthService {
 
     private final TokenAdminValidationCode tokenAdminValidationCode = new TokenAdminValidationCode();
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final EmailService emailService;
+    private final EmailAuthService emailAuthService;
 
     private final UserRoleRepository userRoleRepository;
+    private final EventParticipationUtils utils;
 
     public TokenDTO login(LoginRequest loginRequest) {
         try {
@@ -79,7 +83,7 @@ public class AuthService {
         return tokenResponse;
     }
 
-    public TokenDTO singUp(SingUpRequest request) {
+    public TokenDTO signUp(SignUpRequest request) {
         log.info("Creating user in system...");
 
         List<Role> rolesBD = roleRepository.findAll();
@@ -119,7 +123,10 @@ public class AuthService {
                 userRole.getId()
         );
         userRoleRepository.save(new UserRole(userRoleIds));
-
+        String[] nameParts = UserUtils.splitFullName(user.getName());
+        String nameFormatted = nameParts[0] + " " + nameParts[1];
+        emailAuthService.sendSignUpMail(user.getEmail(), nameFormatted
+        );
         log.info("SAVING MEMBER...");
 
         return tokenResponse;
@@ -168,8 +175,7 @@ public class AuthService {
             }
 
             if (ngrokUrl == null) {
-
-                emailService.sendAdminMail(user.getEmail(), user.getEmail(), url);
+                emailAuthService.sendAdminMail(user.getEmail(), user.getEmail(), url);
             }
             return new TokenAdminResponse(tokenAdmin, code);
         }

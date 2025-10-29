@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Associação Suspensa</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<div style="max-width: 600px; margin: auto; padding: 20px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 10px;">
+    <h2 style="color: #D32F2F;">Associação Suspensa, <span th:text="${name}">[Nome]</span></h2>
+    <p style="font-size: 16px;">
+        Identificamos que a data de renovação da sua Associação Hallel expirou em <b><span th:text="${renewalDate}">[dd/MM/yyyy]</span></b>.
+    </p>
+    <p style="font-size: 16px;">
+        Devido ao atraso, seu status foi alterado para <b>SUSPENSO</b>.
+        Para reativar imediatamente seus benefícios, realize a renovação.
+    </p>
+
+    <h3 style="color: #333;">Detalhes da Cobrança:</h3>
+    <ul style="list-style: none; padding: 0; font-size: 16px;">
+        <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ <span th:text="${value}">[0.00]</span></li>
+        <li style="margin-bottom: 5px;"><strong>Data de Vencimento:</strong> <span th:text="${renewalDate}">[dd/MM/yyyy]</span></li>
+    </ul>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]"
+           style="background-color: #D32F2F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Clique aqui para Renovar Agora
+        </a>
+    </div>
+
+    <p style="font-size: 14px; color: #888; margin-top: 30px;">
+        Se você já realizou o pagamento, por favor, ignore esta mensagem. Caso contrário, reative sua associação para continuar a fazer parte da nossa comunidade.
+    </p>
+    <br/>
+    <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 🔔</p>
+</div>
+</body>
+</html>

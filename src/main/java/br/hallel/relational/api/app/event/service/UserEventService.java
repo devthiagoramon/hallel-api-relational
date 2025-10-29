@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
@@ -15,6 +15,7 @@ import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.Merc
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
+import br.hallel.relational.api.app.user.utils.UserUtils;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -47,7 +48,7 @@ public class UserEventService {
     private final PdfGenerationService pdfGenerationService;
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
     private final EventInviteRepository eventInviteRepository;
-    private final EmailService emailService;
+    private final EmailEventParticipationService emailEventParticipationService;
     private final EventParticipationUtils eventParticipationUtils;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
@@ -122,7 +123,7 @@ public class UserEventService {
             eventParticipation.setEventInviteAssociated(eventInvite);
             try {
                 String fullName = !isAnonymous ? user.getName() : dto.getName();
-                String[] nameParts = eventParticipationUtils.splitFullName(fullName);
+                String[] nameParts = UserUtils.splitFullName(fullName);
                 String firstName = nameParts[0];
                 String lastName = nameParts[1];
                 String cpfParaPagamento = null;
@@ -182,7 +183,7 @@ public class UserEventService {
             }
         } else {
 
-            emailService.sendComprovantEventParticipation(
+            emailEventParticipationService.sendComprovantEventParticipation(
                     user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
                             ZoneId.systemDefault()
                     ).toLocalDateTime(), event.getTitle(), event.getId().toString(),

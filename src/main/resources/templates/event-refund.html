@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmação de Saída e Reembolso</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<div style="max-width: 600px; margin: auto; padding: 20px; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 10px;">
+    <h2 style="color: #f57c00;">Olá, <span th:text="${name}">[Nome]</span>!</h2>
+    <p style="font-size: 16px;">
+        Você saiu do evento <b><span th:text="${eventTitle}">[Título do Evento]</span></b>.
+    </p>
+    <h3 style="color: #f57c00;">Detalhes do Evento:</h3>
+    <ul style="list-style: none; padding: 0; font-size: 16px;">
+        <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> <span th:text="${eventDate}">[dd/MM/yyyy HH:mm]</span></li>
+    </ul>
+    <p style="font-size: 16px;">
+        O valor pago de <b>R$ <span th:text="${amountRefunded}">[0.00]</span></b> foi estornado com sucesso.
+    </p>
+    <p style="font-size: 14px; color: #888; margin-top: 30px;">
+        Se tiver dúvidas, entre em contato com nossa equipe.
+    </p>
+    <br/>
+    <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
+</div>
+</body>
+</html>

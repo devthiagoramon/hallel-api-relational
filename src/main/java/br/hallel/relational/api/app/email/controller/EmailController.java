@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.email.controller;
 
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailAuthService;
+import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -22,7 +23,8 @@ import java.util.UUID;
 public class EmailController {
 
     private final EventParticipationRepository eventParticipationRepository;
-    private final EmailService emailService;
+    private final EmailEventParticipationService emailEventParticipationService;
+    private final EmailAuthService emailAuthService;
 
     @PostMapping("/send-confirmation")
     @Transactional
@@ -33,7 +35,7 @@ public class EmailController {
         List<EventParticipation> allByEventId =
                 this.eventParticipationRepository.findAllByEvent_Id(eventId);
         for (EventParticipation user : allByEventId) {
-            emailService.sendComprovantEventParticipation(
+            emailEventParticipationService.sendComprovantEventParticipation(
                     user.getEmail(),
                     user.getName(),
                     user.getEvent().getDate().toInstant().atZone(
@@ -63,7 +65,7 @@ public class EmailController {
                     user.getEvent().getTitle(),
                     isPaid
             );
-            emailService.sendEventParticipationReminderEmail(
+            emailEventParticipationService.sendEventParticipationReminderEmail(
                     user.getEmail(),
                     user.getName(),
                     user.getEvent().getDate().toInstant().atZone(
@@ -94,7 +96,7 @@ public class EmailController {
                     user.getEvent().getTitle(),
                     isPaid
             );
-            emailService.sendRefundEventParticipation(
+            emailEventParticipationService.sendRefundEventParticipation(
                     user.getEmail(),
                     user.getName(),
                     user.getEvent().getDate().toInstant().atZone(
@@ -108,5 +110,11 @@ public class EmailController {
         return ResponseEntity.ok("Notificação enviada!");
     }
 
+    @PostMapping("/send-signup")
+    public String sendSignUpEmail(@RequestParam String name,
+                                  @RequestParam String email) {
+        emailAuthService.sendSignUpMail(email,name);
+        return "Email enviado";
+    }
 
 }

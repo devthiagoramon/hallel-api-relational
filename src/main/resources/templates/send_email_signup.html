@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmação de Cadastro</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;">
+<div style="max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+    <div style="background-color: #0288d1; color: white; text-align: center; padding: 35px 20px;">
+        <h1 style="margin: 0; font-size: 28px;">Bem-vindo(a), <span th:text="${name}">[Nome do Usuário]</span>!</h1>
+    </div>
+
+    <div style="padding: 25px 30px; text-align: center;">
+
+        <p style="font-size: 16px; line-height: 1.6;">
+            Obrigado por se juntar à Comunidade Hallel. Para começar a desfrutar de todos os benefícios e eventos!
+        </p>
+
+    <div style="border-top: 1px solid #eeeeee; padding: 20px 30px; text-align: center; background-color: #f9f9f9;">
+        <p style="font-size: 13px; color: #777; margin: 0;">
+            Se você não se cadastrou em nossa comunidade, por favor, ignore este e-mail.
+        </p>
+        <p style="font-size: 13px; color: #777; margin-top: 5px;">
+            Comunidade Hallel &copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span>
+        </p>
+    </div>
+</div>
+</body>
+</html>

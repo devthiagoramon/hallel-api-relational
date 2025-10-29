@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprovante de Participação</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<div style="max-width: 600px; margin: auto; padding: 20px; background: #f0f9ff; border: 1px solid #b3e5fc; border-radius: 10px;">
+    <h2 style="color: #0288d1;">Olá, <span th:text="${name}">[Nome]</span>! ✅</h2>
+    <p style="font-size: 16px;">
+        Este é o seu comprovante de participação no evento <b><span th:text="${eventTitle}">[Título do Evento]</span></b>.
+    </p>
+    <h3 style="color: #0288d1;">Detalhes do Evento:</h3>
+    <ul style="list-style: none; padding: 0; font-size: 16px;">
+        <li style="margin-bottom: 5px;"><strong>Data e Hora:</strong> <span th:text="${eventDate}">[dd/MM/yyyy HH:mm]</span></li>
+    </ul>
+
+    <p style="font-size: 16px;">
+        Guarde este comprovante para referência futura. Utilize os botões abaixo para acessar o evento ou o grupo de informações.
+    </p>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: auto;">
+            <tr>
+                <td style="padding: 0 5px;">
+                    <a th:href="@{'https://comunidadecatolicahallel.com.br/evento/' + ${eventId}}"
+                       style="display: inline-block; background-color: #0288d1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                        Ver Evento
+                    </a>
+                </td>
+
+                <td th:if="${whatsAppGroupLink != null and !whatsAppGroupLink.trim().isEmpty()}" style="padding: 0 5px;">
+                    <a th:href="${whatsAppGroupLink}"
+                       style="display: inline-block; background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                        Acessar Grupo WhatsApp
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="font-size: 14px; color: #888; margin-top: 30px;">
+        Se você tiver alguma dúvida sobre sua participação, entre em contato com nossa equipe.
+    </p>
+    <br/>
+    <p style="font-size: 14px; color: #888;">Equipe Hallel 💚</p>
+</div>
+</body>
+</html>
