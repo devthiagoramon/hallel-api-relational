@@ -184,11 +184,12 @@ public class UserEventService {
         } else {
 
             emailEventParticipationService.sendComprovantEventParticipation(
-                    user.getEmail(), user.getName(), event.getDate().toInstant().atZone(
+                    eventParticipation.getEmail(), eventParticipation.getName(), event.getDate().toInstant().atZone(
                             ZoneId.systemDefault()
                     ).toLocalDateTime(), event.getTitle(), event.getId().toString(),
                     event.getWhatsAppGroupLink()
             );
+
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
         }
@@ -254,8 +255,8 @@ public class UserEventService {
         );
 
         log.debug("Leave the event");
-        log.debug("User ID: {}",userId);
-        log.debug("Event ID: {}",eventId);
+        log.debug("User ID: {}", userId);
+        log.debug("Event ID: {}", eventId);
         EventParticipation participation = eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
                 .orElseThrow(() -> new EventParticipationException(
                         "participation.event.not.found"

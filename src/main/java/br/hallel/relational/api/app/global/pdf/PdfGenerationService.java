@@ -2,6 +2,7 @@ package br.hallel.relational.api.app.global.pdf;
 
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.global.exception.GenerateComandaException;
+import br.hallel.relational.api.app.global.pdf.dto.EventParticipationForPDF;
 import br.hallel.relational.api.app.user.model.User;
 import com.github.anastaciocintra.escpos.EscPos;
 import com.github.anastaciocintra.escpos.EscPosConst;
@@ -57,7 +58,9 @@ public class PdfGenerationService {
     public byte[] generatePdfFromParticipationsInevent(List<EventParticipation> eventParticipations, Event event) throws
             IOException {
         Context context = new Context();
-        context.setVariable("participants", eventParticipations);
+        List<EventParticipationForPDF> eventParticipationForPDFS = EventParticipationForPDF.fromListParticipation(
+                eventParticipations);
+        context.setVariable("participants", eventParticipationForPDFS);
         context.setVariable("event", event);
         String html = templateEngine.process("participantes_evento", context);
 

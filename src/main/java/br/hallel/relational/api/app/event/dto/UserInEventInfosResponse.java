@@ -35,7 +35,8 @@ public class UserInEventInfosResponse {
         return new UserInEventInfosResponse(dto.getId(), dto.getEvent().getId(),
                 dto.getUser() != null ? dto.getUser().getId() : null,
                 dto.getEvent().getTitle(), dto.getName(), dto.getEmail(), dto.getPhoneNumber(), dto.getIsMarried(),
-                dto.getDateBirth(), dto.getEventInviteAssociated().getValue(),
+                dto.getDateBirth(),
+                dto.getEventInviteAssociated() != null ? dto.getEventInviteAssociated().getValue() : null,
                 dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), dto.getCommunity(), quantity);
     }
 
