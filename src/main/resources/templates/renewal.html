@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lembrete de Renovação</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<div style="max-width: 600px; margin: auto; padding: 20px; background: #ebfff0; border: 1px solid #c9e6d0; border-radius: 10px;">
+    <h2 style="color: #4CAF50;">Não perca seus benefícios, <span th:text="${name}">[Nome]</span>! 🔔</h2>
+    <p style="font-size: 16px;">
+        Agradecemos por fazer parte da nossa comunidade! Queremos lembrar que sua associação está programada para vencer em <b><span th:text="${renewalDate}">[dd/MM/yyyy]</span></b>.
+    </p>
+    <p style="font-size: 16px;">
+        Renove agora para garantir a continuidade de todos os seus benefícios e acesso.
+    </p>
+
+    <h3 style="color: #333;">Detalhes da Renovação:</h3>
+    <ul style="list-style: none; padding: 0; font-size: 16px;">
+        <li style="margin-bottom: 5px;"><strong>Valor da Mensalidade:</strong> R$ <span th:text="${value}">[0.00]</span></li>
+        <li style="margin-bottom: 5px;"><strong>Vencimento:</strong> <span th:text="${renewalDate}">[dd/MM/yyyy]</span></li>
+    </ul>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="[LINK PARA PÁGINA DE RENOVAÇÃO]"
+           style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Renovar Agora
+        </a>
+    </div>
+
+    <p style="font-size: 14px; color: #888; margin-top: 30px;">
+        Se você já renovou recentemente, por favor, desconsidere esta mensagem.
+    </p>
+    <br/>
+    <p style="font-size: 14px; color: #888;">Equipe de Associação Hallel 💚</p>
+</div>
+</body>
+</html>

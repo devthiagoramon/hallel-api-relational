@@ -2,11 +2,11 @@ package br.hallel.relational.api.app.payment.checkout_transparent.service;
 
 import br.hallel.relational.api.app.association.exception.AssociateException;
 import br.hallel.relational.api.app.association.model.Associate;
-import br.hallel.relational.api.app.association.model.AssociationPayment;
 import br.hallel.relational.api.app.association.model.AssociatePaymentStatus;
+import br.hallel.relational.api.app.association.model.AssociationPayment;
 import br.hallel.relational.api.app.association.repository.AssociatePaymentRepository;
 import br.hallel.relational.api.app.association.repository.AssociateRepository;
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.dto.PaymentStatusDTO;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
@@ -42,7 +42,8 @@ public class ProcessPaymentNotificationService {
     private final FoodRepository foodRepository;
     private final AssociateRepository associateRepository;
     private final AssociatePaymentRepository associatePaymentRepository;
-    private final EmailService emailService;
+    private final EmailEventParticipationService emailEventParticipationService;
+
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
 
@@ -214,20 +215,20 @@ public class ProcessPaymentNotificationService {
 
             eventTransactionRepository.save(newTransaction);
             participation.setPaidDate(Instant.now().atOffset(ZoneOffset.UTC));
-            participation.setAmountPaid(Double.parseDouble(amountPaid.toString()));
+            participation.setAmountPaid(amountPaid.doubleValue());
             log.info("Transação e participação de evento atualizadas para: {}. Event ID: {}", paymentStatus,
-
                     participation.getEvent().getId());
 
             template.convertAndSend("/topic/payments/" + externalReferenceId,
                     new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
+            emailEventParticipationService.sendComprovantEventParticipation(
+                    participation.getEmail(), participation.getName(), participation.getEvent().getDate().toInstant().atZone(
+                            ZoneId.systemDefault()
+                    ).toLocalDateTime(), participation.getEvent().getTitle(), participation.getEvent().getId().toString(),
+                    participation.getEvent().getWhatsAppGroupLink()
+            );
         }
-        emailService.sendComprovantEventParticipation(
-                participation.getEmail(), participation.getName(), participation.getEvent().getDate().toInstant().atZone(
-                        ZoneId.systemDefault()
-                ).toLocalDateTime(), participation.getEvent().getTitle(), participation.getEvent().getId().toString(),
-                participation.getEvent().getWhatsAppGroupLink()
-        );
+
         eventParticipationRepository.save(participation);
 
         return new ProcessNotificationResponseDTO(success, paymentStatus);

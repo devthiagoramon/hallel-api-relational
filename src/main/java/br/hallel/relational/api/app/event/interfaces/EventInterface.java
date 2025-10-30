@@ -20,14 +20,17 @@ public interface EventInterface {
 
     EventResponseWithMinistryAssociated getEventById(UUID id);
 
-    EventResponse updateById(UUID id, EventDTO eventDTO, MultipartFile img_url,  MultipartFile banner_url);
+    EventResponse updateById(UUID id, EventDTO eventDTO, MultipartFile img_url, MultipartFile banner_url);
 
     Boolean deleteById(UUID id);
 
     EventShortResponse listEventInScaleInfo(UUID id);
 
     List<EventResponse> listEventsByTitleOrderByAsc(int page, int size, EventStatus eventStatus);
+
     List<EventResponse> listEventsByTitle(String title, int page, int size);
+
     Page<EventResponse> listEventsByDateExp(Pageable pageable);
 
+    List<EventShortResponse> listEventsImportantThatWillHappen();
 }

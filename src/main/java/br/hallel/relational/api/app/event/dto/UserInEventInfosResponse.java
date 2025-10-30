@@ -25,6 +25,7 @@ public class UserInEventInfosResponse {
     private String phoneNumber;
     private boolean isMarried;
     private OffsetDateTime dateBirth;
+    private Double invitePrice;
     private UserFunctionInEvent userFunctionInEvent;
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
     private String community;
@@ -35,6 +36,7 @@ public class UserInEventInfosResponse {
                 dto.getUser() != null ? dto.getUser().getId() : null,
                 dto.getEvent().getTitle(), dto.getName(), dto.getEmail(), dto.getPhoneNumber(), dto.getIsMarried(),
                 dto.getDateBirth(),
+                dto.getEventInviteAssociated() != null ? dto.getEventInviteAssociated().getValue() : null,
                 dto.getUserFunctionInEvent(), dto.getStatusPaymentEventParticipation(), dto.getCommunity(), quantity);
     }
 

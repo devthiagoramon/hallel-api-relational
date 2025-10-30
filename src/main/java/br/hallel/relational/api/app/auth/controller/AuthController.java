@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.auth.controller;
 
 import br.hallel.relational.api.app.auth.dto.GoogleOAuthResponse;
 import br.hallel.relational.api.app.auth.dto.LoginRequest;
-import br.hallel.relational.api.app.auth.dto.SingUpRequest;
+import br.hallel.relational.api.app.auth.dto.SignUpRequest;
 import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.GoogleLoginException;
 import br.hallel.relational.api.app.auth.service.AuthService;
@@ -17,7 +17,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -82,8 +81,8 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public TokenDTO singUp(@RequestBody SingUpRequest singUpRequest) {
-        return authService.singUp(singUpRequest);
+    public TokenDTO signUp(@RequestBody SignUpRequest signUpRequest) {
+        return authService.signUp(signUpRequest);
     }
 
     @GetMapping("/verify-admin-access")

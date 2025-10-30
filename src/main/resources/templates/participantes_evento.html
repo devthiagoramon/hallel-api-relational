@@ -4,12 +4,19 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <style>
+        @page {
+            /* Esta é a linha principal para o modo paisagem */
+            size: A4 landscape;
+
+            /* Você também pode definir margens, se desejar */
+            /* margin: 1.5cm; */
+        }
+
         .container {
-            width: 100%;
+            width: 90%;
             margin: 0 auto;
             border: 1px solid #eee;
             padding: 2rem;
-            max-width: 800px;
         }
 
         .header {
@@ -68,6 +75,8 @@
         <tr>
             <th>Nome</th>
             <th>E-mail</th>
+            <th>Idade</th>
+            <th th:if="${not event.itsFree}">Valor pago</th>
             <th th:if="${not event.itsFree}">Status de pagamento</th>
             <th>Função</th>
             <th>Comunidade</th>
@@ -75,11 +84,13 @@
         </thead>
         <tbody>
         <tr th:each="participant : ${participants}">
-            <td th:text="${participant.user.name}">...</td>
-            <td th:text="${participant.user.email}">...</td>
-            <td th:if="${not event.itsFree}" th:text="${participant.statusPaymentEventParticipation}">...</td>
-            <td th:text="${participant.userFunctionInEvent}">...</td>
-            <td th:text="${participant.community}">...</td>
+            <td th:text="${participant.getName()}">...</td>
+            <td th:text="${participant.getEmail()}">...</td>
+            <td th:text="${participant.getAge()}+ ' anos'">...</td>
+            <td th:if="${not event.itsFree}" th:text="${participant.getInviteValue()}">...</td>
+            <td th:if="${not event.itsFree}" th:text="${participant.getStatus()}">...</td>
+            <td th:text="${participant.getUserFunction()}">...</td>
+            <td th:text="${participant.getCommunity()}">...</td>
         </tr>
         </tbody>
     </table>

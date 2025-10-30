@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.schedules;
 
-import br.hallel.relational.api.app.email.service.EmailService;
+import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.EventStatus;
@@ -27,7 +27,7 @@ public class EventParticipationSchedule {
 
     private final EventParticipationRepository eventParticipationRepository;
     private final EventRepository eventRepository;
-    private final EmailService emailService;
+    private final EmailEventParticipationService emailEventParticipationService;
 
     @Scheduled(cron = "0 30 * * * *", zone = "America/Manaus")
     @Transactional
@@ -143,7 +143,7 @@ public class EventParticipationSchedule {
 
             boolean isPaid = participant.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO;
 
-            emailService.sendEventParticipationReminderEmail(
+            emailEventParticipationService.sendEventParticipationReminderEmail(
                     participant.getEmail(),
                     participant.getName(),
                     event.getDate().toInstant().atZone(ZoneId.of("America/Manaus")).toLocalDateTime(),
