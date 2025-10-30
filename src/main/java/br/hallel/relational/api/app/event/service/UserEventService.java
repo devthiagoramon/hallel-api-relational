@@ -246,8 +246,8 @@ public class UserEventService {
     }
 
 
-    public boolean leaveTheEvent(UUID eventId, UUID userId) {
-        this.eventRepository.findById(eventId).orElseThrow(
+    public boolean leaveTheEventAsUser(UUID eventId, UUID userId) {
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found", eventId.toString())
         );
         this.userRepository.findById(userId).orElseThrow(
@@ -261,7 +261,6 @@ public class UserEventService {
                 .orElseThrow(() -> new EventParticipationException(
                         "participation.event.not.found"
                 ));
-
 
         if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
             log.info(
@@ -290,7 +289,64 @@ public class UserEventService {
 
         eventParticipationRepository.delete(participation);
         log.info("Participação do usuário {} no evento {} deletada com sucesso.", userId, eventId);
+        emailEventParticipationService.sendRefundEventParticipation(
+                participation.getEmail(),
+                participation.getName(),
+                event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                event.getTitle(),
+                participation.getAmountPaid()
+        );
+        return true;
 
+    }
+
+    public boolean leaveTheEventByAdmin(UUID eventId, String userEmail) {
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
+        );
+
+        log.debug("Leave the event");
+        log.debug("User ID: {}", userEmail);
+        log.debug("Event ID: {}", eventId);
+        EventParticipation participation = eventParticipationRepository.findByEmailAndEvent_Id(userEmail, eventId)
+                .orElseThrow(() -> new EventParticipationException(
+                        "participation.event.not.found"
+                ));
+
+        if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO) {
+            log.info(
+                    "Participação do evento está paga. Tentando solicitar o reembolso para o pagamento de Mercado Pago ID: {}",
+                    participation.getMercadoPagoPaymentId());
+            try {
+
+                this.mercadoPagoClient.requestRefund(
+                        participation.getMercadoPagoPaymentId(),
+                        participation.getAmountPaid()
+                );
+            } catch (PaymentRefundException e) {
+
+                log.error("Falha ao solicitar o reembolso para o pagamento {} do evento {}. Motivo: {}",
+                        participation.getMercadoPagoPaymentId(), eventId, e.getMessage());
+
+            }
+        }
+
+        if (participation.getMercadoPagoPaymentId() != null) {
+            eventTransactionRepository.findByMercadoPagoPaymentId(participation.getMercadoPagoPaymentId())
+                    .ifPresent(eventTransactionRepository::delete);
+            log.info("Transação do evento para o pagamento {} deletada com sucesso.",
+                    participation.getMercadoPagoPaymentId());
+        }
+
+        eventParticipationRepository.delete(participation);
+        log.info("Participação do usuário {} no evento {} deletada com sucesso.", userEmail, eventId);
+        emailEventParticipationService.sendRefundEventParticipation(
+                participation.getEmail(),
+                participation.getName(),
+                event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                event.getTitle(),
+                participation.getAmountPaid()
+        );
         return true;
     }
 

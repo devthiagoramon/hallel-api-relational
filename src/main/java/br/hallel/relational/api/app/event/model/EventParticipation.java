@@ -38,6 +38,7 @@ public class EventParticipation {
     private String name;
     @Column(nullable = false)
     private String email;
+
     @Column(nullable = false, name = "phone_number")
     private String phoneNumber;
 

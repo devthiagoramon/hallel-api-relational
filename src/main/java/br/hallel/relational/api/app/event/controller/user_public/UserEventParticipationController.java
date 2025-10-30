@@ -41,7 +41,7 @@ public class UserEventParticipationController {
                                            @PathVariable(name = "eventId") UUID eventId) {
 
         UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
-        userEventService.leaveTheEvent(eventId, userId);
+        userEventService.leaveTheEventAsUser(eventId, userId);
         return ResponseEntity.noContent().build();
     }
 

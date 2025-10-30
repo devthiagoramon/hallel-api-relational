@@ -1,7 +1,6 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
-import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
@@ -13,13 +12,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -125,5 +122,11 @@ public class AdminEventParticipationController {
         return ResponseEntity.ok(userEventService.listUsersAsPdf(eventId));
     }
 
+    @DeleteMapping("/remove-user/event/{eventId}")
+    @Operation(summary = "Remove user from event by user id and event id")
+    public ResponseEntity<Boolean> removeUserFromEventByUserIdAndEventId(@RequestParam
+            ("userEmail") String userEmail, @PathVariable("eventId") UUID eventId) {
+        return ResponseEntity.ok(userEventService.leaveTheEventByAdmin(eventId,userEmail));
+    }
 
 }
