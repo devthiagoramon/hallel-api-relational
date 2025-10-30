@@ -90,4 +90,6 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     """)
     Optional<EventParticipation> isFrenteCaixa(@Param("userId") UUID userId, @Param("eventId") UUID eventId, @Param("userFunction")
                                                UserFunctionInEvent userFunctionInEvent);
+
+    List<EventParticipation> findAllByStatusPaymentEventParticipation(StatusPaymentEventParticipation statusPaymentEventParticipation);
 }
