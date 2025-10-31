@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Fila de Espera: ' + ${eventTitle}">Notificação de Fila de Espera</title>
+    <style>
+        /* Reset básico e estilos globais */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border-top: 5px solid #0056b3;
+        }
+        .header {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .info-box {
+            background-color: #e6f7ff;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box p {
+            margin: 5px 0;
+        }
+        .position-alert {
+            font-size: 2.2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 25px 0;
+            padding: 10px 0;
+            background-color: #e6f7ff;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #777777;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 1px solid #eeeeee;
+        }
+        /* Estilos de Botão */
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Lista de Espera ⏳</h1>
+    </div>
+    <div class="content">
+        <p>Olá <strong th:text="${name}">[Nome do Participante]</strong>,</p>
+
+        <p>Recebemos sua solicitação para participar do evento e você foi adicionado(a) à nossa fila de espera.</p>
+
+        <div class="info-box">
+            <p><strong>Evento:</strong> <span th:text="${eventTitle}">[Título do Evento]</span></p>
+            <p><strong>Data/Hora:</strong> <span th:text="${eventDate}">[Data do Evento]</span></p>
+        </div>
+
+        <p>Sua posição atual na fila é:</p>
+
+        <div class="position-alert">
+            #<span th:text="${positionInQueue}">[X]</span>
+        </div>
+
+        <p>Fique atento(a) ao seu e-mail! Assim que uma vaga for liberada e for a sua vez, enviaremos uma notificação especial para você confirmar sua inscrição e realizar o pagamento, se necessário.</p>
+
+        <p>Agradecemos seu interesse! Qualquer dúvida, entre em contato conosco.</p>
+
+        <p style="text-align:center;">
+            <a href="#" class="button">Ver Detalhes do Evento</a>
+        </p>
+
+    </div>
+    <div class="footer">
+        <p>Esta é uma mensagem automática. Por favor, não responda.</p>
+        <p>&copy; 2025 Hallel Relational API</p>
+    </div>
+</div>
+</body>
+</html>

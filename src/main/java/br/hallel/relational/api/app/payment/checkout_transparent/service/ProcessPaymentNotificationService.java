@@ -6,6 +6,7 @@ import br.hallel.relational.api.app.association.model.AssociatePaymentStatus;
 import br.hallel.relational.api.app.association.model.AssociationPayment;
 import br.hallel.relational.api.app.association.repository.AssociatePaymentRepository;
 import br.hallel.relational.api.app.association.repository.AssociateRepository;
+import br.hallel.relational.api.app.email.dto.EmailParticipationDTO;
 import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.dto.PaymentStatusDTO;
 import br.hallel.relational.api.app.event.model.*;
@@ -231,10 +232,15 @@ public class ProcessPaymentNotificationService {
 
             template.convertAndSend("/topic/payments/" + externalReferenceId,
                     new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
+
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                    participation.getEmail(),
+                    participation.getName(),
+                    participation.getEvent().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    participation.getEvent().getTitle()
+            );
             emailEventParticipationService.sendComprovantEventParticipation(
-                    participation.getEmail(), participation.getName(), participation.getEvent().getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(), participation.getEvent().getTitle(), participation.getEvent().getId().toString(),
+                    emailDto, participation.getEvent().getId().toString(),
                     participation.getEvent().getWhatsAppGroupLink()
             );
         }

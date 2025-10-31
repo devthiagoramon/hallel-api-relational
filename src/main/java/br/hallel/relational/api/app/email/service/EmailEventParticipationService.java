@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.email.service;
 
+import br.hallel.relational.api.app.email.dto.EmailParticipationDTO;
 import br.hallel.relational.api.app.email.utils.EmailUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
@@ -110,7 +111,6 @@ public class EmailEventParticipationService {
             context.setVariable("name", name);
             context.setVariable("value", String.format(LOCALE_PT_BR, "%.2f", value)); // Formatação para R$
             context.setVariable("renewalDate", renewalDate.format(DATE_FORMATTER));
-            // O template Thymeleaf deve estar em 'src/main/resources/templates/renewal.html'
             String html = templateEngine.process("renewal", context);
 
             MimeMessage message = mailSender.createMimeMessage();
@@ -134,23 +134,20 @@ public class EmailEventParticipationService {
     // 4. E-mail de Lembrete de Participação em Evento
     @Async
     public void sendEventParticipationReminderEmail(
-            String to,
-            String name,
-            LocalDateTime eventDate,
-            String eventTitle,
+            EmailParticipationDTO dto, // REFATORADO
             String eventId,
             boolean isMorningReminder,
             boolean isPaid
     ) {
         try {
             String subject = isMorningReminder
-                    ? "Lembrete: O evento " + eventTitle + " é hoje! 🎉"
-                    : "Falta 1 hora para o evento " + eventTitle + " começar ⏰";
+                    ? "Lembrete: O evento " + dto.eventTitle() + " é hoje! 🎉"
+                    : "Falta 1 hora para o evento " + dto.eventTitle() + " começar ⏰";
 
             Context context = new Context(LOCALE_PT_BR);
-            context.setVariable("name", name);
-            context.setVariable("eventTitle", eventTitle);
-            context.setVariable("eventDate", eventDate.format(DATETIME_FORMATTER));
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
             context.setVariable("eventId", eventId);
             context.setVariable("isPaid", isPaid);
             context.setVariable("isMorningReminder", isMorningReminder);
@@ -161,34 +158,35 @@ public class EmailEventParticipationService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(emailUtils.getFrom());
-            helper.setTo(to);
+            helper.setTo(dto.to());
             helper.setSubject(subject);
             helper.setText(html, true);
 
             mailSender.send(message);
 
-            log.info("Lembrete de evento enviado para: {}", to);
+            log.info("Lembrete de evento enviado para: {}", dto.to());
 
         } catch (Exception e) {
-            log.error("Erro ao enviar lembrete de evento para {}: {}", to, e.getMessage());
+            log.error("Erro ao enviar lembrete de evento para {}: {}", dto.to(), e.getMessage());
             throw new IllegalStateException("Falha ao enviar e-mail de lembrete", e);
         }
     }
 
     @Async
-    public void sendPaymentJoinEvent(String to, String name,
-                                     LocalDateTime startTime,
-                                     LocalDateTime endTime,
-                                     String eventTitle,
-                                     String eventId,
-                                     PixPaymentData pixData
+    public void sendPaymentJoinEvent(
+            EmailParticipationDTO dto,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            String eventId,
+            PixPaymentData pixData
     ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
-            context.setVariable("name", name);
-            context.setVariable("eventTitle", eventTitle);
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
 
             // Formata as datas de início e fim para mostrar o período completo
+            // Usamos eventDate do DTO como startTime
             context.setVariable("startTime", startTime.format(DATETIME_FORMATTER));
             context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
 
@@ -205,8 +203,8 @@ public class EmailEventParticipationService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(emailUtils.getFrom());
-            helper.setTo(to);
-            helper.setSubject("🎉 Confirmação de Inscrição e Pagamento: " + eventTitle);
+            helper.setTo(dto.to());
+            helper.setSubject("🎉 Confirmação de Inscrição e Pagamento: " + dto.eventTitle());
             helper.setText(html, true);
 
             ByteArrayOutputStream pdfOutputStream = pdfGenerationService.generatePixPaymentPdf(pixData);
@@ -216,7 +214,7 @@ public class EmailEventParticipationService {
                     "application/pdf");
 
             mailSender.send(message);
-            log.info("Confirmação de inscrição e pagamento enviada para: {}", to);
+            log.info("Confirmação de inscrição e pagamento enviada para: {}", dto.to());
 
         } catch (Exception e) {
             log.error("Erro ao processar e-mail assíncrono: {}", e.getMessage(), e);
@@ -225,16 +223,16 @@ public class EmailEventParticipationService {
 
     // 5. E-mail de Comprovante de Participação em Evento
     @Async
-    public void sendComprovantEventParticipation(String to, String name,
-                                                 LocalDateTime eventDate,
-                                                 String eventTitle,
-                                                 String eventId,
-                                                 String whatsAppGroupLink) {
+    public void sendComprovantEventParticipation(
+            EmailParticipationDTO dto, // REFATORADO
+            String eventId,
+            String whatsAppGroupLink
+    ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
-            context.setVariable("name", name);
-            context.setVariable("eventTitle", eventTitle);
-            context.setVariable("eventDate", eventDate.format(DATETIME_FORMATTER));
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
             context.setVariable("eventId", eventId);
             context.setVariable("whatsAppGroupLink", whatsAppGroupLink);
 
@@ -244,31 +242,31 @@ public class EmailEventParticipationService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(emailUtils.getFrom());
-            helper.setTo(to);
-            helper.setSubject("Comprovante de Participação no Evento: " + eventTitle);
+            helper.setTo(dto.to());
+            helper.setSubject("Comprovante de Participação no Evento: " + dto.eventTitle());
             helper.setText(html, true);
 
             mailSender.send(message);
 
-            log.info("Comprovante de participação enviado para: {}", to);
+            log.info("Comprovante de participação enviado para: {}", dto.to());
 
         } catch (Exception e) {
-            log.error("Erro ao enviar comprovante para {}: {}", to, e.getMessage());
+            log.error("Erro ao enviar comprovante para {}: {}", dto.to(), e.getMessage());
             throw new IllegalStateException("Falha ao enviar email de confirmação", e);
         }
     }
 
     // 6. E-mail de Reembolso/Saída de Evento
     @Async
-    public void sendRefundEventParticipation(String to, String name,
-                                             LocalDateTime eventDate,
-                                             String eventTitle,
-                                             Double amountRefunded) {
+    public void sendRefundEventParticipation(
+            EmailParticipationDTO dto, // REFATORADO
+            Double amountRefunded
+    ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
-            context.setVariable("name", name);
-            context.setVariable("eventTitle", eventTitle);
-            context.setVariable("eventDate", eventDate.format(DATETIME_FORMATTER));
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
             context.setVariable("amountRefunded", String.format(LOCALE_PT_BR, "%.2f", amountRefunded));
             // O template Thymeleaf deve estar em 'src/main/resources/templates/event-refund.html'
             String html = templateEngine.process("event-refund", context);
@@ -277,18 +275,82 @@ public class EmailEventParticipationService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(emailUtils.getFrom());
-            helper.setTo(to);
-            helper.setSubject("Confirmação de saída do Evento: " + eventTitle);
+            helper.setTo(dto.to());
+            helper.setSubject("Confirmação de saída do Evento: " + dto.eventTitle());
             helper.setText(html, true);
 
             mailSender.send(message);
 
-            log.info("Email de saída do evento enviado para: {}", to);
+            log.info("Email de saída do evento enviado para: {}", dto.to());
 
         } catch (Exception e) {
-            log.error("Erro ao enviar email de saída do evento para {}: {}", to, e.getMessage());
+            log.error("Erro ao enviar email de saída do evento para {}: {}", dto.to(), e.getMessage());
             throw new IllegalStateException("Falha ao enviar email de saída do evento", e);
         }
     }
 
+    @Async
+    public void sendNotificationEventQueue(
+            EmailParticipationDTO dto,
+            int positionInQueue,
+            String eventId
+    ) {
+        try {
+            Context context = new Context(LOCALE_PT_BR);
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
+            context.setVariable("positionInQueue", positionInQueue);
+            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+            String html = templateEngine.process("event-queue-notification", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailUtils.getFrom());
+            helper.setTo(dto.to());
+            helper.setSubject("Você está na Fila de Espera: " + dto.eventTitle());
+            helper.setText(html, true);
+
+            mailSender.send(message);
+
+            log.info("Email de notificação de fila enviado para: {}", dto.to());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar notificação de fila para {}: {}", dto.to(), e.getMessage());
+            throw new IllegalStateException("Falha ao enviar e-mail de notificação de fila", e);
+        }
+    }
+
+    @Async
+    public void sendQueueSpaceAvailableNotification(
+            EmailParticipationDTO dto,
+            String eventId
+    ){
+        try {
+            Context context = new Context(LOCALE_PT_BR);
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
+            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+
+            String html = templateEngine.process("confirm-queue", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailUtils.getFrom());
+            helper.setTo(dto.to());
+            helper.setSubject("✅Vaga Liberada! Confirme Sua Inscrição em " + dto.eventTitle());
+            helper.setText(html, true);
+
+            mailSender.send(message);
+
+            log.info("Email de notificação de vaga liberada enviado para: {}", dto.to());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar notificação de vaga liberada para {}: {}", dto.to(), e.getMessage());
+            throw new IllegalStateException("Falha ao enviar e-mail de notificação de vaga liberada", e);
+        }
+    }
 }

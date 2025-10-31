@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Vaga Liberada! ' + ${eventTitle}">Vaga Liberada na Fila de Espera</title>
+    <style>
+        /* Reset e estilos globais */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border-top: 5px solid #28a745; /* Verde de sucesso/urgência */
+        }
+        .header {
+            background-color: #28a745; /* Verde forte */
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+        .content {
+            padding: 30px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .alert-box {
+            background-color: #fff3cd; /* Amarelo claro para urgência */
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
+        .info-box {
+            background-color: #e9ecef;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #777777;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 1px solid #eeeeee;
+        }
+        /* Estilos de Botão Principal */
+        .button {
+            display: block; /* Botão full-width para mobile */
+            background-color: #dc3545; /* Vermelho urgente para confirmar */
+            color: #ffffff !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 30px auto;
+            text-align: center;
+            max-width: 80%; /* Limita a largura em desktop */
+        }
+        .button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>✅ URGENTE: VAGA LIBERADA!</h1>
+    </div>
+    <div class="content">
+        <p>Parabéns, <strong th:text="${name}">[Nome do Participante]</strong>!</p>
+
+        <p>Temos uma excelente notícia! Uma vaga para o evento <strong th:text="${eventTitle}">[Título do Evento]</strong> foi liberada, e como você é o(a) próximo(a) da fila, esta vaga é sua!</p>
+
+        <div class="info-box">
+            <p><strong>Evento:</strong> <span th:text="${eventTitle}">[Título do Evento]</span></p>
+            <p><strong>Data/Hora:</strong> <span th:text="${eventDate}">[Data do Evento]</span></p>
+        </div>
+
+        <div class="alert-box">
+            🚨 ATENÇÃO: Você tem um tempo limitado (X horas/minutos) para confirmar sua vaga. Caso não confirme, a vaga será passada para o próximo da fila.
+        </div>
+
+        <p>Para confirmar imediatamente sua inscrição e garantir sua vaga, clique no botão abaixo:</p>
+
+        <a th:href="${confirmationLink}" class="button">Confirmar Minha Vaga Agora</a>
+
+        <p>Se o botão não funcionar, copie e cole o seguinte link no seu navegador:</p>
+        <small><p th:text="${confirmationLink}"></p></small>
+
+        <p>Aguardamos sua confirmação!</p>
+
+    </div>
+    <div class="footer">
+        <p>Esta é uma mensagem automática do sistema de fila. O link de confirmação é pessoal e intransferível.</p>
+        <p>&copy; 2025 Hallel Relational API</p>
+    </div>
+</div>
+</body>
+</html>

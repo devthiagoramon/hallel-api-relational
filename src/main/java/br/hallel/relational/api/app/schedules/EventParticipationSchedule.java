@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.schedules;
 
+import br.hallel.relational.api.app.email.dto.EmailParticipationDTO;
 import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.model.*;
 import br.hallel.relational.api.app.event.model.enum_type.EventStatus;
@@ -146,11 +147,15 @@ public class EventParticipationSchedule {
 
             boolean isPaid = participant.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO;
 
-            emailEventParticipationService.sendEventParticipationReminderEmail(
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
                     participant.getEmail(),
                     participant.getName(),
-                    event.getDate().toInstant().atZone(ZoneId.of("America/Manaus")).toLocalDateTime(),
-                    event.getTitle(),
+                    event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    event.getTitle()
+            );
+
+            emailEventParticipationService.sendEventParticipationReminderEmail(
+                    emailDto,
                     event.getId().toString(),
                     isMorningReminder,
                     isPaid

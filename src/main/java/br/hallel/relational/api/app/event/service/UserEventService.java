@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.service;
 
+import br.hallel.relational.api.app.email.dto.EmailParticipationDTO;
 import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
@@ -123,8 +124,19 @@ public class UserEventService {
 
             EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
 
-            this.eventQueueParticipantRepository.save(queueParticipant);
+            EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
 
+            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(savedQueueParticipant);
+            this.emailEventParticipationService.sendNotificationEventQueue(
+                    new EmailParticipationDTO(
+                            eventParticipation.getEmail(),
+                            eventParticipation.getName(),
+                            event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                            event.getTitle()
+                    ),
+                    participantQueuePosition,
+                    event.getId().toString()
+            );
             return EventParticipationResponse.toEventParticipationLimitReached(true,
                     validation.ageGroup(),
                     event.getId(),
@@ -190,12 +202,16 @@ public class UserEventService {
 
                     // 5. CHAMADA DO NOVO SERVIÇO DE E-MAIL
                     // Note que a assinatura do método de e-mail mudou para aceitar o PixPaymentData
-                    emailEventParticipationService.sendPaymentJoinEvent( // Renomeei para ser mais claro
+                    EmailParticipationDTO emailDto = new EmailParticipationDTO(
                             eventParticipation.getEmail(),
                             eventParticipation.getName(),
+                            event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                            event.getTitle()
+                    );
+                    emailEventParticipationService.sendPaymentJoinEvent(
+                            emailDto,
                             event.getStartTime(),
                             event.getEndTime(),
-                            event.getTitle(),
                             event.getId().toString(),
                             pixData
                     );
@@ -215,11 +231,15 @@ public class UserEventService {
                 throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
             }
         } else {
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                    eventParticipation.getEmail(),
+                    eventParticipation.getName(),
+                    event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    event.getTitle()
+            );
 
             emailEventParticipationService.sendComprovantEventParticipation(
-                    eventParticipation.getEmail(), eventParticipation.getName(), event.getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(), event.getTitle(), event.getId().toString(),
+                    emailDto, event.getId().toString(),
                     event.getWhatsAppGroupLink()
             );
 
@@ -319,6 +339,7 @@ public class UserEventService {
             log.info("Transação do evento para o pagamento {} deletada com sucesso.",
                     participation.getMercadoPagoPaymentId());
         }
+
         AgeGroup ageGroup = EventParticipationUtils.getAgeGroup(eventParticipationUtils.calculateAge(
                 participation.getDateBirth().toLocalDate()
         ));
@@ -327,17 +348,51 @@ public class UserEventService {
                 .findByEventIdAndAgeGroup(event.getId(), ageGroup)
                 .orElseThrow(() -> new RuntimeException(
                         "Limite de vagas não configurado para faixa etária: " + ageGroup));
+
+        //Condição verifica se o limite foi atingido
+        if (limit.getLimitQuantity() == limit.getCurrentQuantity()) {
+            log.info("Ocupação máxima para a faixa etária {} já foi atingida. Nenhuma ação necessária no limite.",
+                    ageGroup);
+
+            //bloco para verificar se o limite foi atingido e se tem alguém na fila
+            this.eventQueueParticipantRepository.findFirstByEvent_IdOrderByQueuedAtAsc(event.getId())
+                    .ifPresent(queueParticipant -> {
+                        EventParticipation participantToNotify = queueParticipant.getEventParticipation();
+                        this.emailEventParticipationService.sendQueueSpaceAvailableNotification(
+                                new EmailParticipationDTO(
+                                        participantToNotify.getEmail(),
+                                        participantToNotify.getName(),
+                                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                                        event.getTitle()
+                                ),
+                                event.getId().toString()
+                        );
+                        this.eventQueueParticipantRepository.delete(queueParticipant);
+                        log.info("Participante {} notificado sobre a vaga disponível no evento {}.",
+                                participantToNotify.getEmail(), event.getTitle());
+                    });
+
+        } else if (limit.getCurrentQuantity() <= 0) {
+            log.warn("A quantidade atual para a faixa etária {} está em zero ou negativa. Verifique os dados.",
+                    ageGroup);
+
+        }
         limit.setCurrentQuantity(limit.getCurrentQuantity() - 1);
         limitEventAgeGroupRepository.save(limit);
 
         eventParticipationRepository.delete(participation);
         log.info("Participação do usuário {} no evento {} deletada com sucesso.", userId, eventId);
-        emailEventParticipationService.sendRefundEventParticipation(
+
+        //email service
+        EmailParticipationDTO emailDTO = new EmailParticipationDTO(
                 participation.getEmail(),
                 participation.getName(),
                 event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                event.getTitle(),
-                participation.getAmountPaid()
+                event.getTitle()
+        );
+        emailEventParticipationService.sendRefundEventParticipation(
+                emailDTO,
+                participation.getAmountPaid() == null ? 0 : participation.getAmountPaid()
         );
         return true;
 
@@ -381,13 +436,54 @@ public class UserEventService {
                     participation.getMercadoPagoPaymentId());
         }
 
+        AgeGroup ageGroup = EventParticipationUtils.getAgeGroup(eventParticipationUtils.calculateAge(
+                participation.getDateBirth().toLocalDate()
+        ));
+
+        LimitEventAgeGroup limit = limitEventAgeGroupRepository
+                .findByEventIdAndAgeGroup(event.getId(), ageGroup)
+                .orElseThrow(() -> new RuntimeException(
+                        "Limite de vagas não configurado para faixa etária: " + ageGroup));
+
+
+        if (limit.getLimitQuantity() == limit.getCurrentQuantity()) {
+            log.info("Ocupação máxima para a faixa etária {} já foi atingida. Nenhuma ação necessária no limite.",
+                    ageGroup);
+            this.eventQueueParticipantRepository.findFirstByEvent_IdOrderByQueuedAtAsc(event.getId())
+                    .ifPresent(queueParticipant -> {
+                        EventParticipation participantToNotify = queueParticipant.getEventParticipation();
+                        this.emailEventParticipationService.sendQueueSpaceAvailableNotification(
+                                new EmailParticipationDTO(
+                                        participantToNotify.getEmail(),
+                                        participantToNotify.getName(),
+                                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                                        event.getTitle()
+                                ),
+                                event.getId().toString()
+                        );
+                        this.eventQueueParticipantRepository.delete(queueParticipant);
+                        log.info("Participante {} notificado sobre a vaga disponível no evento {}.",
+                                participantToNotify.getEmail(), event.getTitle());
+                    });
+
+        } else if (limit.getCurrentQuantity() <= 0) {
+            log.warn("A quantidade atual para a faixa etária {} está em zero ou negativa. Verifique os dados.",
+                    ageGroup);
+
+        }
+        limit.setCurrentQuantity(limit.getCurrentQuantity() - 1);
+        limitEventAgeGroupRepository.save(limit);
+
         eventParticipationRepository.delete(participation);
         log.info("Participação do usuário {} no evento {} deletada com sucesso.", userEmail, eventId);
-        emailEventParticipationService.sendRefundEventParticipation(
+        EmailParticipationDTO dto = new EmailParticipationDTO(
                 participation.getEmail(),
                 participation.getName(),
                 event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                event.getTitle(),
+                event.getTitle()
+        );
+        emailEventParticipationService.sendRefundEventParticipation(
+                dto,
                 participation.getAmountPaid()
         );
         return true;
@@ -736,4 +832,6 @@ public class UserEventService {
         this.eventParticipationRepository.delete(eventParticipation);
         return true;
     }
+
+
 }
