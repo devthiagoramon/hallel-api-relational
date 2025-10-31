@@ -11,12 +11,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Getter @Setter
-@AllArgsConstructor @NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class EventDTO {
 
     @NotBlank(message = "Campo 'Title' não pode ser nulo.")
@@ -50,9 +53,13 @@ public class EventDTO {
 
     @NotNull(message = "O tipo do evento não pode ser nulo")
     private EventType eventType;
+
     private Boolean itsFree;
 
     private String whatsAppGroupLink;
 
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
 
 }

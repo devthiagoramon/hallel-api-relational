@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
-import br.hallel.relational.api.app.event.repository.EventInviteRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
@@ -16,7 +15,6 @@ import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
@@ -31,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public  class EventService implements EventInterface {
+public class EventService implements EventInterface {
 
     private final EventRepository repository;
     private final GoogleBucketService bucketService;
@@ -53,7 +50,6 @@ public  class EventService implements EventInterface {
     private final PdfGenerationService pdfGenerationService;
 
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
-    private final EventInviteRepository inviteRepository;
 
     private final EventUtils eventUtils;
 
@@ -84,6 +80,8 @@ public  class EventService implements EventInterface {
         event.setBanner_url("");
         event.setWhatsAppGroupLink(eventDTO.getWhatsAppGroupLink());
         event.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(event.getEndTime());
         event = this.repository.save(event);
 
         // Sincroniza ingressos e agendas
@@ -217,6 +215,8 @@ public  class EventService implements EventInterface {
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(eventDTO.getEndTime());
         boolean itsFreeValue = eventDTO.getItsFree();
 
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());

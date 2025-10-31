@@ -38,28 +38,27 @@ public class EventParticipationSchedule {
         log.info("Iniciando verificação de status dos eventos...");
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Manaus"));
+
         List<Event> activeEvents = eventRepository.findByEventStatusNot(EventStatus.FINALIZADO);
         log.info("Encontrados {} eventos ativos para verificação.", activeEvents.size());
 
         List<Event> eventsToUpdate = new ArrayList<>();
         List<EventParticipation> participationsToUpdate = new ArrayList<>();
+
         try {
-
             for (Event event : activeEvents) {
+                LocalDateTime startTime = event.getStartTime();
+                LocalDateTime endTime = event.getEndTime();
 
-                LocalDateTime startTime = event.getDate()
-                        .toInstant()
-                        .atZone(ZoneId.of("America/Manaus"))
-                        .toLocalDateTime();
-                LocalDateTime endTime;
-                if (event.getDuration() != null) {
-                    endTime = startTime.plus(event.getDuration());
-                } else {
-                    endTime = startTime.plusHours(10);
+                if (startTime == null || endTime == null) {
+                    log.warn("Evento '{}' (id: {}) ignorado: start_time ou end_time é nulo.", event.getTitle(), event.getId());
+                    continue;
                 }
+
                 LocalDateTime bufferedEndTime = endTime.plusHours(1);
 
                 if (now.isAfter(bufferedEndTime)) {
+
                     event.setEventStatus(EventStatus.FINALIZADO);
                     eventsToUpdate.add(event);
                     log.info("Evento '{}' (id: {}) finalizado. Status alterado para FINALIZADO.", event.getTitle(),
@@ -76,9 +75,10 @@ public class EventParticipationSchedule {
                     }
 
                 } else if (now.isAfter(startTime) && event.getEventStatus() == EventStatus.AGENDADO) {
+
                     event.setEventStatus(EventStatus.OCORRENDO);
                     eventsToUpdate.add(event);
-                    log.info("Evento '{}' (id: {}) iniciado. Status alterado para EM_ANDAMENTO.", event.getTitle(),
+                    log.info("Evento '{}' (id: {}) iniciado. Status alterado para OCORRENDO.", event.getTitle(),
                             event.getId());
                 }
             }
@@ -95,14 +95,11 @@ public class EventParticipationSchedule {
 
             log.info("Verificação de status de eventos finalizada.");
         } catch (Exception e) {
-            log.error(e.getMessage());
-            log.error("Erro ao tentar atualizar eventos.");
-            log.error(e.toString());
-            log.error(e.getCause().toString());
+            log.error("Erro ao tentar atualizar eventos: {}", e.getMessage());
         }
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "America/Manaus") // Executa todo início de hora
+    @Scheduled(cron = "0 0 * * * *", zone = "America/Manaus")
     @Transactional
     public void sendEmailRemindEventParticipation() {
         ZoneId zone = ZoneId.of("America/Manaus");
