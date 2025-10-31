@@ -15,6 +15,7 @@ import br.hallel.relational.api.app.event.repository.FoodRepository;
 import br.hallel.relational.api.app.event.repository.FoodTransactionRepository;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.ProcessNotificationResponseDTO;
+import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 
 @Service
 @AllArgsConstructor
@@ -43,6 +45,7 @@ public class ProcessPaymentNotificationService {
     private final AssociateRepository associateRepository;
     private final AssociatePaymentRepository associatePaymentRepository;
     private final EmailEventParticipationService emailEventParticipationService;
+    private final Executor clientInboundChannelExecutor;
 
     @Transactional
     public ProcessNotificationResponseDTO processNotification(Long paymentId) throws MPException, MPApiException {
@@ -193,16 +196,20 @@ public class ProcessPaymentNotificationService {
         participation.setStatusPaymentEventParticipation(participationStatus);
 
         if ("approved".equalsIgnoreCase(paymentStatus)) {
-
             EventTransaction newTransaction = new EventTransaction();
-            newTransaction.setEvent(participation.getEvent());
-            newTransaction.setDescription(
-                    "Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
-            newTransaction.setTransactionType(TransactionType.ENTRADA);
-            newTransaction.setValue(Double.parseDouble(amountPaid.toString()));
-            newTransaction.setDateTransaction(new Date());
-
             try {
+
+
+                newTransaction.setEvent(participation.getEvent());
+                newTransaction.setDescription(
+                        "Pagamento de ingresso para o evento: " + participation.getEvent().getTitle());
+                newTransaction.setTransactionType(TransactionType.ENTRADA);
+
+                Double liquidValue = generateLiquidValue(participation.getMercadoPagoPaymentId());
+                newTransaction.setValue(liquidValue);
+                newTransaction.setDateTransaction(new Date());
+                log.warn("VALOR LIQUIDO RECEBIDO DO MERCADO PAGO: {}", liquidValue);
+
                 newTransaction.setReceiptPaymentFileImage(mercadoPagoClient.getPixReceiptUrl(payment.getId()));
             } catch (MPException e) {
                 throw new RuntimeException(e);
@@ -269,9 +276,10 @@ public class ProcessPaymentNotificationService {
             try {
 
                 log.info("STEP 1: Preparing entities before database save...");
+                Double liquidValue = generateLiquidValue(foodTransaction.getMercadoPagoPaymentId());
                 EventTransaction eventTransaction = new EventTransaction();
                 eventTransaction.setDescription("Venda de Alimento Confirmada: " + foodTransaction.getDescription());
-                eventTransaction.setValue(foodTransaction.getValue());
+                eventTransaction.setValue(liquidValue);
                 eventTransaction.setTransactionType(TransactionType.ENTRADA);
                 eventTransaction.setEvent(foodTransaction.getEvent());
                 eventTransaction.setDateTransaction(new Date());
@@ -306,5 +314,12 @@ public class ProcessPaymentNotificationService {
         log.warn("Nenhuma participação de evento ou transação de alimento encontrada para o ID de pagamento: {}",
                 payment.getId());
         return new ProcessNotificationResponseDTO(false, "not_found");
+    }
+
+    private Double generateLiquidValue(Long mercadoPagoPaymentId) throws MPException, MPApiException {
+        PaymentClient client = new PaymentClient();
+        Payment mpPayment = client.capture(mercadoPagoPaymentId);
+        Double valorLiquido = mpPayment.getTransactionDetails().getNetReceivedAmount().doubleValue();
+        return valorLiquido;
     }
 }
