@@ -1,12 +1,16 @@
 package br.hallel.relational.api.app.email.service;
 
 import br.hallel.relational.api.app.email.utils.EmailUtils;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentData;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context; // Importação essencial para o Thymeleaf
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,6 +39,7 @@ public class EmailEventParticipationService {
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final Locale LOCALE_PT_BR = new Locale("pt", "BR");
 
+    private final PdfGenerationService pdfGenerationService;
 
     // 1. E-mail de Aniversário
     @Async
@@ -169,6 +175,53 @@ public class EmailEventParticipationService {
         }
     }
 
+    @Async
+    public void sendPaymentJoinEvent(String to, String name,
+                                     LocalDateTime startTime,
+                                     LocalDateTime endTime,
+                                     String eventTitle,
+                                     String eventId,
+                                     PixPaymentData pixData
+    ) {
+        try {
+            Context context = new Context(LOCALE_PT_BR);
+            context.setVariable("name", name);
+            context.setVariable("eventTitle", eventTitle);
+
+            // Formata as datas de início e fim para mostrar o período completo
+            context.setVariable("startTime", startTime.format(DATETIME_FORMATTER));
+            context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
+
+            context.setVariable("eventId", eventId);
+
+            // Adiciona dados do Pix para exibir no corpo do e-mail
+            context.setVariable("paymentValue", pixData.amount());
+
+            String html = templateEngine.process("event-enrollment-payment", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+
+            // O helper agora PRECISA de 'true' para permitir anexos
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailUtils.getFrom());
+            helper.setTo(to);
+            helper.setSubject("🎉 Confirmação de Inscrição e Pagamento: " + eventTitle);
+            helper.setText(html, true);
+
+            ByteArrayOutputStream pdfOutputStream = pdfGenerationService.generatePixPaymentPdf(pixData);
+
+            helper.addAttachment("Pix_Pagamento_" + eventId + ".pdf",
+                    new ByteArrayResource(pdfOutputStream.toByteArray()),
+                    "application/pdf");
+
+            mailSender.send(message);
+            log.info("Confirmação de inscrição e pagamento enviada para: {}", to);
+
+        } catch (Exception e) {
+            log.error("Erro ao processar e-mail assíncrono: {}", e.getMessage(), e);
+        }
+    }
 
     // 5. E-mail de Comprovante de Participação em Evento
     @Async
@@ -184,7 +237,7 @@ public class EmailEventParticipationService {
             context.setVariable("eventDate", eventDate.format(DATETIME_FORMATTER));
             context.setVariable("eventId", eventId);
             context.setVariable("whatsAppGroupLink", whatsAppGroupLink);
-            // O template Thymeleaf deve estar em 'src/main/resources/templates/event-comprovant.html'
+
             String html = templateEngine.process("event-comprovant", context);
 
             MimeMessage message = mailSender.createMimeMessage();
@@ -237,4 +290,5 @@ public class EmailEventParticipationService {
             throw new IllegalStateException("Falha ao enviar email de saída do evento", e);
         }
     }
+
 }

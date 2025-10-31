@@ -9,6 +9,7 @@ import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentData;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
@@ -166,6 +167,26 @@ public class UserEventService {
 
                     log.info("Pagamento Pix criado com sucesso de id {}. TXID: {}", generatedPaymentId,
                             eventParticipation.getPixTxid());
+                    PixPaymentData pixData = new PixPaymentData(
+                            payment.getId(),
+                            BigDecimal.valueOf(eventInvite.getValue()),
+                            event.getTitle(),
+                            linkCodePayment,
+                            qrCodeBase64,
+                            payment.getDateOfExpiration().toLocalDateTime()
+                    );
+
+                    // 5. CHAMADA DO NOVO SERVIÇO DE E-MAIL
+                    // Note que a assinatura do método de e-mail mudou para aceitar o PixPaymentData
+                    emailEventParticipationService.sendPaymentJoinEvent( // Renomeei para ser mais claro
+                            eventParticipation.getEmail(),
+                            eventParticipation.getName(),
+                            event.getStartTime(),
+                            event.getEndTime(),
+                            event.getTitle(),
+                            event.getId().toString(),
+                            pixData
+                    );
                 } else {
                     log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
                     throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");

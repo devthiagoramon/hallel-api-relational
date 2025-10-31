@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pagamento PIX - Inscrição Hallel</title>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 25px;
+            background-color: #ffffff;
+            border: 1px solid #008C4F;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .header {
+            text-align: center;
+            color: #008C4F;
+            border-bottom: 3px solid #008C4F;
+            padding-bottom: 15px;
+            margin-bottom: 18px;
+        }
+
+        .header h2 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 1.5em;
+        }
+
+        .amount-due {
+            margin-top: 20px;
+            text-align: center;
+            background-color: #fff2eb;
+            border-radius: 6px;
+            padding: 8px 0px;
+            margin-bottom: 20px;
+            border: 1px solid #F57D18;
+        }
+
+        .amount-due h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: #F57D18;
+        }
+
+        .amount-due strong {
+            font-size: 1.6em;
+            color: #F57D18;
+            display: block;
+            margin: 5px 0;
+        }
+
+        .details p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .details strong {
+            color: #008C4F;
+        }
+
+        .qr-code {
+            text-align: center;
+            padding: 15px;
+            border: 1px dashed #cccccc;
+            margin-bottom: 25px;
+            background-color: #f9f9f9;
+        }
+
+        .qr-code h3 {
+            color: #008C4F;
+            margin-top: 0;
+        }
+
+        .qr-code img {
+            width: 250px;
+            height: 250px;
+            display: block;
+            margin: 10px auto;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* COPIA E COLA */
+        .code-copy {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .code-copy span {
+            word-wrap: break-word;
+            font-size: 13px;
+            font-weight: bold;
+            display: block;
+        }
+
+        /* RODAPÉ */
+        .footer {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body xmlns:th="http://www.thymeleaf.org">
+<div class="container">
+    <div class="header">
+        <h2>Instruções para Pagamento PIX</h2>
+        <p>Referente à Inscrição no Evento: <b th:text="${eventTitle}">[Título do Evento]</b></p>
+    </div>
+
+    <div class="details">
+        <p><strong>Beneficiário:</strong> Comunidade Católica Hallel</p>
+        <p><strong>Identificador:</strong> <span th:text="${paymentId}">[ID da Participação/Pagamento]</span></p>
+    </div>
+
+    <div class="amount-due">
+        <h3>VALOR A PAGAR:</h3>
+        <strong th:text="${#numbers.formatCurrency(amount)}">[R$ 0,00]</strong>
+        <p>Vencimento: <b th:text="${expirationDateTime}">[dd/MM/yyyy HH:mm]</b></p>
+    </div>
+
+    <div class="qr-code">
+        <h3>1. Pague com o QR Code</h3>
+        <p>Abra o app do seu banco, escolha "Pagar com Pix" e escaneie a imagem:</p>
+        <img th:src="${qrCodeImageBase64}" alt="QR Code PIX"/>
+    </div>
+
+    <div>
+        <h4>2. Use o Código Copia e Cola</h4>
+        <p>Se preferir, copie o código abaixo e cole no app do seu banco:</p>
+        <div class="code-copy">
+            <span th:text="${pixCode}">[CÓDIGO PIX AQUI]</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        Este documento não é um comprovante de pagamento final. A inscrição será confirmada após a
+        compensação do PIX pelo seu banco.
+    </div>
+
+</div>
+</body>
+</html>
