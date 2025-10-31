@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.global.pdf;
 
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 import br.hallel.relational.api.app.global.exception.GenerateComandaException;
 import br.hallel.relational.api.app.global.pdf.dto.EventParticipationForPDF;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentData;

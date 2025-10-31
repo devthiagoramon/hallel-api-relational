@@ -1,13 +1,12 @@
 package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Data

@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.schedules;
 
 import br.hallel.relational.api.app.event.model.FoodTransaction;
-import br.hallel.relational.api.app.event.model.StatusPaymentFood;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentFood;
 import br.hallel.relational.api.app.event.repository.FoodTransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.MemberEventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

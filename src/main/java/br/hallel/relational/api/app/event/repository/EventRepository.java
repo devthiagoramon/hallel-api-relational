@@ -1,10 +1,9 @@
 package br.hallel.relational.api.app.event.repository;
 
-import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.model.Event;
-import br.hallel.relational.api.app.event.model.EventStatus;
-import br.hallel.relational.api.app.event.model.EventType;
+import br.hallel.relational.api.app.event.model.enum_type.EventStatus;
+import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

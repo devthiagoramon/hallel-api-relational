@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.event.utils;
 
 import br.hallel.relational.api.app.event.dto.ValidateAgeParticipantResponse;
 import br.hallel.relational.api.app.event.exception.UserValidationException;
-import br.hallel.relational.api.app.event.model.AgeGroup;
+import br.hallel.relational.api.app.event.model.enum_type.AgeGroup;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.LimitEventAgeGroup;
 import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
@@ -23,11 +23,7 @@ public class EventParticipationUtils {
     public ValidateAgeParticipantResponse validateAgeParticipant(int years, Event event) {
         AgeGroup targetAgeGroup;
 
-        if (years <= 8) targetAgeGroup = AgeGroup.CRIANCA;
-        else if (years <= 14) targetAgeGroup = AgeGroup.TEEN;
-        else if (years <= 30) targetAgeGroup = AgeGroup.JOVEM;
-        else if (years <= 120) targetAgeGroup = AgeGroup.ADULTO;
-        else throw new UserValidationException("A idade do usuário é inválida.");
+        targetAgeGroup = getAgeGroup(years);
 
         LimitEventAgeGroup limit = limitEventAgeGroupRepository
                 .findByEventIdAndAgeGroup(event.getId(), targetAgeGroup)
@@ -43,6 +39,18 @@ public class EventParticipationUtils {
         limitEventAgeGroupRepository.save(limit);
 
         return new ValidateAgeParticipantResponse(targetAgeGroup, null);
+    }
+
+
+
+    public static AgeGroup getAgeGroup(int years) {
+        AgeGroup targetAgeGroup;
+        if (years <= 8) targetAgeGroup = AgeGroup.CRIANCA;
+        else if (years <= 14) targetAgeGroup = AgeGroup.TEEN;
+        else if (years <= 30) targetAgeGroup = AgeGroup.JOVEM;
+        else if (years <= 120) targetAgeGroup = AgeGroup.ADULTO;
+        else throw new UserValidationException("A idade do usuário é inválida.");
+        return targetAgeGroup;
     }
 
     public int calculateAge(LocalDate birthDate) {

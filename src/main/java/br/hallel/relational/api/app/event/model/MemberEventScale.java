@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

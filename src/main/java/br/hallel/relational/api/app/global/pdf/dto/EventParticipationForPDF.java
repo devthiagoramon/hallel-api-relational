@@ -1,8 +1,8 @@
 package br.hallel.relational.api.app.global.pdf.dto;
 
 import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
-import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.user.utils.UserUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentFood;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

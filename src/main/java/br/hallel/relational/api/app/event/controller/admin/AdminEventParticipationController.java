@@ -1,8 +1,8 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
-import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
 
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;

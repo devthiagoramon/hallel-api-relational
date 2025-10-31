@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

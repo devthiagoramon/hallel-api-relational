@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.TransactionType;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 
 import java.util.Date;
 import java.util.UUID;

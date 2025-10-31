@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.EventTransaction;
-import br.hallel.relational.api.app.event.model.TransactionType;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

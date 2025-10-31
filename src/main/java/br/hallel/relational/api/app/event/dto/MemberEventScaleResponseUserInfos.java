@@ -1,9 +1,8 @@
 package br.hallel.relational.api.app.event.dto;
 
 
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
-import br.hallel.relational.api.app.user.model.User;
 
 import java.util.UUID;
 

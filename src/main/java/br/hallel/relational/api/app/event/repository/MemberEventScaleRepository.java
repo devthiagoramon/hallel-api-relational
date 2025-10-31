@@ -4,7 +4,7 @@ import br.hallel.relational.api.app.event.dto.EventScaleWithMembers;
 import br.hallel.relational.api.app.event.dto.EventScaleWithStatusInfos;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,7 +33,7 @@ public interface MemberEventScaleRepository extends JpaRepository<MemberEventSca
                     select es from EventScale es
                     join MemberEventScale mes on mes.eventScale.id = es.id
                     join mes.memberMinistry mm
-                    where mm.user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final and mes.status = br.hallel.relational.api.app.event.model.MemberEventScaleStatus.CONVIDADO
+                    where mm.user.id = :userId and es.ministry.id = :ministryId and es.date between :initial and :final and mes.status = br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus.CONVIDADO
                     order by es.date asc
                     """
     )

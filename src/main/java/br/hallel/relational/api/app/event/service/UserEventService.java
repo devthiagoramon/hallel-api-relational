@@ -4,6 +4,10 @@ import br.hallel.relational.api.app.email.service.EmailEventParticipationService
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.model.enum_type.AgeGroup;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
+import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.repository.*;
 import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
@@ -51,6 +55,7 @@ public class UserEventService {
     private final EventInviteRepository eventInviteRepository;
     private final EmailEventParticipationService emailEventParticipationService;
     private final EventParticipationUtils eventParticipationUtils;
+    private final EventQueueParticipantRepository eventQueueParticipantRepository;
 
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
@@ -113,6 +118,13 @@ public class UserEventService {
                 eventParticipationUtils.validateAgeParticipant(years, event);
 
         if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
+            log.info("Participação Salva na fila.");
+            EventParticipation participationSaved = this.eventParticipationRepository.save(eventParticipation);
+
+            EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
+
+            this.eventQueueParticipantRepository.save(queueParticipant);
+
             return EventParticipationResponse.toEventParticipationLimitReached(true,
                     validation.ageGroup(),
                     event.getId(),
@@ -307,6 +319,16 @@ public class UserEventService {
             log.info("Transação do evento para o pagamento {} deletada com sucesso.",
                     participation.getMercadoPagoPaymentId());
         }
+        AgeGroup ageGroup = EventParticipationUtils.getAgeGroup(eventParticipationUtils.calculateAge(
+                participation.getDateBirth().toLocalDate()
+        ));
+
+        LimitEventAgeGroup limit = limitEventAgeGroupRepository
+                .findByEventIdAndAgeGroup(event.getId(), ageGroup)
+                .orElseThrow(() -> new RuntimeException(
+                        "Limite de vagas não configurado para faixa etária: " + ageGroup));
+        limit.setCurrentQuantity(limit.getCurrentQuantity() - 1);
+        limitEventAgeGroupRepository.save(limit);
 
         eventParticipationRepository.delete(participation);
         log.info("Participação do usuário {} no evento {} deletada com sucesso.", userId, eventId);

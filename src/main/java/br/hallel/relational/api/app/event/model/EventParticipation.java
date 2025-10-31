@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,7 +30,7 @@ public class EventParticipation {
     private Event event;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "status_payment_event_participation")
+    @Column(name = "status_payment_event_participation")
     private StatusPaymentEventParticipation statusPaymentEventParticipation;
 
     @Column(nullable = false)
@@ -36,6 +38,7 @@ public class EventParticipation {
 
     @Column(nullable = false)
     private String name;
+
     @Column(nullable = false)
     private String email;
 

@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.ministry.controller.coordinator;
 
 import br.hallel.relational.api.app.event.dto.AuditionNotConfirmedResponse;
 import br.hallel.relational.api.app.event.dto.MemberAuditionStatusResponse;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.AuditionDTO;
 import br.hallel.relational.api.app.ministry.dto.AuditionResponse;
 import br.hallel.relational.api.app.ministry.dto.EventScaleSimpleResponse;

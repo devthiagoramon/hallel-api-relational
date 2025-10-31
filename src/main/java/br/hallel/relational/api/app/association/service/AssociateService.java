@@ -12,7 +12,7 @@ import br.hallel.relational.api.app.association.repository.AssociatePaymentRepos
 import br.hallel.relational.api.app.association.repository.AssociateRepository;
 import br.hallel.relational.api.app.event.dto.PaymentStatusDTO;
 import br.hallel.relational.api.app.event.exception.UserValidationException;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
@@ -25,7 +25,6 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;

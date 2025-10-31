@@ -3,7 +3,7 @@ package br.hallel.relational.api.app.email.controller;
 import br.hallel.relational.api.app.email.service.EmailAuthService;
 import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

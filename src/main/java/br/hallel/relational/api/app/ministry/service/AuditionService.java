@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.ministry.service;
 
 import br.hallel.relational.api.app.event.dto.EventScaleResponse;
 import br.hallel.relational.api.app.event.dto.mapper.EventScaleMapper;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.service.EventScaleService;
 import br.hallel.relational.api.app.ministry.dto.AuditionDTO;
 import br.hallel.relational.api.app.ministry.dto.AuditionResponse;
