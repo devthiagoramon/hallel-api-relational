@@ -61,13 +61,6 @@ public class EventUtils {
             if (dto.getId() == null) {
                 EventSchedule newSchedule = new EventSchedule();
                 newSchedule.setDescription(dto.getDescription());
-                if (dto.getMinistryId() != null) {
-                    Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
-                            () -> new MinistryNotFoundException(
-                                    "Não foi possivel encontrar o ministério para associar a programação do evento",
-                                    dto.getMinistryId().toString()));
-                    newSchedule.setMinistry(ministry);
-                }
                 newSchedule.setCreatedAt(OffsetDateTime.now());
                 newSchedule.setDate(dto.getDate());
                 event.addSchedule(newSchedule);
@@ -76,13 +69,6 @@ public class EventUtils {
                 EventSchedule existingSchedule = existingScheduleMap.get(dto.getId());
                 if (existingSchedule != null) {
                     existingSchedule.setDescription(dto.getDescription());
-                    if (dto.getMinistryId() != null) {
-                        Ministry ministry = ministryRepository.findById(dto.getMinistryId()).orElseThrow(
-                                () -> new MinistryNotFoundException(
-                                        "Não foi possivel encontrar o ministério para associar a programação do evento",
-                                        dto.getMinistryId().toString()));
-                        existingSchedule.setMinistry(ministry);
-                    }
                     existingSchedule.setDate(dto.getDate());
                     existingSchedule.setEditedAt(OffsetDateTime.now());
 

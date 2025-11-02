@@ -73,6 +73,10 @@ public class Event {
     @JsonManagedReference
     private List<EventSchedule> eventSchedules = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
+    @JsonManagedReference
+    private List<EventInviteBatch> eventInviteBatches = new ArrayList<>();
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     @ToString.Exclude
     @JsonBackReference
@@ -123,6 +127,24 @@ public class Event {
             this.eventSchedules.add(schedule);
             eventSchedules.add(schedule);
             schedule.setEvent(this);
+        }
+    }
+
+    public void addInviteBatch(EventInviteBatch inviteBatch) {
+        if (eventInviteBatches == null) {
+            eventInviteBatches = new ArrayList<>();
+            eventInviteBatches.add(inviteBatch);
+            inviteBatch.setEvent(this);
+        }else {
+            eventInviteBatches.add(inviteBatch);
+            inviteBatch.setEvent(this);
+        }
+    }
+
+    public void removeInviteBatch(EventInviteBatch inviteBatch) {
+        if (eventInviteBatches != null) {
+            eventInviteBatches.remove(inviteBatch);
+            inviteBatch.setEvent(this);
         }
     }
 
