@@ -122,6 +122,8 @@ public class UserEventService {
         eventParticipation.setName(dto.getName());
         eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
+        eventParticipation.setFormation(dto.getFormation());
+        eventParticipation.setEventParticipationType(dto.getParticipationType());
         eventParticipation.setCommunity(dto.getCommunity());
         eventParticipation.setIsMarried(dto.getIsMarried());
         eventParticipation.setDateBirth(dto.getDateBirth());

@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventParticipationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,8 @@ import java.util.UUID;
 public class EventParticipateDTO {
     private UUID eventId;
     private String community;
+    private String formation;
+    private EventParticipationType participationType;
     private String name;
     private String email;
     private String phoneNumber;

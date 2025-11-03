@@ -42,6 +42,12 @@ public class EventParticipation {
     @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false, name = "type")
+    private EventParticipationType eventParticipationType;
+
+    @Column(nullable = false, name = "formation")
+    private String formation;
+
     @Column(nullable = false, name = "phone_number")
     private String phoneNumber;
 
