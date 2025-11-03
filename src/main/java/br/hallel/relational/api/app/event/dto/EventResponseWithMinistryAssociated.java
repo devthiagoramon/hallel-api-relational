@@ -33,5 +33,6 @@ public class EventResponseWithMinistryAssociated {
     private EventStatus eventStatus;
     private List<MinistryResponse> ministries;
     private String whatsAppGroupLink;
+    private List<EventBatchStatusDTO> eventBatches;
 
 }

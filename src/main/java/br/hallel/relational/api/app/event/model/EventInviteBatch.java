@@ -27,4 +27,7 @@ public class EventInviteBatch {
 
     @Column(name = "max_number", nullable = false)
     private int maxNumber;
+
+    @Column(name = "value_increase", nullable = false)
+    private Double valueIncrease;
 }

@@ -1,9 +1,11 @@
 package br.hallel.relational.api.app.event.utils;
 
+import br.hallel.relational.api.app.event.dto.EventInviteBatchDTO;
 import br.hallel.relational.api.app.event.dto.EventInviteDTO;
 import br.hallel.relational.api.app.event.dto.EventScheduleDTO;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventInvite;
+import br.hallel.relational.api.app.event.model.EventInviteBatch;
 import br.hallel.relational.api.app.event.model.EventSchedule;
 import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -50,6 +53,37 @@ public class EventUtils {
         event.getEventInvites()
                 .removeIf(invite -> invite.getId() != null && !processedInviteIds.contains(invite.getId()));
 
+    }
+
+    public void synchronizeEventInviteBatches(Event event, List<EventInviteBatchDTO> dtos) {
+        if (dtos == null) {
+            dtos = new ArrayList<>();
+        }
+
+        Map<UUID, EventInviteBatch> existingBatches = event.getEventInviteBatches().stream()
+                .collect(Collectors.toMap(EventInviteBatch::getId, Function.identity()));
+
+        List<EventInviteBatch> updatedBatches = new ArrayList<>();
+
+        for (EventInviteBatchDTO dto : dtos) {
+            EventInviteBatch batch;
+            if (dto.getId() != null) {
+                batch = existingBatches.remove(dto.getId());
+                if (batch == null) continue;
+            } else {
+                batch = new EventInviteBatch();
+                batch.setEvent(event);
+            }
+
+            // O modelo EventInviteBatch não tem 'name', se precisar, adicione-o
+            batch.setMaxNumber(dto.getMaxNumber());
+            batch.setValueIncrease(dto.getValueIncrease()); // --- ATUALIZADO AQUI ---
+
+            updatedBatches.add(batch);
+        }
+
+        event.getEventInviteBatches().clear();
+        event.getEventInviteBatches().addAll(updatedBatches);
     }
 
     public void synchronizeEventSchedules(Event event, List<EventScheduleDTO> dtos) {

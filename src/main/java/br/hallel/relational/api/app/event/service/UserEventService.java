@@ -64,6 +64,37 @@ public class UserEventService {
                 () -> new EventNotFoundException("event.id.not.found", dto.getEventId().toString())
         );
 
+        long currentParticipants = eventParticipationRepository.countByEvent_IdAndStatusPaymentEventParticipationNot(
+                event.getId(), StatusPaymentEventParticipation.NAO_PAGO
+        );
+
+        List<EventInviteBatch> batches = event.getEventInviteBatches().stream()
+                .sorted(Comparator.comparingInt(EventInviteBatch::getMaxNumber))
+                .toList();
+
+        EventInviteBatch currentBatch = null;
+        if (!event.getItsFree()) { // Só valida lote se o evento não for gratuito
+            if (batches.isEmpty()) {
+                log.warn("Evento pago {} não possui lotes (EventInviteBatch) cadastrados.", event.getId());
+                throw new EventIllegalArumentException("Nenhum lote de inscrição configurado para este evento.");
+            }
+
+            for (EventInviteBatch batch : batches) {
+                if (currentParticipants < batch.getMaxNumber()) {
+                    currentBatch = batch; // Encontrou o lote atual!
+                    break;
+                }
+            }
+
+            if (currentBatch == null) {
+                log.warn("Inscrição rejeitada para o evento {}. Número de participantes ({}) excede o último lote.",
+                        event.getId(), currentParticipants);
+                throw new EventBatchSoldOutException("Todos os lotes para este evento estão esgotados.");
+            }
+            log.info("Inscrição no evento {} validada. Lote ativo encontrado. Acréscimo: R$ {}",
+                    event.getId(), currentBatch.getValueIncrease());
+        }
+
         Optional<EventInvite> eventInviteOptional = Optional.empty();
         if (dto.getEventInviteId() != null) {
             eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
@@ -146,6 +177,11 @@ public class UserEventService {
         if (isPaidEvent) {
             EventInvite eventInvite = eventInviteOptional.get();
             eventParticipation.setEventInviteAssociated(eventInvite);
+            double baseValue = eventInvite.getValue();
+            double increaseValue = (currentBatch != null && currentBatch.getValueIncrease() != null)
+                    ? currentBatch.getValueIncrease()
+                    : 0.0;
+            double finalPrice = baseValue + increaseValue;
             try {
                 String fullName = !isAnonymous ? user.getName() : dto.getName();
                 String[] nameParts = UserUtils.splitFullName(fullName);
@@ -166,7 +202,7 @@ public class UserEventService {
 
                 CreatePixPaymentRequestDTO paymentRequestDTO =
                         new CreatePixPaymentRequestDTO(
-                                BigDecimal.valueOf(eventInvite.getValue()),
+                                BigDecimal.valueOf(finalPrice),
                                 event.getTitle(),
                                 !isAnonymous ? user.getEmail() : dto.getEmail(),
                                 firstName,
@@ -193,7 +229,7 @@ public class UserEventService {
                             eventParticipation.getPixTxid());
                     PixPaymentData pixData = new PixPaymentData(
                             payment.getId(),
-                            BigDecimal.valueOf(eventInvite.getValue()),
+                            BigDecimal.valueOf(finalPrice),
                             event.getTitle(),
                             linkCodePayment,
                             qrCodeBase64,

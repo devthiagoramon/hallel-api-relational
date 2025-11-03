@@ -75,5 +75,6 @@ public abstract class EventMapper {
     public abstract Event dtoToEntity(EventDTO event);
 
     @Mapping(target = "ministries", ignore = true)
+    @Mapping(target = "eventBatches", ignore = true)
     public abstract EventResponseWithMinistryAssociated eventToResponseWithMinistryAssociated(Event event);
 }

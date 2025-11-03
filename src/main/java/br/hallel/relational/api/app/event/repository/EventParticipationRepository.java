@@ -93,4 +93,6 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     List<EventParticipation> findAllByStatusPaymentEventParticipation(StatusPaymentEventParticipation statusPaymentEventParticipation);
 
     Optional<EventParticipation> findByEmailAndEvent_Id(String email, UUID eventId);
+
+    long countByEvent_IdAndStatusPaymentEventParticipationNot(UUID eventId, StatusPaymentEventParticipation statusPaymentEventParticipation);
 }

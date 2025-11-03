@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -28,8 +29,6 @@ public class EventDTO {
     @NotBlank(message = "Campo 'Description' não pode ser nulo.")
     private String description;
 
-    @NotNull(message = "Campo 'date' não pode ser nulo.")
-    @Future(message = "A data do evento deve está no futuro!")
     private Date date;
 
     private Duration duration;
@@ -44,9 +43,13 @@ public class EventDTO {
     private Double local_event_latitude;
 
     @Valid
-    private List<EventInviteDTO> eventInviteDTOS;
+    private List<EventInviteDTO> eventInviteDTOS = new ArrayList<>(); // Ingressos (com preço base)
+
     @Valid
-    private List<EventScheduleDTO> eventScheduleDTOS;
+    private List<EventInviteBatchDTO> eventInviteBatchDTOS = new ArrayList<>(); // Lotes (com maxNumber e valueIncrease)
+
+    @Valid
+    private List<EventScheduleDTO> eventScheduleDTOS = new ArrayList<>(); // Atividades (com participantes)
 
     private Boolean isImportant;
     private List<UUID> ministryIds;
@@ -58,6 +61,8 @@ public class EventDTO {
 
     private String whatsAppGroupLink;
 
+    @NotNull(message = "Campo 'date' não pode ser nulo.")
+    @Future(message = "A data do evento deve está no futuro!")
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
