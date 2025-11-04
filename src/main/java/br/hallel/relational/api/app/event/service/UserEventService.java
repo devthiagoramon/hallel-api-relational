@@ -122,9 +122,15 @@ public class UserEventService {
         eventParticipation.setName(dto.getName());
         eventParticipation.setUserFunctionInEvent(UserFunctionInEvent.PARTICIPANTE);
         eventParticipation.setHasParticipated(false);
-        eventParticipation.setFormation(dto.getFormation());
-        eventParticipation.setEventParticipationType(dto.getParticipationType());
-        eventParticipation.setCommunity(dto.getCommunity());
+        eventParticipation.setCommunity(dto.getCommunity().trim());
+
+        if (eventParticipation.getCommunity().toLowerCase().contains("hallel")) {
+            eventParticipation.setEventParticipationType(EventParticipationType.COMUNIDADE);
+            eventParticipation.setFormation(dto.getFormation().trim());
+        } else {
+            eventParticipation.setEventParticipationType(EventParticipationType.OUTRO);
+        }
+
         eventParticipation.setIsMarried(dto.getIsMarried());
         eventParticipation.setDateBirth(dto.getDateBirth());
 
@@ -262,24 +268,30 @@ public class UserEventService {
                 log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
                         apiException.getStatusCode(),
                         apiException.getMessage(),
-                        apiException.getApiResponse());
+                        apiException.getApiResponse().getContent());
                 throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", apiException);
             } catch (MPException | RuntimeException e) {
                 log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
                 throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
             }
         } else {
-            EmailParticipationDTO emailDto = new EmailParticipationDTO(
-                    eventParticipation.getEmail(),
-                    eventParticipation.getName(),
-                    event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                    event.getTitle()
-            );
+            try {
 
-            emailEventParticipationService.sendComprovantEventParticipation(
-                    emailDto, event.getId().toString(),
-                    event.getWhatsAppGroupLink()
-            );
+                EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                        eventParticipation.getEmail(),
+                        eventParticipation.getName(),
+                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                        event.getTitle()
+                );
+
+                emailEventParticipationService.sendComprovantEventParticipation(
+                        emailDto, event.getId().toString(),
+                        event.getWhatsAppGroupLink()
+                );
+            } catch (Exception e) {
+                log.error("Erro ao enviar e-mail de comprovante de participação: {}", e.getMessage(), e);
+                throw new GenerateReceiptException("Erro ao enviar e-mail de comprovante de participação. " + e);
+            }
 
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
@@ -287,7 +299,7 @@ public class UserEventService {
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
-        return new EventParticipationResponse().toEventParticipation(participationSaved, qrCodeBase64);
+        return EventParticipationResponse.toEventParticipation(participationSaved, qrCodeBase64);
 
     }
 
@@ -578,7 +590,7 @@ public class UserEventService {
         }
 
         EventParticipation updated = eventParticipationRepository.save(participation);
-        return new EventParticipationResponse().toEventParticipation(updated, null);
+        return EventParticipationResponse.toEventParticipation(updated, null);
     }
 
     public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
@@ -597,7 +609,7 @@ public class UserEventService {
 
         return participations.map(participation -> new EventParticipationResponse(
                 participation.getId(),
-                participation.getUser().getId(),
+                participation.getUser() != null ? participation.getUser().getId() : null,
                 participation.getEvent().getId(),
                 participation.getStatusPaymentEventParticipation(),
                 participation.getCommunity(),
@@ -608,8 +620,6 @@ public class UserEventService {
                 participation.getIsMarried(),
                 participation.getHasParticipated(),
                 participation.getUserFunctionInEvent(),
-                null,
-                false,
                 null
         ));
     }
@@ -649,7 +659,7 @@ public class UserEventService {
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
 
-        return new EventParticipationResponse().toEventParticipation(eventParticipation, null);
+        return EventParticipationResponse.toEventParticipation(eventParticipation, null);
     }
 
     public UserEventStatus getStatusParticipationOfEvent(UUID userId, UUID eventId) {

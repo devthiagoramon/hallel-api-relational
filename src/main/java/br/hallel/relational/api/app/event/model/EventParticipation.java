@@ -5,6 +5,9 @@ import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -15,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class EventParticipation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,10 +46,12 @@ public class EventParticipation {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false, name = "type")
+    @Column(nullable = false, name = "type", columnDefinition = "event_participation_type")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(value = SqlTypes.NAMED_ENUM)
     private EventParticipationType eventParticipationType;
 
-    @Column(nullable = false, name = "formation")
+    @Column(name = "formation")
     private String formation;
 
     @Column(nullable = false, name = "phone_number")

@@ -28,4 +28,4 @@ mercadopago:
   access:
     token: ${MERCADOPAGO_ACCESS_TOKEN}
   notification:
-    url: ${MERCADOPAGO_NOTIFICATION_URL} # Esta será a URL pública da sua aplicação em produção
+    url: ${MERCADOPAGO_NOTIFICATION_URL}
