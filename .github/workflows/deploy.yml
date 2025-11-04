@@ -95,7 +95,7 @@ jobs:
           echo "EC2_SSH_PRIVATE_KEY secret is set: ${{ secrets.EC2_SSH_PRIVATE_KEY != '' }}"
           echo "MAIL_USERNAME secret is set: ${{ secrets.MAIL_USERNAME != '' }}"    
 
-      - name: SSH, Configure and Restart Application
+      - name: Deploy and restart on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ vars.SERVER_IP }}
@@ -103,15 +103,30 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.EC2_SSH_PASSWORD }}
           script: |
-            mkdir -p /home/ec2-user/hallel-api
-            sudo mkdir -p /etc/hallel-api
-            
-            sudo mv /home/ec2-user/hallel-api/prod.env /etc/hallel-api/prod.env
-            sudo mv /home/ec2-user/hallel-api/crypto-avatar.json /etc/hallel-api
-            sudo mv /home/ec2-user/hallel-api/google-services.json /etc/hallel-api
-            sudo mv /home/ec2-user/hallel-api/hallel-messaging-firebase.json /etc/hallel-api
-            sudo mv /home/ec2-user/hallel-api/Caddyfile /etc/hallel-api
-
             cd /home/ec2-user/hallel-api
-            docker-compose pull
+            
+            # Criar diretório de configuração
+            sudo mkdir -p /etc/hallel-api
+            sudo cp *.json /etc/hallel-api/
+            sudo cp prod.env /etc/hallel-api/
+            sudo cp Caddyfile /etc/hallel-api/
+            
+            # Dar permissões
+            sudo chown -R ec2-user:ec2-user /etc/hallel-api
+            sudo chmod -R 644 /etc/hallel-api/*
+            
+            # Parar e remover containers antigos
+            docker-compose down || true
+            
+            # Pull da nova imagem
+            docker pull thiagoramon/hallel-api:latest
+            
+            # Iniciar containers
             docker-compose up -d
+            
+            # Limpar imagens não utilizadas
+            docker image prune -f
+            
+            # Verificar se os containers estão rodando
+            docker ps
+            echo "Deploy realizado com sucesso!"
