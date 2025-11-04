@@ -1,6 +1,8 @@
 package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.model.enum_type.EventStatus;
+import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +10,6 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Setter
@@ -32,5 +33,6 @@ public class EventResponseWithMinistryAssociated {
     private EventStatus eventStatus;
     private List<MinistryResponse> ministries;
     private String whatsAppGroupLink;
+    private List<EventBatchStatusDTO> eventBatches;
 
 }

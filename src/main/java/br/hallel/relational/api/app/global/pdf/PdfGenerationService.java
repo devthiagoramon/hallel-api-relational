@@ -1,8 +1,10 @@
 package br.hallel.relational.api.app.global.pdf;
 
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 import br.hallel.relational.api.app.global.exception.GenerateComandaException;
 import br.hallel.relational.api.app.global.pdf.dto.EventParticipationForPDF;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentData;
 import br.hallel.relational.api.app.user.model.User;
 import com.github.anastaciocintra.escpos.EscPos;
 import com.github.anastaciocintra.escpos.EscPosConst;
@@ -23,7 +25,8 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
-@Slf4j @Service
+@Slf4j
+@Service
 public class PdfGenerationService {
     @Autowired
     private TemplateEngine templateEngine;
@@ -158,4 +161,34 @@ public class PdfGenerationService {
         return outputStream.toByteArray();
     }
 
+    public ByteArrayOutputStream generatePixPaymentPdf(PixPaymentData pixData) throws IOException {
+
+        Context context = new Context();
+        context.setVariable("paymentId", pixData.paymentId());
+        context.setVariable("eventTitle", pixData.eventTitle());
+        context.setVariable("amount", pixData.amount());
+        context.setVariable("pixCode", pixData.pixCode());
+        String base64Image = pixData.qrCodeImageUrl();
+        String dataUri = "data:image/png;base64," + base64Image;
+        context.setVariable("qrCodeImageBase64", dataUri);
+        context.setVariable("expirationDateTime", pixData.expirationDateTime());
+
+        String html = templateEngine.process("pix_enrollment_payment", context);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+
+        try {
+            builder.useFont(new File("src/main/resources/static/fonts/Poppins-Regular.ttf"), "Poppins");
+        } catch (Exception e) {
+            log.warn("Fonte Poppins não encontrada, usando fonte padrão do sistema para o PDF Pix.", e);
+        }
+
+        builder.useFastMode();
+        builder.withHtmlContent(html, null);
+        builder.toStream(outputStream);
+        builder.run();
+
+        return outputStream;
+    }
 }

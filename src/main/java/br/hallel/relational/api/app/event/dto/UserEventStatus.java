@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
 
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

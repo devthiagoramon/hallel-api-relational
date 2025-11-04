@@ -1,7 +1,7 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.BalanceType;
-import br.hallel.relational.api.app.event.model.EventType;
+import br.hallel.relational.api.app.event.model.enum_type.BalanceType;
+import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

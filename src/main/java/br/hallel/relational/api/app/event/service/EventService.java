@@ -5,7 +5,8 @@ import br.hallel.relational.api.app.event.dto.mapper.EventMapper;
 import br.hallel.relational.api.app.event.exception.*;
 import br.hallel.relational.api.app.event.interfaces.EventInterface;
 import br.hallel.relational.api.app.event.model.*;
-import br.hallel.relational.api.app.event.repository.EventInviteRepository;
+import br.hallel.relational.api.app.event.model.enum_type.*;
+import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import br.hallel.relational.api.app.event.repository.EventRepository;
 import br.hallel.relational.api.app.event.repository.EventTransactionRepository;
 import br.hallel.relational.api.app.event.repository.LimitEventAgeGroupRepository;
@@ -16,7 +17,6 @@ import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.global.utils.LocalDateTimeUtils;
 import br.hallel.relational.api.app.ministry.dto.MinistryResponse;
 import br.hallel.relational.api.app.ministry.dto.mapper.MinistryMapper;
-import br.hallel.relational.api.app.ministry.exception.MinistryNotFoundException;
 import br.hallel.relational.api.app.ministry.model.Ministry;
 import br.hallel.relational.api.app.ministry.repository.MinistryRepository;
 import jakarta.transaction.Transactional;
@@ -31,8 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,20 +40,20 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public  class EventService implements EventInterface {
+public class EventService implements EventInterface {
 
     private final EventRepository repository;
     private final GoogleBucketService bucketService;
     private final MinistryRepository ministryRepository;
     private final EventScaleService eventScaleService;
     private final EventTransactionRepository eventTransactionRepository;
+    private final EventParticipationRepository eventParticipationRepository;
 
     private final EventMapper mapper;
     private final MinistryMapper ministryMapper;
     private final PdfGenerationService pdfGenerationService;
 
     private final LimitEventAgeGroupRepository limitEventAgeGroupRepository;
-    private final EventInviteRepository inviteRepository;
 
     private final EventUtils eventUtils;
 
@@ -63,13 +63,12 @@ public  class EventService implements EventInterface {
                                 MultipartFile fileBanner) {
         log.info("Creating event...");
 
-        if (eventDTO.getDate().before(new Date())) {
+        if (Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)).before(new Date())) {
             throw new EventIllegalArumentException("Não foi possível criar o evento: Data inválida!");
         }
 
         if (eventDTO.getTitle() == null
-                || eventDTO.getDescription() == null
-                || eventDTO.getDate() == null) {
+                || eventDTO.getDescription() == null) {
             throw new EventIllegalArumentException("Não foi possível criar o evento. Preencha os campos corretamente!");
         }
 
@@ -83,12 +82,16 @@ public  class EventService implements EventInterface {
         event.setImage_url("");
         event.setBanner_url("");
         event.setWhatsAppGroupLink(eventDTO.getWhatsAppGroupLink());
-        event.setEventStatus(eventDTO.getDate().after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
+        event.setEventStatus(Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)).after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
+        event.setDate(Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)));
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(event.getEndTime());
         event = this.repository.save(event);
 
         // Sincroniza ingressos e agendas
         eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
+        eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
 
         // Limites por faixa etária
         generateLimiteAgeGroupForEvent(event);
@@ -191,7 +194,42 @@ public  class EventService implements EventInterface {
             return ministryMapper.entityMinistryToResponse(ministry);
         }).toList();
 
+        long currentParticipants = eventParticipationRepository.countByEvent_IdAndStatusPaymentEventParticipationNot(
+                event.getId(), StatusPaymentEventParticipation.NAO_PAGO
+        );
+
+        // 5. Ordenar os lotes (do menor limite para o maior)
+        List<EventInviteBatch> sortedBatches = event.getEventInviteBatches().stream()
+                .sorted(Comparator.comparingInt(EventInviteBatch::getMaxNumber))
+                .toList();
+
+        int currentBatchIndex = -1;
+        if (!event.getItsFree()) {
+            for (int i = 0; i < sortedBatches.size(); i++) {
+                if (currentParticipants < sortedBatches.get(i).getMaxNumber()) {
+                    currentBatchIndex = i;
+                    break;
+                }
+            }
+        }
+
+        List<EventBatchStatusDTO> batchStatusDTOs = new ArrayList<>();
+        for (int i = 0; i < sortedBatches.size(); i++) {
+            EventInviteBatch batch = sortedBatches.get(i);
+            boolean isCurrent = (i == currentBatchIndex);
+
+            batchStatusDTOs.add(new EventBatchStatusDTO(
+                    batch.getId(),
+                    i + 1, // batchOrder (Lote 1, Lote 2, ...)
+                    batch.getMaxNumber(),
+                    batch.getValueIncrease(),
+                    isCurrent
+            ));
+        }
+
+
         EventResponseWithMinistryAssociated eventResponse = mapper.eventToResponseWithMinistryAssociated(event);
+        eventResponse.setEventBatches(batchStatusDTOs);
         eventResponse.setMinistries(ministriesAssociated);
         return eventResponse;
 
@@ -217,10 +255,13 @@ public  class EventService implements EventInterface {
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(eventDTO.getEndTime());
         boolean itsFreeValue = eventDTO.getItsFree();
 
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
         eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
+        eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
         event.setItsFree(itsFreeValue);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());

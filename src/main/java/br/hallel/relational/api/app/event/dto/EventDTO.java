@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
-import br.hallel.relational.api.app.event.model.EventType;
+import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
@@ -11,12 +11,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Getter @Setter
-@AllArgsConstructor @NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class EventDTO {
 
     @NotBlank(message = "Campo 'Title' não pode ser nulo.")
@@ -25,8 +29,6 @@ public class EventDTO {
     @NotBlank(message = "Campo 'Description' não pode ser nulo.")
     private String description;
 
-    @NotNull(message = "Campo 'date' não pode ser nulo.")
-    @Future(message = "A data do evento deve está no futuro!")
     private Date date;
 
     private Duration duration;
@@ -41,18 +43,28 @@ public class EventDTO {
     private Double local_event_latitude;
 
     @Valid
-    private List<EventInviteDTO> eventInviteDTOS;
+    private List<EventInviteDTO> eventInviteDTOS = new ArrayList<>(); // Ingressos (com preço base)
+
     @Valid
-    private List<EventScheduleDTO> eventScheduleDTOS;
+    private List<EventInviteBatchDTO> eventInviteBatchDTOS = new ArrayList<>(); // Lotes (com maxNumber e valueIncrease)
+
+    @Valid
+    private List<EventScheduleDTO> eventScheduleDTOS = new ArrayList<>(); // Atividades (com participantes)
 
     private Boolean isImportant;
     private List<UUID> ministryIds;
 
     @NotNull(message = "O tipo do evento não pode ser nulo")
     private EventType eventType;
+
     private Boolean itsFree;
 
     private String whatsAppGroupLink;
 
+    @NotNull(message = "Campo 'date' não pode ser nulo.")
+    @Future(message = "A data do evento deve está no futuro!")
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
 
 }

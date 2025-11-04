@@ -1,9 +1,10 @@
 package br.hallel.relational.api.app.email.controller;
 
+import br.hallel.relational.api.app.email.dto.EmailParticipationDTO;
 import br.hallel.relational.api.app.email.service.EmailAuthService;
 import br.hallel.relational.api.app.email.service.EmailEventParticipationService;
 import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,13 +36,14 @@ public class EmailController {
         List<EventParticipation> allByEventId =
                 this.eventParticipationRepository.findAllByEvent_Id(eventId);
         for (EventParticipation user : allByEventId) {
-            emailEventParticipationService.sendComprovantEventParticipation(
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
                     user.getEmail(),
                     user.getName(),
-                    user.getEvent().getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(),
-                    user.getEvent().getTitle(),
+                    user.getEvent().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    user.getEvent().getTitle()
+            );
+            emailEventParticipationService.sendComprovantEventParticipation(
+                    emailDto,
                     user.getEvent().getId().toString(),
                     user.getEvent().getWhatsAppGroupLink()
             );
@@ -65,13 +67,14 @@ public class EmailController {
                     user.getEvent().getTitle(),
                     isPaid
             );
-            emailEventParticipationService.sendEventParticipationReminderEmail(
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
                     user.getEmail(),
                     user.getName(),
-                    user.getEvent().getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(),
-                    user.getEvent().getTitle(),
+                    user.getEvent().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    user.getEvent().getTitle()
+            );
+            emailEventParticipationService.sendEventParticipationReminderEmail(
+                    emailDto,
                     user.getEvent().getId().toString(),
                     false,
                     isPaid
@@ -96,15 +99,16 @@ public class EmailController {
                     user.getEvent().getTitle(),
                     isPaid
             );
-            emailEventParticipationService.sendRefundEventParticipation(
+            EmailParticipationDTO emailDto = new EmailParticipationDTO(
                     user.getEmail(),
                     user.getName(),
-                    user.getEvent().getDate().toInstant().atZone(
-                            ZoneId.systemDefault()
-                    ).toLocalDateTime(),
-                    user.getEvent().getTitle(),
+                    user.getEvent().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    user.getEvent().getTitle()
+            );
+            emailEventParticipationService.sendRefundEventParticipation(
+                    emailDto,
                     user.getAmountPaid()
-                    );
+            );
 
         }
         return ResponseEntity.ok("Notificação enviada!");
@@ -113,7 +117,7 @@ public class EmailController {
     @PostMapping("/send-signup")
     public String sendSignUpEmail(@RequestParam String name,
                                   @RequestParam String email) {
-        emailAuthService.sendSignUpMail(email,name);
+        emailAuthService.sendSignUpMail(email, name);
         return "Email enviado";
     }
 

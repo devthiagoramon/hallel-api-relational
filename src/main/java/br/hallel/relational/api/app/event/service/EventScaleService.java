@@ -7,7 +7,7 @@ import br.hallel.relational.api.app.event.interfaces.ScaleInterface;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
 import br.hallel.relational.api.app.event.model.MemberEventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.event.repository.EventScaleRepository;
 import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
@@ -22,7 +22,6 @@ import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository
 import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import br.hallel.relational.api.app.user.model.User;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

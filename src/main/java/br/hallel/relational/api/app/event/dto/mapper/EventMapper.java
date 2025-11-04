@@ -49,6 +49,9 @@ public abstract class EventMapper {
     @Mapping(target = "duration", ignore = true)
     @Mapping(target = "eventSchedules", source = "schedules")
     @Mapping(target = "whatsAppGroupLink", ignore = true)
+    @Mapping(target = "startTime", ignore = true)
+    @Mapping(target = "endTime", ignore = true)
+    @Mapping(target = "eventInviteBatches", ignore = true)
     public abstract Event responseToEntity(EventResponse eventResponse);
 
     @Mapping(target = "id", ignore = true)
@@ -66,8 +69,12 @@ public abstract class EventMapper {
     @Mapping(target = "eventStatus", ignore = true)
     @Mapping(target = "duration", ignore = true)
     @Mapping(target = "whatsAppGroupLink", ignore = true)
+    @Mapping(target = "startTime", ignore = true)
+    @Mapping(target = "endTime", ignore = true)
+    @Mapping(target = "eventInviteBatches", ignore = true)
     public abstract Event dtoToEntity(EventDTO event);
 
     @Mapping(target = "ministries", ignore = true)
+    @Mapping(target = "eventBatches", ignore = true)
     public abstract EventResponseWithMinistryAssociated eventToResponseWithMinistryAssociated(Event event);
 }

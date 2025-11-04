@@ -1,6 +1,6 @@
 package br.hallel.relational.api.app.event.repository;
 
-import br.hallel.relational.api.app.event.model.AgeGroup;
+import br.hallel.relational.api.app.event.model.enum_type.AgeGroup;
 import br.hallel.relational.api.app.event.model.LimitEventAgeGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

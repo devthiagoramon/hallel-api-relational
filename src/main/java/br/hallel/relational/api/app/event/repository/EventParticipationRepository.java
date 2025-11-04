@@ -2,8 +2,8 @@ package br.hallel.relational.api.app.event.repository;
 
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
-import br.hallel.relational.api.app.event.model.UserFunctionInEvent;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,4 +93,6 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
     List<EventParticipation> findAllByStatusPaymentEventParticipation(StatusPaymentEventParticipation statusPaymentEventParticipation);
 
     Optional<EventParticipation> findByEmailAndEvent_Id(String email, UUID eventId);
+
+    long countByEvent_IdAndStatusPaymentEventParticipationNot(UUID eventId, StatusPaymentEventParticipation statusPaymentEventParticipation);
 }

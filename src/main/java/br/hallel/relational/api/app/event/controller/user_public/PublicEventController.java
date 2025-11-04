@@ -4,7 +4,7 @@ import br.hallel.relational.api.app.event.dto.EventResponse;
 import br.hallel.relational.api.app.event.dto.EventResponseWithMinistryAssociated;
 import br.hallel.relational.api.app.event.dto.EventShortResponse;
 import br.hallel.relational.api.app.event.dto.FilterEventDTO;
-import br.hallel.relational.api.app.event.model.EventStatus;
+import br.hallel.relational.api.app.event.model.enum_type.EventStatus;
 import br.hallel.relational.api.app.event.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

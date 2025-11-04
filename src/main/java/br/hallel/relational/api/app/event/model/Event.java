@@ -1,5 +1,7 @@
 package br.hallel.relational.api.app.event.model;
 
+import br.hallel.relational.api.app.event.model.enum_type.EventStatus;
+import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -7,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +37,11 @@ public class Event {
 
     @Column(name = "duration")
     private Duration duration;
+
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
 
     @Column(name = "event_status")
     @Enumerated(EnumType.STRING)
@@ -64,6 +72,10 @@ public class Event {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     @JsonManagedReference
     private List<EventSchedule> eventSchedules = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
+    @JsonManagedReference
+    private List<EventInviteBatch> eventInviteBatches = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     @ToString.Exclude
@@ -115,6 +127,24 @@ public class Event {
             this.eventSchedules.add(schedule);
             eventSchedules.add(schedule);
             schedule.setEvent(this);
+        }
+    }
+
+    public void addInviteBatch(EventInviteBatch inviteBatch) {
+        if (eventInviteBatches == null) {
+            eventInviteBatches = new ArrayList<>();
+            eventInviteBatches.add(inviteBatch);
+            inviteBatch.setEvent(this);
+        }else {
+            eventInviteBatches.add(inviteBatch);
+            inviteBatch.setEvent(this);
+        }
+    }
+
+    public void removeInviteBatch(EventInviteBatch inviteBatch) {
+        if (eventInviteBatches != null) {
+            eventInviteBatches.remove(inviteBatch);
+            inviteBatch.setEvent(this);
         }
     }
 

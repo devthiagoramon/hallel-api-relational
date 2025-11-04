@@ -2,7 +2,7 @@ package br.hallel.relational.api.app.event.controller.user_public;
 
 import br.hallel.relational.api.app.event.dto.*;
 import br.hallel.relational.api.app.event.model.EventParticipation;
-import br.hallel.relational.api.app.event.model.StatusPaymentEventParticipation;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.service.UserEventService;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;

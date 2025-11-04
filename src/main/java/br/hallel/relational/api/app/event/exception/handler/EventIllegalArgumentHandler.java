@@ -275,4 +275,12 @@ public class EventIllegalArgumentHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(EventBatchSoldOutException.class)
+    public ResponseEntity<ExceptionResponse> handleEventNotFoundExceptionHandler(
+            EventBatchSoldOutException exception, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getMessage(), new Date(),
+                request.getDescription(false));
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
 }

@@ -1,10 +1,9 @@
 package br.hallel.relational.api.app.event.repository;
 
-import br.hallel.relational.api.app.event.dto.EventScaleWithRepertoriesResponse;
 import br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse;
 import br.hallel.relational.api.app.event.model.Event;
 import br.hallel.relational.api.app.event.model.EventScale;
-import br.hallel.relational.api.app.event.model.MemberEventScaleStatus;
+import br.hallel.relational.api.app.event.model.enum_type.MemberEventScaleStatus;
 import br.hallel.relational.api.app.ministry.dto.MinistrySimpleResponse;
 import br.hallel.relational.api.app.ministry.model.RepertoryMinistry;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository

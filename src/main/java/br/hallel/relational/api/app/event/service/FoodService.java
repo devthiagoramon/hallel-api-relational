@@ -5,6 +5,8 @@ import br.hallel.relational.api.app.event.exception.EventIllegalArumentException
 import br.hallel.relational.api.app.event.exception.EventNotFoundException;
 import br.hallel.relational.api.app.event.exception.FoodNotFoundException;
 import br.hallel.relational.api.app.event.model.*;
+import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentFood;
+import br.hallel.relational.api.app.event.model.enum_type.TransactionType;
 import br.hallel.relational.api.app.event.repository.*;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
