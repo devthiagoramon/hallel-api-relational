@@ -1,5 +1,5 @@
 # Use uma imagem base oficial do Java 17
-FROM openjdk:21-jdk-slim
+FROM openjdk:21-slim
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /app
