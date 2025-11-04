@@ -72,6 +72,7 @@ public abstract class EventMapper {
     @Mapping(target = "startTime", ignore = true)
     @Mapping(target = "endTime", ignore = true)
     @Mapping(target = "eventInviteBatches", ignore = true)
+    @Mapping(target = "date", ignore = true)
     public abstract Event dtoToEntity(EventDTO event);
 
     @Mapping(target = "ministries", ignore = true)

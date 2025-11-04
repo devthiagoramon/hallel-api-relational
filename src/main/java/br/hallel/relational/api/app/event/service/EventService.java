@@ -82,7 +82,9 @@ public class EventService implements EventInterface {
         event.setImage_url("");
         event.setBanner_url("");
         event.setWhatsAppGroupLink(eventDTO.getWhatsAppGroupLink());
-        event.setEventStatus(Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)).after(new Date()) ? EventStatus.AGENDADO : EventStatus.OCORRENDO);
+        event.setEventStatus(
+                Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)).after(new Date()) ? EventStatus.AGENDADO :
+                        EventStatus.OCORRENDO);
         event.setDate(Date.from(eventDTO.getStartTime().toInstant(ZoneOffset.UTC)));
         event.setStartTime(eventDTO.getStartTime());
         event.setEndTime(event.getEndTime());
@@ -242,21 +244,21 @@ public class EventService implements EventInterface {
         Event event = this.repository.findById(id).
                 orElseThrow(() -> new EventIllegalArumentException("Evento não encontrado!"));
 
-        if (!eventDTO.getDate().equals(event.getDate())) {
-            this.eventScaleService.editEventDate(event.getId(), eventDTO.getDate());
+        if (!eventDTO.getStartTime().equals(event.getStartTime())) {
+            this.eventScaleService.editEventDate(event.getId(), eventDTO.getStartTime());
+        }
+        if (!eventDTO.getEndTime().equals(event.getEndTime())) {
+            event.setEndTime(eventDTO.getEndTime());
         }
         event.setId(id);
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
-        event.setDate(eventDTO.getDate());
         event.setDuration(eventDTO.getDuration());
         event.setLocal_event_name(eventDTO.getLocal_event_name());
         event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
         event.setIsImportant(eventDTO.getIsImportant());
         event.setEventType(eventDTO.getEventType());
-        event.setStartTime(eventDTO.getStartTime());
-        event.setEndTime(eventDTO.getEndTime());
         boolean itsFreeValue = eventDTO.getItsFree();
 
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
