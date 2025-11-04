@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -180,14 +181,14 @@ public class EventScaleService implements ScaleInterface {
         return eventScaleWithInfos;
     }
 
-    public EventScaleResponse editDateScale(EventScale eventScale, Date date) {
+    public EventScaleResponse editDateScale(EventScale eventScale, LocalDateTime date) {
         log.info("Editing escala date " + eventScale.getId() + "...");
-        eventScale.setDate(date);
+        eventScale.setDate(Date.from(date.toInstant(ZoneOffset.UTC)));
         EventScale scaleUpdated = this.eventScaleRepository.save(eventScale);
         return scaleMapper.entityToResponse(scaleUpdated);
     }
 
-    public List<EventScaleResponse> editEventDate(UUID eventId, Date date) {
+    public List<EventScaleResponse> editEventDate(UUID eventId, LocalDateTime date) {
         log.info("Editing event date and updating scales of event {}", eventId);
         List<EventScale> scaleOfEvent = this.eventScaleRepository.findByEventId(eventId);
         List<EventScaleResponse> responses = new ArrayList<>();

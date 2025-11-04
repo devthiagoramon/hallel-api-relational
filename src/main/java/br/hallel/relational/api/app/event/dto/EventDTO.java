@@ -29,7 +29,7 @@ public class EventDTO {
     @NotBlank(message = "Campo 'Description' não pode ser nulo.")
     private String description;
 
-    private Date date;
+//    private Date date;
 
     private Duration duration;
 
