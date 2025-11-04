@@ -267,7 +267,7 @@ public class EventService implements EventInterface {
         event.setItsFree(itsFreeValue);
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
-            String imageUrl = null;
+            String imageUrl;
             imageUrl = bucketService.updateFileOfBucket(
                     img_url, GoogleBucketUtils.getImageName(
                             event.getId().toString()
