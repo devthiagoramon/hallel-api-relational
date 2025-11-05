@@ -1,6 +1,7 @@
 package br.hallel.relational.api.app.event.controller.admin;
 
 import br.hallel.relational.api.app.event.dto.*;
+import br.hallel.relational.api.app.event.exception.EventParticipationException;
 import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import br.hallel.relational.api.app.event.service.UserEventService;
@@ -63,21 +64,35 @@ public class AdminEventParticipationController {
     @GetMapping("/by-event/{eventId}/name")
     public ResponseEntity<Page<UserInEventInfosResponse>>
     getAllParticipationsByNameOFEventId(@PathVariable(name = "eventId") UUID eventId,
-                                  @RequestParam(name = "name", defaultValue = "") String name,
-                                  @RequestParam(name = "page", defaultValue = "0") int page,
-                                  @RequestParam(name = "size", defaultValue = "10") int size) {
-        return ResponseEntity.ok(userEventService.getAllParticipationsByNameOFEventId(name, eventId, PageRequest.of(page, size)));
+                                        @RequestParam(name = "name", defaultValue = "") String name,
+                                        @RequestParam(name = "page", defaultValue = "0") int page,
+                                        @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(
+                userEventService.getAllParticipationsByNameOFEventId(name, eventId, PageRequest.of(page, size)));
     }
 
     @Operation(summary = "List all participants by name of event")
     @GetMapping("/by-event/{eventId}/statusPayment")
     public ResponseEntity<Page<UserInEventInfosResponse>>
     getAllParticipationsByFilterStatusPaymentOFEvent(@PathVariable(name = "eventId") UUID eventId,
-                                        @RequestParam(name = "status", defaultValue = "", required = true)
-                                        StatusPaymentEventParticipation statusPaymentEventParticipation,
-                                        @RequestParam(name = "page", defaultValue = "0") int page,
-                                        @RequestParam(name = "size", defaultValue = "10") int size) {
-        return ResponseEntity.ok(userEventService.getAllParticipationsByFilterOfEvent(statusPaymentEventParticipation, eventId, PageRequest.of(page, size)));
+                                                     @RequestParam(name = "status", defaultValue = "", required = false)
+                                                     String statusPaymentEventParticipationString,
+                                                     @RequestParam(name = "page", defaultValue = "0") int page,
+                                                     @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        StatusPaymentEventParticipation statusPaymentEventParticipation = null;
+
+        if (statusPaymentEventParticipationString == null || statusPaymentEventParticipationString.equals(
+                "undefined")) {
+            throw new EventParticipationException("Status payment status error");
+        }
+        if (!statusPaymentEventParticipationString.equalsIgnoreCase("ALL")) {
+            statusPaymentEventParticipation = StatusPaymentEventParticipation.valueOf(
+                    statusPaymentEventParticipationString);
+        }
+        return ResponseEntity.ok(
+                userEventService.getAllParticipationsByFilterOfEvent(statusPaymentEventParticipation, eventId,
+                        PageRequest.of(page, size)));
     }
 
     @PostMapping("/add")
@@ -117,16 +132,34 @@ public class AdminEventParticipationController {
     }
 
     @GetMapping("/users/pdf/{event-id}")
-    @Operation(summary = "List the pdf from participants of event", description = "Handles to get the PDF from participants of event, the pdf's returned as Base64")
-    public ResponseEntity<String> listUsersParticipationInEventPDF(@PathVariable("event-id") UUID eventId) {
-        return ResponseEntity.ok(userEventService.listUsersAsPdf(eventId));
+    @Operation(summary = "List the pdf from participants of event",
+            description = "Handles to get the PDF from participants of event, the pdf's returned as Base64. " +
+                    "Optionally filters by payment status (PENDENTE, PAGO, NAO_PAGO, REEMBOLSADO).")
+    public ResponseEntity<String> listUsersParticipationInEventPDF(
+            @PathVariable("event-id") UUID eventId,
+            @RequestParam(name = "status", required = false) String statusString
+    ) {
+        StatusPaymentEventParticipation statusEnum = null;
+
+
+        if (statusString == null || statusString.equals(
+                "undefined")) {
+            throw new EventParticipationException("Status payment status error");
+        }
+        if (!statusString.equalsIgnoreCase("ALL")) {
+            statusEnum = StatusPaymentEventParticipation.valueOf(
+                    statusString);
+        }
+
+        return ResponseEntity.ok(userEventService.listUsersAsPdf(eventId, statusEnum));
     }
 
     @DeleteMapping("/remove-user/event/{eventId}")
     @Operation(summary = "Remove user from event by user id and event id")
     public ResponseEntity<Boolean> removeUserFromEventByUserIdAndEventId(@RequestParam
-            ("userEmail") String userEmail, @PathVariable("eventId") UUID eventId) {
-        return ResponseEntity.ok(userEventService.leaveTheEventByAdmin(eventId,userEmail));
+                                                                                 ("userEmail") String userEmail,
+                                                                         @PathVariable("eventId") UUID eventId) {
+        return ResponseEntity.ok(userEventService.leaveTheEventByAdmin(eventId, userEmail));
     }
 
 }

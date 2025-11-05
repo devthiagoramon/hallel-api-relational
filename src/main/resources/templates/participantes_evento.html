@@ -76,7 +76,7 @@
             <th>Nome</th>
             <th>E-mail</th>
             <th>Idade</th>
-            <th th:if="${not event.itsFree}">Valor pago</th>
+            <th th:if="${not event.itsFree}">Valor</th>
             <th th:if="${not event.itsFree}">Status de pagamento</th>
             <th>Função</th>
             <th>Comunidade</th>
@@ -86,9 +86,16 @@
         <tr th:each="participant : ${participants}">
             <td th:text="${participant.getName()}">...</td>
             <td th:text="${participant.getEmail()}">...</td>
-            <td th:text="${participant.getAge()}+ ' anos'">...</td>
+
+            <td th:text="${participant.getAge() != null and participant.getAge() > 0 ? participant.getAge() : 'Não informado'}">...</td>
+
             <td th:if="${not event.itsFree}" th:text="${participant.getInviteValue()}">...</td>
-            <td th:if="${not event.itsFree}" th:text="${participant.getStatus()}">...</td>
+
+            <td th:if="${not event.itsFree}"
+                th:text="${#strings.equalsIgnoreCase(participant.getStatus(), 'pendente') ? 'Não pago' : participant.getStatus()}">
+                ...
+            </td>
+
             <td th:text="${participant.getUserFunction()}">...</td>
             <td th:text="${participant.getCommunity()}">...</td>
         </tr>
