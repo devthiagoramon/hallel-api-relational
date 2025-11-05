@@ -6,7 +6,6 @@ import br.hallel.relational.api.app.event.repository.MemberEventScaleRepository;
 import br.hallel.relational.api.app.global.service.google.GoogleBucketService;
 import br.hallel.relational.api.app.global.utils.GoogleBucketUtils;
 import br.hallel.relational.api.app.messaging.mobile.model.DeviceNotification;
-import br.hallel.relational.api.app.messaging.mobile.repository.DeviceNotificationRepository;
 import br.hallel.relational.api.app.messaging.mobile.service.FCMSenderService;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
@@ -22,8 +21,8 @@ import br.hallel.relational.api.app.user.model.*;
 import br.hallel.relational.api.app.user.repository.LastAcessLogRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.repository.UserRoleRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,36 +36,21 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService implements UserInterface {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder encoder;
-    @Autowired
-    private GoogleBucketService bucketService;
-    @Autowired
-    private MemberEventScaleRepository memberEventScaleRepository;
-    @Autowired
-    private LastAcessLogRepository lastAcessLogRepository;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private RoleRepository roleRepository;
-    @Autowired
-    private UserRoleRepository userRoleRepository;
-    @Autowired
-    private DeviceNotificationRepository deviceNotificationRepository;
-    @Autowired
-    private FCMSenderService fcmSenderService;
 
+    private final UserRepository userRepository;
+    private final GoogleBucketService bucketService;
+    private final MemberEventScaleRepository memberEventScaleRepository;
+    private final LastAcessLogRepository lastAcessLogRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final FCMSenderService fcmSenderService;
     private final UserMapper userMapper;
 
-    public UserService(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
 
     @Override
     public User singUpUser(UserLoginDTO userRequestDTO) {
@@ -298,7 +282,6 @@ public class UserService implements UserInterface {
     public LocalDateTime getLastAcessLog(User user) {
         LocalDateTime lastAcess =
                 this.lastAcessLogRepository.findLastAccessDateByUser(user);
-//        System.out.println("Get Last Access: " + lastAcess + " | Name: " + user.getName());
         return lastAcess;
     }
 
@@ -540,5 +523,15 @@ public class UserService implements UserInterface {
                 null,
                 null
         );
+    }
+
+    public UserRoleResponseDTO getUserRole(UUID userId) {
+        log.info("Getting user role for user: " + userId);
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("user.not.found", userId.toString())
+        );
+        List<String> roles = user.getRoles().stream().map(Role::getDescription).collect(Collectors.toList());
+        log.info(roles.toString());
+        return new UserRoleResponseDTO(userId, roles);
     }
 }

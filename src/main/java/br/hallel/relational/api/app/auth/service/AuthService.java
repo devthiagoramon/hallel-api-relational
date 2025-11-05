@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.auth.dto.SignUpRequest;
 import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.AuthRequestException;
 import br.hallel.relational.api.app.email.service.EmailAuthService;
-import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.security.admin.TokenAdminValidationCode;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
@@ -25,12 +24,12 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -167,7 +166,6 @@ public class AuthService {
                     tokenAdmin);
 
             if (ngrokUrl == null) {
-
                 log.info("https://api.comunidadecatolicahallel.com.br/auth/validate-admin-access-web/{}?token={}", code,
                         tokenAdmin);
             } else {

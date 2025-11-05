@@ -36,17 +36,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
     private final AuthService authService;
 
-    @Autowired
     private final UserRepository userRepository;
-    @Autowired
     private final RoleRepository roleRepository;
-    @Autowired
     private final UserService userService;
 
-    @Autowired
     private final JwtTokenProvider jwtService;
     private static final String CLIENT_ID = "1060759694626-c98qb76632sh0ocgm908006ap7gfvur1.apps.googleusercontent.com";
 
@@ -103,7 +98,7 @@ public class AuthController {
     @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
     public boolean validateAdminAccessWeb(@RequestParam(name = "token") String token,
                                           @PathVariable("validationCode") String code) {
-       return authService.validateTokenAdminWeb(token, code);
+        return authService.validateTokenAdminWeb(token, code);
 
     }
 
