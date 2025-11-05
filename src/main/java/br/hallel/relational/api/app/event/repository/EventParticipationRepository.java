@@ -23,7 +23,8 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
 
     Page<EventParticipation> findAllByEvent_Id(UUID eventId, Pageable pageable);
 
-
+    List<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
+                                                                                 StatusPaymentEventParticipation status);
     Page<EventParticipation> findAllByEvent_IdAndStatusPaymentEventParticipation(UUID eventId,
                                                                                  StatusPaymentEventParticipation status,
                                                                                  Pageable pageable);

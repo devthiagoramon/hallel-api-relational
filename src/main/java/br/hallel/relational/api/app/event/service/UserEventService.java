@@ -852,10 +852,19 @@ public class UserEventService {
         return participations.map(part -> new UserInEventInfosResponse().toResponse(part, 0));
     }
 
-    public String listUsersAsPdf(UUID eventId) {
-        List<EventParticipation> participations = eventParticipationRepository.findAllByEvent_Id(eventId);
+    public String listUsersAsPdf(UUID eventId, StatusPaymentEventParticipation status) {
+        List<EventParticipation> participations;
         Event event = this.eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventParticipationException("event.not.found"));
+
+        // LÓGICA DE FILTRAGEM
+        if (status != null) {
+            // Se um status foi fornecido, use o método de filtro
+            participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
+        } else {
+            // Caso contrário, pegue todos
+            participations = eventParticipationRepository.findAllByEvent_Id(eventId);
+        }
         String pdfBase64 = "";
         if (participations.isEmpty()) {
             throw new EventParticipationException("participation.event.not.found");
