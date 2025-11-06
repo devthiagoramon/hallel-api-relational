@@ -329,14 +329,14 @@ public class EmailEventParticipationService {
     @Async
     public void sendQueueSpaceAvailableNotification(
             EmailParticipationDTO dto,
-            String eventId
+            String autoLoginUrl  // ← Mude o parâmetro para receber a URL
     ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
             context.setVariable("name", dto.name());
             context.setVariable("eventTitle", dto.eventTitle());
             context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
-            context.setVariable("confirmationLink", "http://localhost:5173/evento/" + eventId);
+            context.setVariable("confirmationLink", autoLoginUrl);  // ← Usa a URL recebida
 
             String html = templateEngine.process("confirm-queue", context);
 
@@ -345,12 +345,13 @@ public class EmailEventParticipationService {
 
             helper.setFrom(emailUtils.getFrom());
             helper.setTo(dto.to());
-            helper.setSubject("✅Vaga Liberada! Confirme Sua Inscrição em " + dto.eventTitle());
+            helper.setSubject("🎉 Vaga Liberada! Confirme Sua Inscrição em " + dto.eventTitle());
             helper.setText(html, true);
 
             mailSender.send(message);
 
             log.info("Email de notificação de vaga liberada enviado para: {}", dto.to());
+            log.info("Link de confirmação: {}", autoLoginUrl);
 
         } catch (Exception e) {
             log.error("Erro ao enviar notificação de vaga liberada para {}: {}", dto.to(), e.getMessage());

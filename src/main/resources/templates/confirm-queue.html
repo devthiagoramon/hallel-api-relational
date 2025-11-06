@@ -7,110 +7,168 @@
     <style>
         /* Reset e estilos globais */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             color: #333;
+            line-height: 1.6;
         }
         .container {
             max-width: 600px;
             margin: 20px auto;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            border-top: 5px solid #28a745; /* Verde de sucesso/urgência */
+            border-top: 6px solid #28a745;
         }
         .header {
-            background-color: #28a745; /* Verde forte */
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: #ffffff;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
-            font-size: 26px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
         }
         .content {
-            padding: 30px;
-            text-align: left;
-            line-height: 1.6;
+            padding: 35px;
         }
-        .alert-box {
-            background-color: #fff3cd; /* Amarelo claro para urgência */
-            border-left: 5px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+        .urgent-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-left: 5px solid #fdcb6e;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
             font-weight: bold;
             color: #856404;
+            text-align: center;
         }
-        .info-box {
-            background-color: #e9ecef;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+        .event-info {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .event-info strong {
+            color: #2d3436;
         }
         .footer {
-            background-color: #f4f4f4;
-            color: #777777;
-            padding: 20px;
+            background-color: #2d3436;
+            color: #ffffff;
+            padding: 25px;
             text-align: center;
-            font-size: 12px;
-            border-top: 1px solid #eeeeee;
+            font-size: 13px;
+            border-top: 1px solid #636e72;
         }
-        /* Estilos de Botão Principal */
-        .button {
-            display: block; /* Botão full-width para mobile */
-            background-color: #dc3545; /* Vermelho urgente para confirmar */
+        /* Botão Principal */
+        .confirm-button {
+            display: block;
+            background: linear-gradient(135deg, #dc3545, #e84118);
             color: #ffffff !important;
-            padding: 15px 30px;
+            padding: 18px 35px;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 18px;
             margin: 30px auto;
             text-align: center;
-            max-width: 80%; /* Limita a largura em desktop */
+            max-width: 280px;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
-        .button:hover {
-            background-color: #c82333;
+        .confirm-button:hover {
+            background: linear-gradient(135deg, #c82333, #c23616);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+        .login-note {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        .link-alternative {
+            background-color: #f1f3f4;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            word-break: break-all;
+            font-size: 13px;
+            color: #5f6368;
+        }
+        .highlight {
+            color: #28a745;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>✅ URGENTE: VAGA LIBERADA!</h1>
+        <div class="header-icon">🎉</div>
+        <h1>VAGA LIBERADA!</h1>
+        <p>Sua vez chegou na fila de espera!</p>
     </div>
+
     <div class="content">
-        <p>Parabéns, <strong th:text="${name}">[Nome do Participante]</strong>!</p>
+        <p>Olá, <strong th:text="${name}">[Nome do Participante]</strong>!</p>
 
-        <p>Temos uma excelente notícia! Uma vaga para o evento <strong th:text="${eventTitle}">[Título do Evento]</strong> foi liberada, e como você é o(a) próximo(a) da fila, esta vaga é sua!</p>
+        <p>Ótimas notícias! Uma vaga para o evento <strong class="highlight" th:text="${eventTitle}">[Título do Evento]</strong> foi liberada e você é o(a) próximo(a) da fila de espera!</p>
 
-        <div class="info-box">
-            <p><strong>Evento:</strong> <span th:text="${eventTitle}">[Título do Evento]</span></p>
-            <p><strong>Data/Hora:</strong> <span th:text="${eventDate}">[Data do Evento]</span></p>
+        <div class="event-info">
+            <p><strong>📅 Evento:</strong> <span th:text="${eventTitle}">[Título do Evento]</span></p>
+            <p><strong>⏰ Data e Hora:</strong> <span th:text="${eventDate}">[Data do Evento]</span></p>
+            <p><strong>🎯 Status:</strong> <span class="highlight">Vaga Reservada para Você</span></p>
         </div>
 
-        <div class="alert-box">
-            🚨 ATENÇÃO: Você tem um tempo limitado (X horas/minutos) para confirmar sua vaga. Caso não confirme, a vaga será passada para o próximo da fila.
+        <div class="urgent-box">
+            ⚡ <strong>ATENÇÃO: RESERVA TEMPORÁRIA</strong> ⚡<br>
+            Você tem <strong>3 dias</strong> para confirmar sua participação.
+            Após este prazo, a vaga será automaticamente liberada para o próximo da fila.
         </div>
 
-        <p>Para confirmar imediatamente sua inscrição e garantir sua vaga, clique no botão abaixo:</p>
+        <div class="login-note">
+            🔐 <strong>Login Automático:</strong> Ao clicar no botão abaixo, você será conectado automaticamente à sua conta e direcionado para a página de confirmação do evento.
+        </div>
 
-        <a th:href="${confirmationLink}" class="button">Confirmar Minha Vaga Agora</a>
+        <p><strong>Clique no botão para confirmar sua vaga:</strong></p>
 
-        <p>Se o botão não funcionar, copie e cole o seguinte link no seu navegador:</p>
-        <small><p th:text="${confirmationLink}"></p></small>
+        <a th:href="${confirmationLink}" class="confirm-button">
+            ✅ CONFIRMAR MINHA VAGA
+        </a>
 
-        <p>Aguardamos sua confirmação!</p>
+        <p><strong>Link alternativo:</strong> Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+
+        <div class="link-alternative">
+            <code th:text="${confirmationLink}">[link-de-confirmacao]</code>
+        </div>
+
+        <p style="text-align: center; margin-top: 30px;">
+            <em>Estamos ansiosos para tê-lo conosco neste evento especial! 🙏</em>
+        </p>
 
     </div>
+
     <div class="footer">
-        <p>Esta é uma mensagem automática do sistema de fila. O link de confirmação é pessoal e intransferível.</p>
-        <p>&copy; 2025 Hallel Relational API</p>
+        <p><strong>Comunidade Católica Hallel</strong></p>
+        <p>Esta é uma mensagem automática do sistema de fila de espera.</p>
+        <p>O link de confirmação é pessoal, intransferível e válido por tempo limitado.</p>
+        <p>&copy; 2025 Comunidade Católica Hallel - Todos os direitos reservados</p>
     </div>
 </div>
 </body>
