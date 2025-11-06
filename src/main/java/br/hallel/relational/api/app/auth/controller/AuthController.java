@@ -23,10 +23,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.*;
 
 @Slf4j
@@ -95,11 +97,32 @@ public class AuthController {
     }
 
     @GetMapping("/validate-admin-access-web/{validationCode}")
-    @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
-    public boolean validateAdminAccessWeb(@RequestParam(name = "token") String token,
-                                          @PathVariable("validationCode") String code) {
-        return authService.validateTokenAdminWeb(token, code);
+    @Operation(summary = "Validate code of administration in web",
+            description = "This routes handles the web administrator login, verify via socket the administrator authorities")
+    public ResponseEntity<String> validateAdminAccessWeb(@RequestParam(name = "token") String token,
+                                                         @PathVariable("validationCode") String code,
+                                                         @RequestParam(name = "accessToken") String accessToken
+                                                         ) {
+        boolean isValid = authService.validateTokenAdminWeb(token, code);
 
+        String baseUrl;
+
+        if (authService.getNgrokUrl() == null) {
+            baseUrl = String.format("https://comunidadecatolicahallel.com.br/administrador");
+        } else {
+            baseUrl = String.format("http://localhost:5173/administrador");
+        }
+
+        if (isValid) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(String.format("%s/auth-callback?token=%s&accessToken=%s", baseUrl,
+                            token,accessToken)))
+                    .build();
+        } else {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(String.format("%s/auth-callback?error=invalid_token", baseUrl)))
+                    .build();
+        }
     }
 
     @GetMapping("/verify-admin-access-web/{token}")

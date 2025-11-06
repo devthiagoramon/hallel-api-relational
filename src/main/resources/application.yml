@@ -46,6 +46,11 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.trust: smtp.gmail.com
   application:
     name: hallel-api
   profiles:

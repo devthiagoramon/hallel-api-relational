@@ -18,6 +18,8 @@ import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentD
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
+import br.hallel.relational.api.app.user.dto.UserProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileResponseWithRole;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional

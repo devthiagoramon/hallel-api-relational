@@ -20,7 +20,7 @@ public class EmailUtils {
     @Value("${spring.mail.username}")
     private String from;
 
-    @Async
+    @Async("emailTaskExecutor")
     public void sendMail(String to, String subject, String text) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
