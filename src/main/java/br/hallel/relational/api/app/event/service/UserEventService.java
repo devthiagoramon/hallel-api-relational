@@ -168,7 +168,8 @@ public class UserEventService {
 
             EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
 
-            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(savedQueueParticipant);
+            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(
+                    savedQueueParticipant);
             this.emailEventParticipationService.sendNotificationEventQueue(
                     new EmailParticipationDTO(
                             eventParticipation.getEmail(),
@@ -863,7 +864,8 @@ public class UserEventService {
         // LÓGICA DE FILTRAGEM
         if (status != null) {
             // Se um status foi fornecido, use o método de filtro
-            participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
+            participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId,
+                    status);
         } else {
             // Caso contrário, pegue todos
             participations = eventParticipationRepository.findAllByEvent_Id(eventId);
@@ -894,4 +896,25 @@ public class UserEventService {
     }
 
 
+    public EventParticipationResponse editParticipationStatusPaymentEvent(UUID participationId,
+                                                                          String statusPaymentString) {
+
+        if (statusPaymentString == null || statusPaymentString.equalsIgnoreCase("undefined")) {
+            throw new EventParticipationException("Não foi possivel atualizar o status de pagamento do participante");
+        }
+        StatusPaymentEventParticipation statusPayment = StatusPaymentEventParticipation.valueOf(statusPaymentString);
+
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(participationId)
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
+
+        if (eventParticipation.getStatusPaymentEventParticipation().equals(statusPayment)) {
+            throw new EventParticipationException("Participante já está com esse status de pagamento!");
+        }
+
+        eventParticipation.setStatusPaymentEventParticipation(statusPayment);
+
+        EventParticipation updated = this.eventParticipationRepository.save(eventParticipation);
+
+        return EventParticipationResponse.toEventParticipation(updated, null);
+    }
 }

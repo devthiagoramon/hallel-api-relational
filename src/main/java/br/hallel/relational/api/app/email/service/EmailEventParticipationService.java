@@ -75,7 +75,8 @@ public class EmailEventParticipationService {
 
     // 2. E-mail de Cobrança (Associação Suspensa)
     @Async
-    public boolean sendBillingAssociate(String to, String subject, String name, Double value, LocalDateTime renewalDate) {
+    public boolean sendBillingAssociate(String to, String subject, String name, Double value,
+                                        LocalDateTime renewalDate) {
         try {
             Context context = new Context(LOCALE_PT_BR);
             context.setVariable("name", name);
@@ -188,7 +189,10 @@ public class EmailEventParticipationService {
             // Formata as datas de início e fim para mostrar o período completo
             // Usamos eventDate do DTO como startTime
             context.setVariable("startTime", startTime.format(DATETIME_FORMATTER));
-            context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
+            if (endTime != null) {
+
+                context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
+            }
 
             context.setVariable("eventId", eventId);
 
@@ -301,7 +305,7 @@ public class EmailEventParticipationService {
             context.setVariable("eventTitle", dto.eventTitle());
             context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
             context.setVariable("positionInQueue", positionInQueue);
-            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+            context.setVariable("confirmationLink", "http://localhost:5173/evento/" + eventId);
             String html = templateEngine.process("event-queue-notification", context);
 
             MimeMessage message = mailSender.createMimeMessage();
@@ -326,13 +330,13 @@ public class EmailEventParticipationService {
     public void sendQueueSpaceAvailableNotification(
             EmailParticipationDTO dto,
             String eventId
-    ){
+    ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
             context.setVariable("name", dto.name());
             context.setVariable("eventTitle", dto.eventTitle());
             context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
-            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+            context.setVariable("confirmationLink", "http://localhost:5173/evento/" + eventId);
 
             String html = templateEngine.process("confirm-queue", context);
 
