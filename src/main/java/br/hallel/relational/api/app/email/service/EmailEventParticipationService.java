@@ -75,7 +75,8 @@ public class EmailEventParticipationService {
 
     // 2. E-mail de Cobrança (Associação Suspensa)
     @Async
-    public boolean sendBillingAssociate(String to, String subject, String name, Double value, LocalDateTime renewalDate) {
+    public boolean sendBillingAssociate(String to, String subject, String name, Double value,
+                                        LocalDateTime renewalDate) {
         try {
             Context context = new Context(LOCALE_PT_BR);
             context.setVariable("name", name);
@@ -188,7 +189,10 @@ public class EmailEventParticipationService {
             // Formata as datas de início e fim para mostrar o período completo
             // Usamos eventDate do DTO como startTime
             context.setVariable("startTime", startTime.format(DATETIME_FORMATTER));
-            context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
+            if (endTime != null) {
+
+                context.setVariable("endTime", endTime.format(DATETIME_FORMATTER));
+            }
 
             context.setVariable("eventId", eventId);
 
@@ -301,7 +305,7 @@ public class EmailEventParticipationService {
             context.setVariable("eventTitle", dto.eventTitle());
             context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
             context.setVariable("positionInQueue", positionInQueue);
-            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+            context.setVariable("confirmationLink", "http://localhost:5173/evento/" + eventId);
             String html = templateEngine.process("event-queue-notification", context);
 
             MimeMessage message = mailSender.createMimeMessage();
@@ -325,14 +329,14 @@ public class EmailEventParticipationService {
     @Async
     public void sendQueueSpaceAvailableNotification(
             EmailParticipationDTO dto,
-            String eventId
-    ){
+            String autoLoginUrl  // ← Mude o parâmetro para receber a URL
+    ) {
         try {
             Context context = new Context(LOCALE_PT_BR);
             context.setVariable("name", dto.name());
             context.setVariable("eventTitle", dto.eventTitle());
             context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
-            context.setVariable("confirmationLink", "http://localhost:5173/evento/"+eventId);
+            context.setVariable("confirmationLink", autoLoginUrl);  // ← Usa a URL recebida
 
             String html = templateEngine.process("confirm-queue", context);
 
@@ -341,12 +345,13 @@ public class EmailEventParticipationService {
 
             helper.setFrom(emailUtils.getFrom());
             helper.setTo(dto.to());
-            helper.setSubject("✅Vaga Liberada! Confirme Sua Inscrição em " + dto.eventTitle());
+            helper.setSubject("🎉 Vaga Liberada! Confirme Sua Inscrição em " + dto.eventTitle());
             helper.setText(html, true);
 
             mailSender.send(message);
 
             log.info("Email de notificação de vaga liberada enviado para: {}", dto.to());
+            log.info("Link de confirmação: {}", autoLoginUrl);
 
         } catch (Exception e) {
             log.error("Erro ao enviar notificação de vaga liberada para {}: {}", dto.to(), e.getMessage());

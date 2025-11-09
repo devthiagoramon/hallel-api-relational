@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @NoArgsConstructor
@@ -19,6 +21,8 @@ public class EventResponseWithMinistryAssociated {
     private String title;
     private String description;
     private Date date;
+    private LocalDateTime endTime;
+    private LocalDateTime startTime;
     private Duration duration;
     private String banner_url;
     private String image_url;

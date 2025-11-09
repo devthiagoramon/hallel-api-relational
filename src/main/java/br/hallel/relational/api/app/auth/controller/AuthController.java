@@ -10,6 +10,7 @@ import br.hallel.relational.api.app.security.dto.TokenDTO;
 import br.hallel.relational.api.app.security.model.Role;
 import br.hallel.relational.api.app.security.repository.RoleRepository;
 import br.hallel.relational.api.app.security.utils.JwtTokenProvider;
+import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import br.hallel.relational.api.app.user.service.UserService;
@@ -23,11 +24,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -36,19 +40,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
     private final AuthService authService;
 
-    @Autowired
     private final UserRepository userRepository;
-    @Autowired
     private final RoleRepository roleRepository;
-    @Autowired
     private final UserService userService;
 
-    @Autowired
     private final JwtTokenProvider jwtService;
     private static final String CLIENT_ID = "1060759694626-c98qb76632sh0ocgm908006ap7gfvur1.apps.googleusercontent.com";
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     @PostMapping("/login")
@@ -100,15 +100,37 @@ public class AuthController {
     }
 
     @GetMapping("/validate-admin-access-web/{validationCode}")
-    @Operation(summary = "Validate code of administration in web", description = "This routes handles the web administrator login, verify via socket the administrator authorities")
-    public boolean validateAdminAccessWeb(@RequestParam(name = "token") String token,
-                                          @PathVariable("validationCode") String code) {
-       return authService.validateTokenAdminWeb(token, code);
+    @Operation(summary = "Validate code of administration in web",
+            description = "This routes handles the web administrator login, verify via socket the administrator authorities")
+    public ResponseEntity<String> validateAdminAccessWeb(@RequestParam(name = "token") String token,
+                                                         @PathVariable("validationCode") String code,
+                                                         @RequestParam(name = "accessToken") String accessToken
+    ) {
+        boolean isValid = authService.validateTokenAdminWeb(token, code);
 
+        String baseUrl;
+
+        if (authService.getNgrokUrl() == null) {
+            baseUrl = String.format("https://comunidadecatolicahallel.com.br/administrador");
+        } else {
+            baseUrl = String.format("http://localhost:5173/administrador");
+        }
+
+        if (isValid) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(String.format("%s/auth-callback?token=%s&accessToken=%s", baseUrl,
+                            token, accessToken)))
+                    .build();
+        } else {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(String.format("%s/auth-callback?error=invalid_token", baseUrl)))
+                    .build();
+        }
     }
 
     @GetMapping("/verify-admin-access-web/{token}")
-    @Operation(summary = "Verify code of administrator in web", description = "This routes handles the web administrator login attempt, sending to adm email with token and url")
+    @Operation(summary = "Verify code of administrator in web",
+            description = "This routes handles the web administrator login attempt, sending to adm email with token and url")
     public TokenAdminResponse verifyAdminAccessWeb(@PathVariable("token") String token) {
         return authService.verifyIfTokenIsAdminWeb(token);
     }
@@ -182,6 +204,39 @@ public class AuthController {
             throw new GoogleLoginException("Erro na validação de Token");
         }
         throw new GoogleLoginException("Erro na validação de Token");
+    }
+
+    @GetMapping("/auto-login/{userToken}")
+    @Operation(summary = "Auto login with user token from email")
+    public ResponseEntity<TokenDTO> autoLogin(@PathVariable String userToken) {
+        try {
+            log.info("🔍 Tentando auto-login com token: {}", userToken);
+
+            User user = userRepository.findByToken(userToken)
+                    .orElseThrow(() -> new UserNotFoundException("user.not.found", userToken));
+
+            log.info("✅ Usuário encontrado: {} - Email: {}", user.getId(), user.getEmail());
+
+            TokenDTO tokenDTO = new TokenDTO(
+                    user.getUsername(),
+                    true,
+                    new Date(),
+                    new Date(System.currentTimeMillis() + 2592000000L),
+                    user.getToken(),
+                    "refresh-token-placeholder"
+            );
+
+            log.info("🎉 Auto-login bem-sucedido para usuário: {}", user.getEmail());
+
+            return ResponseEntity.ok(tokenDTO);
+
+        } catch (UserNotFoundException e) {
+            log.error("🚫 Token de usuário inválido: {}", userToken);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            log.error("💥 Erro no auto-login: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }

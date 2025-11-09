@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,14 +13,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-
+@Slf4j
 public class EmailUtils {
     private final JavaMailSender mailSender;
     @Getter
     @Value("${spring.mail.username}")
     private String from;
 
-    @Async
+    @Async("emailTaskExecutor")
     public void sendMail(String to, String subject, String text) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -32,7 +33,8 @@ public class EmailUtils {
             helper.setText(text, true);
 
             mailSender.send(message);
-            System.out.println("Email enviado com sucesso!");
+            log.info("Remetente: {}",from);
+            log.info("Email enviado com para {} com sucesso!",to);
         } catch (MessagingException e) {
             System.out.println("Erro ao enviar email HTML: " + e.getMessage());
         }

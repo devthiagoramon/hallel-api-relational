@@ -113,41 +113,55 @@
     </div>
 </div>
 
-
 <script>
     function validateWithFetch(button) {
-        const url = button.dataset.url;
+        const url = button.getAttribute('data-url');
 
-        // 1. Desabilita o botão e mostra um feedback de carregamento
         button.disabled = true;
         button.textContent = 'Validando...';
 
-        // 2. Executa a requisição GET com fetch
+        // Abre em uma nova aba
+        const newWindow = window.open(url, '_blank');
+
+        // Foca na nova janela
+        if (newWindow) {
+            newWindow.focus();
+        }
+
+        // Também faz a requisição para a API
         fetch(url)
             .then(response => {
-                // Verifica se a resposta da requisição foi bem-sucedida (status 2xx)
-                if (!response.ok) {
-                    // Se não foi, lança um erro para ser capturado pelo .catch()
-                    throw new Error('Falha na validação. Status: ' + response.status);
+                if (response.ok) {
+                    button.textContent = 'Validado!';
+                    button.style.backgroundColor = '#28a745';
+
+                    // Mostra mensagem para o usuário
+                    setTimeout(() => {
+                        alert('Validação concluída! Você será redirecionado para a área administrativa.');
+                    }, 1000);
+                } else {
+                    throw new Error('Falha na validação');
                 }
-                // Se foi sucesso, pode-se opcionalmente processar a resposta aqui,
-                // mas para uma simples validação GET, apenas saber que funcionou é o suficiente.
-                return response.json(); // ou response.text() se sua API não retornar JSON
-            })
-            .then(data => {
-                // 3. Em caso de SUCESSO, atualiza o botão
-                console.log('Validação bem-sucedida:', data);
-                button.textContent = 'Validado com Sucesso!';
-                button.style.backgroundColor = '#28a745'; // Verde
             })
             .catch(error => {
-                // 4. Em caso de ERRO, atualiza o botão e reabilita para nova tentativa
-                console.error('Erro na validação:', error);
-                button.textContent = 'Erro ao Validar. Tente Novamente.';
-                button.style.backgroundColor = '#dc3545'; // Vermelho
-                button.disabled = false; // Permite que o usuário tente novamente
+                console.error('Erro:', error);
+                button.textContent = 'Erro ao Validar';
+                button.style.backgroundColor = '#dc3545';
+                button.disabled = false;
             });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const button = document.querySelector('.action-button');
+        // Extrai a URL do Thymeleaf
+        const url = button.getAttribute('th:href').replace('th:href=', '').replace(/"/g, '');
+        button.setAttribute('data-url', url);
+
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            validateWithFetch(this);
+        });
+    });
 </script>
 </body>
 </html>

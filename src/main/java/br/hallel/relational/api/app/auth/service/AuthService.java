@@ -5,7 +5,6 @@ import br.hallel.relational.api.app.auth.dto.SignUpRequest;
 import br.hallel.relational.api.app.auth.dto.TokenAdminResponse;
 import br.hallel.relational.api.app.auth.exception.AuthRequestException;
 import br.hallel.relational.api.app.email.service.EmailAuthService;
-import br.hallel.relational.api.app.event.model.EventParticipation;
 import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.security.admin.TokenAdminValidationCode;
 import br.hallel.relational.api.app.security.dto.TokenDTO;
@@ -25,12 +24,12 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -152,37 +151,44 @@ public class AuthService {
         return tokenAdminValidationCode.validateToken(tokenAdmin, code);
     }
 
-    public TokenAdminResponse verifyIfTokenIsAdminWeb(String token) {
+    public TokenAdminResponse verifyIfTokenIsAdminWeb(String accessToken) {
         log.info("Verifying if admin token is valid and verifying the admin...");
-        boolean isAdmin = jwtTokenProvider.verifyAdminRoleExisting(token);
+        boolean isAdmin = jwtTokenProvider.verifyAdminRoleExisting(accessToken);
 
         if (isAdmin) {
             String code = tokenAdminValidationCode.generateCode();
-            User user = this.userRepository.findByToken(token)
+            User user = this.userRepository.findByToken(accessToken)
                     .orElseThrow(() -> new AuthRequestException("User not found with this token"));
+
             String tokenAdmin = tokenAdminValidationCode.generateToken(user.getId(), code);
+
             String ngrokUrl = getNgrokUrl();
+
             String url = String.format(
-                    "https://api.comunidadecatolicahallel.com.br/auth/validate-admin-access-web/%s?token=%s", code,
-                    tokenAdmin);
+                    "https://api.comunidadecatolicahallel.com" +
+                            ".br/auth/validate-admin-access-web/%s?token=%s&accessToken=%s", code,
+                    tokenAdmin, accessToken);
 
             if (ngrokUrl == null) {
-
-                log.info("https://api.comunidadecatolicahallel.com.br/auth/validate-admin-access-web/{}?token={}", code,
-                        tokenAdmin);
+                log.info("https://api.comunidadecatolicahallel.com" +
+                                ".br/auth/validate-admin-access-web/{}?token={}&accessToken={}", code,
+                        tokenAdmin, accessToken);
             } else {
-                log.info("{}/auth/validate-admin-access-web/{}?token={}", ngrokUrl, code, tokenAdmin);
+                url = String.format("http://localhost:8080/auth/validate-admin-access-web/%s?token=%s&accessToken=%s", code,
+                        tokenAdmin, accessToken);
+
+                log.info("http://localhost:8080/auth/validate-admin-access-web/{}?token={}&accessToken={}", code,
+                        tokenAdmin, accessToken);
             }
 
-            if (ngrokUrl == null) {
-                emailAuthService.sendAdminMail(user.getEmail(), user.getEmail(), url);
-            }
+            emailAuthService.sendAdminMail(user.getEmail(), user.getEmail(), url);
+
             return new TokenAdminResponse(tokenAdmin, code);
         }
         return null;
     }
 
-    private String getNgrokUrl() {
+    public String getNgrokUrl() {
         try {
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.setRequestFactory(new SimpleClientHttpRequestFactory());
@@ -202,7 +208,6 @@ public class AuthService {
         }
         return null;
     }
-
 
     public Boolean validateTokenAdminWeb(String tokenAdmin, String code) {
         log.info("Validating if admin token and code is valid...");

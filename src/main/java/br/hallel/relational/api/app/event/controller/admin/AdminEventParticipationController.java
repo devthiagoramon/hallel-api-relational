@@ -51,6 +51,15 @@ public class AdminEventParticipationController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Edit event participation payment status")
+    @PatchMapping("/edit/payment-status/{participationId}")
+    public ResponseEntity<EventParticipationResponse> editParticipationPaymentStatus(
+            @PathVariable("participationId") UUID participationId,
+            @RequestParam(name = "status") String statusPaymentString) {
+        EventParticipationResponse response = userEventService.editParticipationStatusPaymentEvent(participationId, statusPaymentString);
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "List all participants by Event Id")
     @GetMapping("/by-event/{eventId}")
     public ResponseEntity<Page<UserInEventInfosResponse>>

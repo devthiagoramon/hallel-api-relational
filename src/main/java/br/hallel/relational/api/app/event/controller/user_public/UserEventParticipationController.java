@@ -26,6 +26,17 @@ public class UserEventParticipationController {
     private final UserEventService userEventService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @PostMapping("/confirm-free-participation/{eventId}")
+    public ResponseEntity<EventParticipationResponse> confirmFreeParticipation(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable(name = "eventId") UUID eventId) {
+
+        UUID userId = jwtTokenProvider.getUserId(authorizationHeader);
+        EventParticipationResponse response =
+                userEventService.confirmFreeParticipation( eventId,userId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/pay/{eventId}")
     @Operation(summary = "Pay an Event (or retreat)")
     public ResponseEntity<EventPayParticipationDetails> payAnEvent(
@@ -95,7 +106,7 @@ public class UserEventParticipationController {
             @RequestParam(name = "paymentStatus") StatusPaymentEventParticipation status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "0") int size
-            ){
+    ) {
         return ResponseEntity.ok(this.userEventService.getStatusPayementParticipationOfEvent(eventId, status,
                 PageRequest.of(page, size)));
     }

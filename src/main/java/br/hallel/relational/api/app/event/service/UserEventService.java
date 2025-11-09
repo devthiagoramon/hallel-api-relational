@@ -18,6 +18,8 @@ import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentD
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoAPIException;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.MercadoPagoException;
+import br.hallel.relational.api.app.user.dto.UserProfileResponse;
+import br.hallel.relational.api.app.user.dto.UserProfileResponseWithRole;
 import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -58,6 +61,7 @@ public class UserEventService {
     private final EventParticipationUtils eventParticipationUtils;
     private final EventQueueParticipantRepository eventQueueParticipantRepository;
 
+    @Transactional
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
@@ -113,6 +117,13 @@ public class UserEventService {
             }
         }
 
+        Optional<EventParticipation> eventParticipationDuplicatedWithEmailOptional = eventParticipationRepository.findByEmailAndEvent_Id(
+                dto.getEmail(), event.getId());
+
+        if (eventParticipationDuplicatedWithEmailOptional.isPresent()) {
+            throw new EventParticipationException("Usuário já participa deste evento");
+        }
+
 
         EventParticipation eventParticipation = new EventParticipation();
         optionalUser.ifPresent(eventParticipation::setUser);
@@ -159,13 +170,15 @@ public class UserEventService {
 
         if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
             log.info("Participação Salva na fila.");
+
             EventParticipation participationSaved = this.eventParticipationRepository.save(eventParticipation);
 
             EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
 
             EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
 
-            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(savedQueueParticipant);
+            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(
+                    savedQueueParticipant);
             this.emailEventParticipationService.sendNotificationEventQueue(
                     new EmailParticipationDTO(
                             eventParticipation.getEmail(),
@@ -303,6 +316,71 @@ public class UserEventService {
 
     }
 
+    public EventParticipationResponse confirmFreeParticipation(UUID eventId, UUID userId) {
+        Event event = this.eventRepository.findById(eventId).orElseThrow(
+                () -> new EventNotFoundException("event.id.not.found", eventId.toString())
+        );
+        User user = this.userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("user.not.found", userId.toString())
+        );
+        boolean alreadyParticipating = eventParticipationRepository.existsByUserAndEvent(user, event);
+        if (!alreadyParticipating) {
+            log.warn("Usuário ID {} não está participando do evento ID {}. Lançando exceção.", userId,
+                    eventId);
+            throw new EventIllegalArumentException("User not participating in this event.");
+        }
+
+        EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
+                .orElseThrow(
+                        () -> new EventParticipationException("participation.event.not.found")
+                );
+
+        participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+        Date birthDate = user.getDateBirth();
+
+        log.info("Data de nascimento do usuário: {}", birthDate);
+        LocalDate birthLocalDate;
+
+        if (birthDate instanceof java.sql.Date sqlDate) {
+            birthLocalDate = sqlDate.toLocalDate();
+        } else {
+            birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        int years = eventParticipationUtils.calculateAge(birthLocalDate);
+        ValidateAgeParticipantResponse validation =
+                eventParticipationUtils.validateAgeParticipant(years, event);
+
+        if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
+            log.info("Participação Salva na fila.");
+
+            EventParticipation participationSaved = this.eventParticipationRepository.save(participation);
+
+            EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
+
+            EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
+
+            int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(
+                    savedQueueParticipant);
+            this.emailEventParticipationService.sendNotificationEventQueue(
+                    new EmailParticipationDTO(
+                            participation.getEmail(),
+                            participation.getName(),
+                            event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                            event.getTitle()
+                    ),
+                    participantQueuePosition,
+                    event.getId().toString()
+            );
+            return EventParticipationResponse.toEventParticipationLimitReached(true,
+                    validation.ageGroup(),
+                    event.getId(),
+                    user.getId());
+        }
+
+        return EventParticipationResponse.toEventParticipation(
+                this.eventParticipationRepository.save(participation), null
+        );
+    }
 
     public EventPayParticipationDetails payAnEvent(UUID userId, UUID eventId) {
         log.info("Paying an event");
@@ -404,10 +482,26 @@ public class UserEventService {
             log.info("Ocupação máxima para a faixa etária {} já foi atingida. Nenhuma ação necessária no limite.",
                     ageGroup);
 
-            //bloco para verificar se o limite foi atingido e se tem alguém na fila
+            // bloco para verificar se o limite foi atingido e se tem alguém na fila
             this.eventQueueParticipantRepository.findFirstByEvent_IdOrderByQueuedAtAsc(event.getId())
                     .ifPresent(queueParticipant -> {
                         EventParticipation participantToNotify = queueParticipant.getEventParticipation();
+                        String autoLoginUrl = null;
+
+
+                        if (participantToNotify.getUser() != null) {
+                            String token = participantToNotify.getUser().getToken();
+                            log.info("🔑 Token do usuário: {}", token);
+                            log.info("👤 ID do usuário: {}", participantToNotify.getUser().getId());
+
+                            autoLoginUrl = String.format("http://localhost:5173/administrador/auth-callback?token=%s" +
+                                            "&redirect=/evento/%s",
+                                    token, event.getId().toString());
+                        } else {
+                            log.warn("⚠️  Participante não tem usuário associado");
+                            autoLoginUrl = "http://localhost:5173/evento/" + event.getId().toString();
+                        }
+
                         this.emailEventParticipationService.sendQueueSpaceAvailableNotification(
                                 new EmailParticipationDTO(
                                         participantToNotify.getEmail(),
@@ -415,7 +509,7 @@ public class UserEventService {
                                         event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
                                         event.getTitle()
                                 ),
-                                event.getId().toString()
+                                autoLoginUrl  // ← Passa a URL completa
                         );
                         this.eventQueueParticipantRepository.delete(queueParticipant);
                         log.info("Participante {} notificado sobre a vaga disponível no evento {}.",
@@ -425,8 +519,8 @@ public class UserEventService {
         } else if (limit.getCurrentQuantity() <= 0) {
             log.warn("A quantidade atual para a faixa etária {} está em zero ou negativa. Verifique os dados.",
                     ageGroup);
-
         }
+
         limit.setCurrentQuantity(limit.getCurrentQuantity() - 1);
         limitEventAgeGroupRepository.save(limit);
 
@@ -502,14 +596,24 @@ public class UserEventService {
             this.eventQueueParticipantRepository.findFirstByEvent_IdOrderByQueuedAtAsc(event.getId())
                     .ifPresent(queueParticipant -> {
                         EventParticipation participantToNotify = queueParticipant.getEventParticipation();
+                        String autoLoginUrl = null;
+
+                        if (participantToNotify.getUser() != null) {
+                            String token = participantToNotify.getUser().getToken();
+                            autoLoginUrl = String.format("http://localhost:5173/auth/auto-login/%s?redirect=/evento/%s",
+                                    token, event.getId().toString());
+                        } else {
+                            autoLoginUrl = "http://localhost:5173/evento/" + event.getId().toString();
+                        }
+
                         this.emailEventParticipationService.sendQueueSpaceAvailableNotification(
                                 new EmailParticipationDTO(
                                         participantToNotify.getEmail(),
                                         participantToNotify.getName(),
                                         event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
                                         event.getTitle()
-                                ),
-                                event.getId().toString()
+                                ), autoLoginUrl
+
                         );
                         this.eventQueueParticipantRepository.delete(queueParticipant);
                         log.info("Participante {} notificado sobre a vaga disponível no evento {}.",
@@ -670,10 +774,19 @@ public class UserEventService {
                     StatusPaymentEventParticipation.NAO_PAGO, null);
         }
         EventParticipation participation = eventParticipation.get();
+        if (eventParticipation.get().getEvent().getItsFree()) {
+            if (eventParticipation.get().getStatusPaymentEventParticipation() == null) {
+                return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE,
+                        null, null);
+            }
+            return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE,
+                    StatusPaymentEventParticipation.PAGO, null);
+        }
         if (participation.getPaidDate() == null) {
             return new UserEventStatus(userId, UserEventStatusTypes.PENDENTE, StatusPaymentEventParticipation.PENDENTE,
                     null);
         }
+
         return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE, StatusPaymentEventParticipation.PAGO,
                 participation.getPaidDate());
     }
@@ -728,7 +841,7 @@ public class UserEventService {
                 eventParticipation.setPhoneNumber(dto.getPhoneNumber());
             }
             if (user.getDateBirth() != null) {
-                java.util.Date utilDate = user.getDateBirth();
+                Date utilDate = user.getDateBirth();
                 java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
                 LocalDate localDate = sqlDate.toLocalDate();
                 OffsetDateTime birthDateAtUtc = localDate.atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -860,7 +973,8 @@ public class UserEventService {
         // LÓGICA DE FILTRAGEM
         if (status != null) {
             // Se um status foi fornecido, use o método de filtro
-            participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId, status);
+            participations = eventParticipationRepository.findAllByEvent_IdAndStatusPaymentEventParticipation(eventId,
+                    status);
         } else {
             // Caso contrário, pegue todos
             participations = eventParticipationRepository.findAllByEvent_Id(eventId);
@@ -891,4 +1005,25 @@ public class UserEventService {
     }
 
 
+    public EventParticipationResponse editParticipationStatusPaymentEvent(UUID participationId,
+                                                                          String statusPaymentString) {
+
+        if (statusPaymentString == null || statusPaymentString.equalsIgnoreCase("undefined")) {
+            throw new EventParticipationException("Não foi possivel atualizar o status de pagamento do participante");
+        }
+        StatusPaymentEventParticipation statusPayment = StatusPaymentEventParticipation.valueOf(statusPaymentString);
+
+        EventParticipation eventParticipation = this.eventParticipationRepository.findById(participationId)
+                .orElseThrow(() -> new EventParticipationException("participation.event.not.found"));
+
+        if (eventParticipation.getStatusPaymentEventParticipation().equals(statusPayment)) {
+            throw new EventParticipationException("Participante já está com esse status de pagamento!");
+        }
+
+        eventParticipation.setStatusPaymentEventParticipation(statusPayment);
+
+        EventParticipation updated = this.eventParticipationRepository.save(eventParticipation);
+
+        return EventParticipationResponse.toEventParticipation(updated, null);
+    }
 }

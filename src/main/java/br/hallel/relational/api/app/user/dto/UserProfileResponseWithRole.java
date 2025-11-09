@@ -19,5 +19,4 @@ public record UserProfileResponseWithRole(UUID id,
                                           Date last_access,
                                           List<String> roles) {
 
-
 }

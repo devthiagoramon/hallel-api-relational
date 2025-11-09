@@ -14,7 +14,8 @@ import org.thymeleaf.context.Context;
 public class EmailAuthService {
     private final TemplateEngine templateEngine;
     private final EmailUtils emailUtils;
-    @Async
+
+    @Async("emailTaskExecutor")
     public void sendAdminMail(String to, String email, String url) {
         try {
 

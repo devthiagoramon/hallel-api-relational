@@ -109,4 +109,14 @@ public class UserController {
                         userId.equalsIgnoreCase("undefined") ? tokenService.getUserId(authorizationHeader) :
                                 UUID.fromString(userId), dto));
     }
+
+    @GetMapping("/get-roles")
+    public ResponseEntity<UserRoleResponseDTO> getRoles(@RequestHeader("Authorization") String authorizationHeader) {
+        UUID userId = tokenService.getUserId(authorizationHeader);
+        UserRoleResponseDTO userRole = this.userService.getUserRole(userId);
+        log.info("{}",userRole.toString());
+        return ResponseEntity.ok(
+                userRole
+        );
+    }
 }
