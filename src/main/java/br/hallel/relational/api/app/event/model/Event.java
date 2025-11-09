@@ -94,7 +94,7 @@ public class Event {
     @JsonIgnore
     private String whatsAppGroupLink;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<EventTransaction> transactions;
 
@@ -135,7 +135,7 @@ public class Event {
             eventInviteBatches = new ArrayList<>();
             eventInviteBatches.add(inviteBatch);
             inviteBatch.setEvent(this);
-        }else {
+        } else {
             eventInviteBatches.add(inviteBatch);
             inviteBatch.setEvent(this);
         }

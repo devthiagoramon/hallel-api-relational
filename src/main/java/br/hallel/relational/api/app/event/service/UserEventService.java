@@ -61,6 +61,7 @@ public class UserEventService {
     private final EventParticipationUtils eventParticipationUtils;
     private final EventQueueParticipantRepository eventQueueParticipantRepository;
 
+    @Transactional
     public EventParticipationResponse joinTheEvent(UUID generatedPaymentId, UUID userId, EventParticipateDTO dto) {
 
         Event event = this.eventRepository.findById(dto.getEventId()).orElseThrow(
@@ -114,6 +115,13 @@ public class UserEventService {
                         dto.getEventId());
                 throw new EventIllegalArumentException("User already participating in this event.");
             }
+        }
+
+        Optional<EventParticipation> eventParticipationDuplicatedWithEmailOptional = eventParticipationRepository.findByEmailAndEvent_Id(
+                dto.getEmail(), event.getId());
+
+        if (eventParticipationDuplicatedWithEmailOptional.isPresent()) {
+            throw new EventParticipationException("Usuário já participa deste evento");
         }
 
 
@@ -322,9 +330,10 @@ public class UserEventService {
             throw new EventIllegalArumentException("User not participating in this event.");
         }
 
-        EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId).orElseThrow(
-                () -> new EventParticipationException("participation.event.not.found")
-        );
+        EventParticipation participation = this.eventParticipationRepository.findByUser_IdAndEvent_Id(userId, eventId)
+                .orElseThrow(
+                        () -> new EventParticipationException("participation.event.not.found")
+                );
 
         participation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
         Date birthDate = user.getDateBirth();
