@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,8 @@ public class EventResponse {
     private String title;
     private String description;
     private Date date;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String banner_url;
     private String image_url;
     private Boolean isImportant;
@@ -38,6 +41,8 @@ public class EventResponse {
                 event.getTitle(),
                 event.getDescription(),
                 event.getDate(),
+                event.getStartTime(),
+                event.getEndTime(),
                 event.getBanner_url(),
                 event.getImage_url(),
                 event.getIsImportant(),
