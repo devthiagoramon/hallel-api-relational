@@ -96,7 +96,7 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setDateBirth(null);
+        user.setDateBirth(request.getBirthDate());
         user.setRoles(Set.of(userRole));
         user.setPushNotification(false);
         user.setStatus(UserAccountStatus.ENABLED);
