@@ -170,13 +170,9 @@ public class UserEventService {
 
         if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
             log.info("Participação Salva na fila.");
-
             EventParticipation participationSaved = this.eventParticipationRepository.save(eventParticipation);
-
             EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
-
             EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
-
             int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(
                     savedQueueParticipant);
             this.emailEventParticipationService.sendNotificationEventQueue(
@@ -818,10 +814,12 @@ public class UserEventService {
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
         log.info("Add participant as Admin");
         EventParticipation eventParticipation = new EventParticipation();
+        log.info("{} user ID", dto.getUserId());
         Optional<User> optionalUser =
                 (dto.getUserId() != null) ? userRepository.findById(dto.getUserId()) : Optional.empty();
 
-        Optional<EventInvite> eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+        Optional<EventInvite> eventInviteOptional =
+                (dto.getEventInviteId() != null) ? this.eventInviteRepository.findById(dto.getEventInviteId()) : Optional.empty();
 
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
@@ -830,6 +828,7 @@ public class UserEventService {
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
+        eventParticipation.setEventParticipationType(dto.getEventParticipationType() == null ? EventParticipationType.COMUNIDADE : dto.getEventParticipationType());
         optionalUser.ifPresent(eventParticipation::setUser);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
