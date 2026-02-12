@@ -254,6 +254,8 @@ public class EventService implements EventInterface {
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
         event.setDuration(eventDTO.getDuration());
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(eventDTO.getEndTime());
         event.setLocal_event_name(eventDTO.getLocal_event_name());
         event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
