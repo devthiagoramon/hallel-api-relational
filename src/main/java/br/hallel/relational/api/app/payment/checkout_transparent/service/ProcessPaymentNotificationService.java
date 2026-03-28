@@ -191,6 +191,8 @@ public class ProcessPaymentNotificationService {
             case "charged_back":
             case "in_mediation":
                 participationStatus = StatusPaymentEventParticipation.NAO_PAGO;
+                template.convertAndSend("/topic/payments/" + externalReferenceId,
+                        new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.NAO_PAGO));
                 break;
             default:
                 log.warn("Status de pagamento desconhecido: {}", paymentStatus);

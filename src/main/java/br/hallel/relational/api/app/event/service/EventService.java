@@ -206,7 +206,7 @@ public class EventService implements EventInterface {
                 .toList();
 
         int currentBatchIndex = -1;
-        if (!event.getItsFree()) {
+        if (Boolean.FALSE.equals(event.getItsFree())) {
             for (int i = 0; i < sortedBatches.size(); i++) {
                 if (currentParticipants < sortedBatches.get(i).getMaxNumber()) {
                     currentBatchIndex = i;

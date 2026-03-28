@@ -329,11 +329,6 @@ public class UserService implements UserInterface {
                 findByEmail(dto.getEmail()).isPresent()) {
             throw new AuthRequestException("User already exists in Database");
         }
-        List<Role> rolesBD = roleRepository.findAll();
-        Role userRole = rolesBD.stream()
-                .filter(role -> role.getDescription().equals("USER"))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Role USER not found"));
 
         User user = new User();
         user.setName(dto.getName());
@@ -346,13 +341,20 @@ public class UserService implements UserInterface {
         User userSaved = this.userRepository.save(user);
         Date date = getLastAccessDate(user);
 
-        UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), rolesBD.stream()
-                .filter(item -> item.getDescription()
-                        .equals("USER"))
-                .toList()
-                .get(0)
-                .getId());
-        userRoleRepository.save(new UserRole(userRoleIds));
+        // Resolve roles: use the provided list or default to USER
+        List<String> roleNames = (dto.getRoles() != null && !dto.getRoles().isEmpty())
+                ? dto.getRoles()
+                : List.of("USER");
+
+        List<Role> rolesToAssign = roleRepository.findByDescriptionIn(roleNames);
+        if (rolesToAssign.isEmpty()) {
+            throw new RoleNotFoundException("Nenhum papel encontrado para atribuir ao usuário.");
+        }
+
+        for (Role role : rolesToAssign) {
+            UserRoleIds userRoleIds = new UserRoleIds(userSaved.getId(), role.getId());
+            userRoleRepository.save(new UserRole(userRoleIds));
+        }
 
         return new UserProfileResponse(
                 userSaved.getId(),
@@ -377,6 +379,16 @@ public class UserService implements UserInterface {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setDateBirth(dto.getDateBirth());
         user.setCpf(dto.getCpf());
+
+        // Sync roles if provided
+        if (dto.getRoles() != null) {
+            List<Role> newRoles = roleRepository.findByDescriptionIn(dto.getRoles());
+            if (newRoles.size() != dto.getRoles().size()) {
+                throw new RoleNotFoundException("Um ou mais papéis informados não foram encontrados.");
+            }
+            user.setRoles(new HashSet<>(newRoles));
+        }
+
         User userSaved = this.userRepository.save(user);
         Date date = getLastAccessDate(user);
         return new UserProfileResponse(

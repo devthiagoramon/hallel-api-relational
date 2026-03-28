@@ -25,4 +25,9 @@ public class EventParticipateDTO {
     private Boolean isMarried;
     private OffsetDateTime dateBirth;
     private UUID eventInviteId;
+
+    // Campos opcionais para pagamento com cartão
+    private String cardToken;
+    private Integer installments;
+    private String paymentMethodId;
 }
