@@ -106,3 +106,4 @@ crash.log
 # Ex: !variables.tfvars
 
 bin
+/bin/
