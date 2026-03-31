@@ -4,10 +4,12 @@ import br.hallel.relational.api.app.event.exception.PaymentRefundException;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreateCardPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
+import br.hallel.relational.api.app.payment.pix_config.repository.PixConfigRepository;
 import br.hallel.relational.api.app.user.model.User;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.*;
+import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -44,10 +46,20 @@ public class MercadoPagoClient {
     @Autowired
     private PdfGenerationService pdfGenerationService;
 
+    @Autowired
+    private PixConfigRepository pixConfigRepository;
+
     @PostConstruct
     public void init() {
         log.info("Iniciando Mercado Pago");
         MercadoPagoConfig.setAccessToken(accessToken);
+    }
+
+    private String getEffectiveAccessToken() {
+        return pixConfigRepository.findByAtivoTrue()
+                .map(config -> config.getMercadoPagoAccessToken())
+                .filter(token -> token != null && !token.isBlank())
+                .orElse(this.accessToken);
     }
 
     public Payment createPixPayment(CreatePixPaymentRequestDTO dto, UUID generatedPaymentId) throws MPException, MPApiException {
@@ -79,7 +91,10 @@ public class MercadoPagoClient {
                 .notificationUrl(notificationUrl)
                 .build();
 
-        Payment payment = client.create(createRequest);
+        MPRequestOptions options = MPRequestOptions.builder()
+                .accessToken(getEffectiveAccessToken())
+                .build();
+        Payment payment = client.create(createRequest, options);
         log.info("Pagamento Pix criado com sucesso no Mercado Pago");
 
         return payment;
@@ -248,7 +263,10 @@ public class MercadoPagoClient {
                 .build();
 
         PaymentClient client = new PaymentClient();
-        Payment payment = client.create(createRequest);
+        MPRequestOptions options = MPRequestOptions.builder()
+                .accessToken(getEffectiveAccessToken())
+                .build();
+        Payment payment = client.create(createRequest, options);
 
         log.info("Pagamento Pix para alimentos criado com sucesso. ID: {}", payment.getId());
 
@@ -284,7 +302,10 @@ public class MercadoPagoClient {
                 .build();
 
         // 3. Criação do Pagamento
-        Payment payment = client.create(createRequest);
+        MPRequestOptions options = MPRequestOptions.builder()
+                .accessToken(getEffectiveAccessToken())
+                .build();
+        Payment payment = client.create(createRequest, options);
         log.info("Pagamento com Cartão criado com sucesso no Mercado Pago. Status: {}", payment.getStatus());
 
         return payment;
