@@ -1,24 +1,14 @@
-output "db_endpoint" {
-  description = "A URL de conexão da instância RDS."
-  value       = aws_db_instance.hallel_db_instance.endpoint
+output "cloud_run_url" {
+  description = "URL do serviço Cloud Run (*.run.app)"
+  value       = google_cloud_run_v2_service.hallel_api.uri
 }
 
-output "db_username" {
-  description = "O nome de usuário do banco de dados."
-  value       = aws_db_instance.hallel_db_instance.username
-}
-output "app_security_group_id" {
-  description = "O ID do Security Group da aplicação, para ser usado no deploy do EC2/Beanstalk."
-  value       = aws_security_group.app_sg.id
+output "api_custom_domain" {
+  description = "URL da API com domínio customizado via Cloudflare DNS"
+  value       = "https://api.${var.domain_name}"
 }
 
-output "db_password" {
-  description = "A senha gerada para o banco de dados RDS."
-  value       = random_password.db_password.result
-  sensitive   = true # Impede que a senha apareça nos logs do Terraform
-}
-
-output "app_sg_id" {
-  description = "O ID do Security Group da aplicação."
-  value       = aws_security_group.app_sg.id
+output "cloud_run_service_account" {
+  description = "Service Account do Cloud Run"
+  value       = google_service_account.hallel_api_sa.email
 }

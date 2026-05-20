@@ -1,162 +1,246 @@
-variable "domain_name" {
-  type        = string
-  description = "O domínio raiz, ex: comunidadecatolicahallel.com.br"
-  default     = "comunidadecatolicahallel.com.br"
+locals {
+  db_url = "jdbc:postgresql://db.xdkftealcamguolhezss.supabase.co:5432/postgres?sslmode=require"
 }
 
-# Variável para o subdomínio da API
-variable "api_domain_name" {
-  type    = string
-  default = "api.comunidadecatolicahallel.com.br"
+# ─────────────────────────────────────────────────────────────────────────────
+# APIs GCP necessárias
+# ─────────────────────────────────────────────────────────────────────────────
+resource "google_project_service" "run" {
+  service            = "run.googleapis.com"
+  disable_on_destroy = false
 }
 
-data "aws_route53_zone" "primary" {
-  name = var.domain_name
+resource "google_project_service" "secretmanager" {
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
 }
 
-resource "aws_acm_certificate" "cert" {
-  provider = aws.us_east_1 # Certificados para ALB/CloudFront devem estar em us-east-1
-  domain_name = var.domain_name
-  # ADICIONADO O SUBDOMÍNIO DA API AQUI
-  subject_alternative_names = [var.api_domain_name]
-  validation_method = "DNS"
+resource "google_project_service" "iam" {
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
 
-  lifecycle {
-    create_before_destroy = true
+# ─────────────────────────────────────────────────────────────────────────────
+# Service Account dedicado para o Cloud Run
+# ─────────────────────────────────────────────────────────────────────────────
+resource "google_service_account" "hallel_api_sa" {
+  account_id   = "hallel-api-sa"
+  display_name = "Hallel API — Cloud Run Service Account"
+  depends_on   = [google_project_service.iam]
+}
+
+resource "google_project_iam_member" "hallel_api_sa_secretmanager" {
+  project = var.gcp_project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.hallel_api_sa.email}"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secret Manager — arquivos de credencial JSON montados no container
+# ─────────────────────────────────────────────────────────────────────────────
+resource "google_secret_manager_secret" "crypto_avatar" {
+  secret_id  = "crypto-avatar-json"
+  depends_on = [google_project_service.secretmanager]
+  replication {
+    auto {}
   }
 }
 
-
-# -- CONFIGURAÇÃO DO BANCO DE DADOS --
-# Para segurança, gere uma senha aleatória para o banco de dados
-resource "random_password" "db_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+resource "google_secret_manager_secret_version" "crypto_avatar" {
+  secret      = google_secret_manager_secret.crypto_avatar.id
+  secret_data = var.crypto_avatar_json
 }
 
-resource "aws_db_instance" "hallel_db_instance" {
-  # --- PONTO CHAVE DA MIGRAÇÃO ---
-  # Use o ARN ou o nome do snapshot manual que você criou
-  # snapshot_identifier  = "arn:aws:rds:us-east-1:774538498711:cluster-snapshot:snapshot-hallel-db-prod-17-11-2025" # <-- COLE O ARN DO SEU SNAPSHOT AQUI
-
-  # Identificador para a nova instância
-  identifier = "hallel-db-prod-instance"
-
-  # Configuração de Custo
-  instance_class = "db.t4g.micro" # Opção ARM barata (verifique se sua região suporta)
-  # ou "db.t3.micro" (Opção Intel)
-  multi_az       = false          # Mais barato (sem alta disponibilidade)
-
-  # Armazenamento (Obrigatório para RDS padrão)
-  allocated_storage = 20             # Mínimo em GB (ou o tamanho do seu banco antigo, o que for maior)
-  storage_type = "gp3"          # Novo padrão, geralmente mais barato e eficiente que gp2
-  max_allocated_storage = 100           # Permite crescer até 100GB se precisar
-
-  # Motor (Engine)
-  engine = "postgres"
-  engine_version = "16.10"
-
-
-  db_name  = "hallel_db"
-  username = "halleladmin"
-  password = random_password.db_password.result
-
-  # Usa os recursos de rede que você já definiu em networking.tf
-  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [aws_security_group.db_sg.id]
-  publicly_accessible  = false # Mais seguro
-
-  # Configurações de Backup
-  backup_retention_period   = 7
-  skip_final_snapshot       = false
-  final_snapshot_identifier = "hallel-db-prod-final-snapshot-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
-
-  tags = {
-    Name        = "hallel-db-${var.environment}-instance"
-    Environment = var.environment
+resource "google_secret_manager_secret" "google_services" {
+  secret_id  = "google-services-json"
+  depends_on = [google_project_service.secretmanager]
+  replication {
+    auto {}
   }
 }
 
-# --- FIM DA CONFIGURAÇÃO DO BANCO ----
+resource "google_secret_manager_secret_version" "google_services" {
+  secret      = google_secret_manager_secret.google_services.id
+  secret_data = var.google_services_json
+}
 
+resource "google_secret_manager_secret" "hallel_messaging_firebase" {
+  secret_id  = "hallel-messaging-firebase-json"
+  depends_on = [google_project_service.secretmanager]
+  replication {
+    auto {}
+  }
+}
 
-# --- CONFIGURAÇÃO DO SERVIDOR ---
+resource "google_secret_manager_secret_version" "hallel_messaging_firebase" {
+  secret      = google_secret_manager_secret.hallel_messaging_firebase.id
+  secret_data = var.hallel_messaging_firebase_json
+}
 
-resource "aws_iam_role" "app_server_role" {
-  name = "ec2-role-secrets-manager-${var.environment}"
+# ─────────────────────────────────────────────────────────────────────────────
+# Cloud Run v2 — serviço principal da API
+# ─────────────────────────────────────────────────────────────────────────────
+resource "google_cloud_run_v2_service" "hallel_api" {
+  name                = "hallel-api"
+  location            = var.gcp_region
+  deletion_protection = false
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Effect = "Allow",
-        Principal = {
-          Service = "ec2.amazonaws.com"
+  template {
+    service_account  = google_service_account.hallel_api_sa.email
+    timeout          = "3600s"
+    session_affinity = true
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 3
+    }
+
+    containers {
+      image = "docker.io/thiagoramon/hallel-api:latest"
+
+      ports {
+        container_port = 8080
+      }
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "1Gi"
+        }
+        cpu_idle          = true
+        startup_cpu_boost = true
+      }
+
+      # ── Banco de dados (Supabase) ──
+      env {
+        name  = "SPRING_PROFILES_ACTIVE"
+        value = "prod"
+      }
+      env {
+        name  = "SPRING_DATASOURCE_URL"
+        value = local.db_url
+      }
+      env {
+        name  = "SPRING_DATASOURCE_USERNAME"
+        value = "postgres"
+      }
+      env {
+        name  = "SPRING_DATASOURCE_PASSWORD"
+        value = var.db_password
+      }
+
+      # ── Segredos da aplicação ──
+      env {
+        name  = "JWT_SECRET"
+        value = var.jwt_secret
+      }
+      env {
+        name  = "PEPPER_SECRET"
+        value = var.pepper_secret
+      }
+      env {
+        name  = "SPRING_MAIL_USERNAME"
+        value = var.mail_username
+      }
+      env {
+        name  = "SPRING_MAIL_PASSWORD"
+        value = var.mail_password
+      }
+      env {
+        name  = "MERCADOPAGO_ACCESS_TOKEN"
+        value = var.mercadopago_access_token
+      }
+      env {
+        name  = "MERCADOPAGO_NOTIFICATION_URL"
+        value = var.mercadopago_notification_url
+      }
+      env {
+        name  = "FIREBASE_FCM_TOKEN"
+        value = var.firebase_fcm_token
+      }
+
+      # ── Paths dos arquivos de credencial montados via Secret Manager ──
+      env {
+        name  = "GCP_CREDENTIALS_PATH"
+        value = "file:/secrets/crypto-avatar/crypto-avatar.json"
+      }
+      env {
+        name  = "GOOGLE_SERVICES_PATH"
+        value = "file:/secrets/google-services/google-services.json"
+      }
+      env {
+        name  = "HALLEL_MESSAGING_FIREBASE_PATH"
+        value = "file:/secrets/firebase/hallel-messaging-firebase.json"
+      }
+
+      # ── Montagem dos volumes ──
+      volume_mounts {
+        name       = "crypto-avatar"
+        mount_path = "/secrets/crypto-avatar"
+      }
+      volume_mounts {
+        name       = "google-services"
+        mount_path = "/secrets/google-services"
+      }
+      volume_mounts {
+        name       = "firebase"
+        mount_path = "/secrets/firebase"
+      }
+    }
+
+    volumes {
+      name = "crypto-avatar"
+      secret {
+        secret       = google_secret_manager_secret.crypto_avatar.secret_id
+        default_mode = 0444
+        items {
+          version = "latest"
+          path    = "crypto-avatar.json"
         }
       }
-    ]
-  })
-}
-
-resource "aws_key_pair" "app_ssh_key" {
-  key_name = "hallel-app-key-prod" # Nome que aparecerá no painel da AWS
-  public_key = file("~/.ssh/hallel_app_key.pub") # Caminho para sua chave pública
-}
-
-resource "aws_iam_instance_profile" "app_profile" {
-  name = "ec2-instance-profile-${var.environment}"
-  role = aws_iam_role.app_server_role.name
-}
-
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners = ["amazon"]
-
-  filter {
-    name = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    }
+    volumes {
+      name = "google-services"
+      secret {
+        secret       = google_secret_manager_secret.google_services.secret_id
+        default_mode = 0444
+        items {
+          version = "latest"
+          path    = "google-services.json"
+        }
+      }
+    }
+    volumes {
+      name = "firebase"
+      secret {
+        secret       = google_secret_manager_secret.hallel_messaging_firebase.secret_id
+        default_mode = 0444
+        items {
+          version = "latest"
+          path    = "hallel-messaging-firebase.json"
+        }
+      }
+    }
   }
 
-  filter {
-    name = "virtualization-type"
-    values = ["hvm"]
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
   }
+
+  depends_on = [
+    google_project_service.run,
+    google_project_iam_member.hallel_api_sa_secretmanager,
+    google_secret_manager_secret_version.crypto_avatar,
+    google_secret_manager_secret_version.google_services,
+    google_secret_manager_secret_version.hallel_messaging_firebase,
+  ]
 }
 
-
-# Exemplo de uma instância EC2 para rodar a aplicação
-resource "aws_instance" "app_server" {
-  # Amazon Machine Image - Amazon Linux 2 (gratuito e comum)
-  ami = data.aws_ami.amazon_linux_2.id # Verifique o AMI ID mais recente para sua região (us-east-2)
-  instance_type = "t2.micro"             # Instância do Free Tier da AWS
-
-  # AQUI a mágica acontece: associa a chave SSH criada no passo anterior
-  key_name = aws_key_pair.app_ssh_key.key_name
-
-  # Associa a instância à sua rede e security group
-  subnet_id = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
-
-  user_data = file("${path.module}/install-docker.sh")
-
-  iam_instance_profile = aws_iam_instance_profile.app_profile.name
-
-  tags = {
-    Name = "hallel-app-server-${var.environment}"
-  }
+# Permite invocação pública (API sem autenticação GCP)
+resource "google_cloud_run_v2_service_iam_member" "public_access" {
+  name     = google_cloud_run_v2_service.hallel_api.name
+  location = google_cloud_run_v2_service.hallel_api.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
-
-resource "aws_eip" "app_eip" {
-  domain = "vpc"
-  tags = {
-    Name = "eip-${var.environment}"
-  }
-}
-
-resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.app_server.id
-  allocation_id = aws_eip.app_eip.id
-}
-

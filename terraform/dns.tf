@@ -1,7 +1,12 @@
-resource "aws_route53_record" "api" {
-  zone_id = data.aws_route53_zone.primary.zone_id
-  name    = var.api_domain_name # "api.comunidadecatolicahallel.com.br"
-  type    = "A"
+# CNAME api.comunidadecatolicahallel.com.br → Cloud Run URL
+# proxied = false: Cloud Run gerencia TLS diretamente (evita conflito de certificados)
+resource "cloudflare_record" "api" {
+  zone_id = var.cloudflare_zone_id
+  name    = "api"
+  content = trimprefix(google_cloud_run_v2_service.hallel_api.uri, "https://")
+  type    = "CNAME"
+  proxied = false
   ttl     = 300
-  records = [aws_eip.app_eip.public_ip]
+
+  depends_on = [google_cloud_run_v2_service.hallel_api]
 }

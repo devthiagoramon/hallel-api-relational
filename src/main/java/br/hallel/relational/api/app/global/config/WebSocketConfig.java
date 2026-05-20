@@ -26,7 +26,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         String[] allowedOrigins = getAllowedOrigins();
         WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
-        registry.addEndpoint("/ws-scale-chat").setAllowedOrigins(allowedOrigins);
         registry.addEndpoint("/ws-auth").setAllowedOrigins(allowedOrigins);
         registry.addEndpoint("/ws-payment").setAllowedOrigins(allowedOrigins);
         registry.addEndpoint("/ws-food-payments").setAllowedOrigins(allowedOrigins);

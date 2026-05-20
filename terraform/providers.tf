@@ -1,23 +1,22 @@
 terraform {
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 6.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.5"
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
     }
   }
 }
 
-# Provedor principal para a sua região
-provider "aws" {
-  region = var.aws_region
+provider "google" {
+  project     = var.gcp_project_id
+  region      = var.gcp_region
+  credentials = file(var.gcp_credentials_file)
 }
 
-# Provedor ALIAS para a região us-east-1, especificamente para o certificado ACM
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
