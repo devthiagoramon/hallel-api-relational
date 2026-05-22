@@ -29,6 +29,7 @@ public class EventParticipationResponse {
     private final Boolean hasParticipated;
     private final UserFunctionInEvent userFunctionInEvent;
     private final String qrCode;
+    private final String pixCode;
 
     private final Boolean limiteIsReached;
     private final AgeGroup ageGroup;
@@ -38,7 +39,7 @@ public class EventParticipationResponse {
                                       String community, String name, String email,
                                       String phoneNumber, OffsetDateTime dateBirth,
                                       Boolean isMarried, Boolean hasParticipated,
-                                      UserFunctionInEvent userFunctionInEvent, String qrCode) {
+                                      UserFunctionInEvent userFunctionInEvent, String qrCode, String pixCode) {
 
         this.id = id;
         this.userId = userId;
@@ -53,6 +54,7 @@ public class EventParticipationResponse {
         this.hasParticipated = hasParticipated;
         this.userFunctionInEvent = userFunctionInEvent;
         this.qrCode = qrCode;
+        this.pixCode = pixCode;
         this.limiteIsReached = false;
         this.ageGroup = null;
     }
@@ -74,6 +76,7 @@ public class EventParticipationResponse {
         this.hasParticipated = false;
         this.userFunctionInEvent = null;
         this.qrCode = null;
+        this.pixCode = null;
     }
 
 
@@ -83,7 +86,7 @@ public class EventParticipationResponse {
         return new EventParticipationResponse(limiteIsReached, ageGroup, eventId, userId);
     }
 
-    public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode) {
+    public static EventParticipationResponse toEventParticipation(EventParticipation response, String qrCode, String pixCode) {
         return new EventParticipationResponse(
                 response.getId(),
                 response.getUser() != null ? response.getUser().getId() : null,
@@ -97,7 +100,8 @@ public class EventParticipationResponse {
                 response.getIsMarried(),
                 response.getHasParticipated(),
                 response.getUserFunctionInEvent(),
-                qrCode
+                qrCode,
+                pixCode
         );
     }
 }

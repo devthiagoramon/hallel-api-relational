@@ -95,6 +95,16 @@ public class EventService implements EventInterface {
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
         eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
 
+        // Garante que eventos gratuitos sempre têm um ingresso padrão
+        if (Boolean.TRUE.equals(event.getItsFree()) && event.getEventInvites().isEmpty()) {
+            EventInvite freeInvite = new EventInvite();
+            freeInvite.setName("Ingresso Gratuito");
+            freeInvite.setDescription("Acesso gratuito ao evento");
+            freeInvite.setValue(0.0);
+            freeInvite.setEvent(event);
+            event.addInvite(freeInvite);
+        }
+
         // Limites por faixa etária
         generateLimiteAgeGroupForEvent(event);
 
@@ -206,7 +216,7 @@ public class EventService implements EventInterface {
                 .toList();
 
         int currentBatchIndex = -1;
-        if (!event.getItsFree()) {
+        if (Boolean.FALSE.equals(event.getItsFree())) {
             for (int i = 0; i < sortedBatches.size(); i++) {
                 if (currentParticipants < sortedBatches.get(i).getMaxNumber()) {
                     currentBatchIndex = i;
@@ -254,6 +264,8 @@ public class EventService implements EventInterface {
         event.setTitle(eventDTO.getTitle());
         event.setDescription(eventDTO.getDescription());
         event.setDuration(eventDTO.getDuration());
+        event.setStartTime(eventDTO.getStartTime());
+        event.setEndTime(eventDTO.getEndTime());
         event.setLocal_event_name(eventDTO.getLocal_event_name());
         event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());
@@ -265,6 +277,16 @@ public class EventService implements EventInterface {
         eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
         event.setItsFree(itsFreeValue);
+
+        // Garante que eventos gratuitos sempre têm um ingresso padrão
+        if (Boolean.TRUE.equals(itsFreeValue) && event.getEventInvites().isEmpty()) {
+            EventInvite freeInvite = new EventInvite();
+            freeInvite.setName("Ingresso Gratuito");
+            freeInvite.setDescription("Acesso gratuito ao evento");
+            freeInvite.setValue(0.0);
+            freeInvite.setEvent(event);
+            event.addInvite(freeInvite);
+        }
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
             String imageUrl;

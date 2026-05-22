@@ -13,6 +13,7 @@ import br.hallel.relational.api.app.event.repository.*;
 import br.hallel.relational.api.app.event.utils.EventParticipationUtils;
 import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.payment.checkout_transparent.client.MercadoPagoClient;
+import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreateCardPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.CreatePixPaymentRequestDTO;
 import br.hallel.relational.api.app.payment.checkout_transparent.dto.PixPaymentData;
 import br.hallel.relational.api.app.payment.checkout_transparent.exceptions.GenerateReceiptException;
@@ -34,10 +35,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,6 +50,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class UserEventService {
+
+    @Value("${mercadopago.pix.fee-rate:0.0099}")
+    private double pixFeeRate;
+
+    @Value("${mercadopago.card.fee-rate:0.0399}")
+    private double cardFeeRate;
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -77,12 +86,9 @@ public class UserEventService {
                 .toList();
 
         EventInviteBatch currentBatch = null;
-        if (!event.getItsFree()) { // Só valida lote se o evento não for gratuito
-            if (batches.isEmpty()) {
-                log.warn("Evento pago {} não possui lotes (EventInviteBatch) cadastrados.", event.getId());
-                throw new EventIllegalArumentException("Nenhum lote de inscrição configurado para este evento.");
-            }
-
+        // Valida lotes apenas se o evento for pago E tiver lotes configurados.
+        // Sem lotes = sem limite de vagas e sem acréscimo de preço.
+        if (Boolean.FALSE.equals(event.getItsFree()) && !batches.isEmpty()) {
             for (EventInviteBatch batch : batches) {
                 if (currentParticipants < batch.getMaxNumber()) {
                     currentBatch = batch; // Encontrou o lote atual!
@@ -146,37 +152,44 @@ public class UserEventService {
         eventParticipation.setDateBirth(dto.getDateBirth());
 
         String qrCodeBase64 = null;
+        String pixCodeText = null;
         boolean isAnonymous = optionalUser.isEmpty();
 
-        boolean isPaidEvent = eventInviteOptional.isPresent();
+        // Sempre associa o ingresso à participação quando presente (incluindo gratuito)
+        eventInviteOptional.ifPresent(eventParticipation::setEventInviteAssociated);
+        double baseInviteValue = eventInviteOptional.map(EventInvite::getValue).orElse(0.0);
+        double resolvedIncreaseValue = (currentBatch != null && currentBatch.getValueIncrease() != null)
+                ? currentBatch.getValueIncrease() : 0.0;
+        double resolvedEventPrice = baseInviteValue + resolvedIncreaseValue;
+        boolean isPaidEvent = resolvedEventPrice > 0;
 
         User user = !isAnonymous ? optionalUser.get() : null;
 
         Date birthDate = !isAnonymous
                 ? user.getDateBirth()
-                : Date.from(dto.getDateBirth().toInstant());
+                : (dto.getDateBirth() != null ? Date.from(dto.getDateBirth().toInstant()) : null);
         log.info("Data de nascimento do usuário: {}", birthDate);
-        LocalDate birthLocalDate;
+        LocalDate birthLocalDate = null;
 
         if (birthDate instanceof java.sql.Date sqlDate) {
             birthLocalDate = sqlDate.toLocalDate();
-        } else {
+        } else if (birthDate != null) {
             birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         }
 
-        int years = eventParticipationUtils.calculateAge(birthLocalDate);
+        if (birthLocalDate == null) {
+            log.warn("Data de nascimento não informada — validação de faixa etária ignorada.");
+        }
+
+        int years = birthLocalDate != null ? eventParticipationUtils.calculateAge(birthLocalDate) : 25;
         ValidateAgeParticipantResponse validation =
                 eventParticipationUtils.validateAgeParticipant(years, event);
 
         if (validation.limiteReached() != null && validation.limiteReached() == AgeGroup.EXCEDIDO) {
             log.info("Participação Salva na fila.");
-
             EventParticipation participationSaved = this.eventParticipationRepository.save(eventParticipation);
-
             EventQueueParticipant queueParticipant = new EventQueueParticipant(participationSaved, event);
-
             EventQueueParticipant savedQueueParticipant = this.eventQueueParticipantRepository.save(queueParticipant);
-
             int participantQueuePosition = this.eventParticipationUtils.getParticipantQueuePosition(
                     savedQueueParticipant);
             this.emailEventParticipationService.sendNotificationEventQueue(
@@ -196,123 +209,212 @@ public class UserEventService {
         }
 
         if (isPaidEvent) {
-            EventInvite eventInvite = eventInviteOptional.get();
-            eventParticipation.setEventInviteAssociated(eventInvite);
-            double baseValue = eventInvite.getValue();
-            double increaseValue = (currentBatch != null && currentBatch.getValueIncrease() != null)
-                    ? currentBatch.getValueIncrease()
-                    : 0.0;
-            double finalPrice = baseValue + increaseValue;
-            try {
-                String fullName = !isAnonymous ? user.getName() : dto.getName();
-                String[] nameParts = UserUtils.splitFullName(fullName);
-                String firstName = nameParts[0];
-                String lastName = nameParts[1];
-                String cpfParaPagamento = null;
+            double eventPrice = resolvedEventPrice;
 
-                if (!isAnonymous && user.getCpf() != null) {
-                    cpfParaPagamento = user.getCpf();
-                } else if (dto.getCpf() != null) {
-                    cpfParaPagamento = dto.getCpf();
-                }
+            String fullName = !isAnonymous ? user.getName() : dto.getName();
+            String[] nameParts = UserUtils.splitFullName(fullName);
+            String firstName = nameParts[0];
+            String lastName = nameParts[1];
+            String cpfParaPagamento = null;
 
-                if (cpfParaPagamento == null || cpfParaPagamento.isEmpty()) {
-                    throw new UserValidationException("User CPF is required to make the payment.");
-                }
+            if (!isAnonymous && user.getCpf() != null) {
+                cpfParaPagamento = user.getCpf();
+            } else if (dto.getCpf() != null) {
+                cpfParaPagamento = dto.getCpf();
+            }
 
+            if (cpfParaPagamento == null || cpfParaPagamento.isEmpty()) {
+                throw new UserValidationException("CPF é obrigatório para realizar o pagamento.");
+            }
 
-                CreatePixPaymentRequestDTO paymentRequestDTO =
-                        new CreatePixPaymentRequestDTO(
-                                BigDecimal.valueOf(finalPrice),
-                                event.getTitle(),
-                                !isAnonymous ? user.getEmail() : dto.getEmail(),
-                                firstName,
-                                lastName,
-                                cpfParaPagamento
-                        );
+            String payerEmail = !isAnonymous ? user.getEmail() : dto.getEmail();
 
-                Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
+            boolean isCardPayment = dto.getCardToken() != null && !dto.getCardToken().isEmpty();
 
-                if (payment != null && payment.getPointOfInteraction() != null &&
-                        payment.getPointOfInteraction().getTransactionData() != null) {
-                    eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
-                    eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
-                    eventParticipation.setMercadoPagoPaymentId(payment.getId());
-                    qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
-                    String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
+            if (isCardPayment) {
+                // Pagamento com cartão de crédito/débito
+                double feeRate = cardFeeRate;
+                BigDecimal amountToCharge = BigDecimal.valueOf(eventPrice)
+                        .divide(BigDecimal.ONE.subtract(BigDecimal.valueOf(feeRate)), 2, RoundingMode.HALF_UP);
+                double finalPrice = amountToCharge.doubleValue();
 
-                    template.convertAndSend("/topic/payments/" + generatedPaymentId,
-                            new PaymentStatusDTO(qrCodeBase64, linkCodePayment,
-                                    StatusPaymentEventParticipation.PENDENTE));
+                log.info("Preço do evento: R$ {}. Taxa MP Cartão ({}%): R$ {}. Valor cobrado do pagador: R$ {}",
+                        eventPrice, feeRate * 100,
+                        amountToCharge.subtract(BigDecimal.valueOf(eventPrice)).setScale(2, RoundingMode.HALF_UP),
+                        finalPrice);
 
+                try {
+                    int installments = dto.getInstallments() != null ? dto.getInstallments() : 1;
+                    String paymentMethodId = dto.getPaymentMethodId();
 
-                    log.info("Pagamento Pix criado com sucesso de id {}. TXID: {}", generatedPaymentId,
-                            eventParticipation.getPixTxid());
-                    PixPaymentData pixData = new PixPaymentData(
-                            payment.getId(),
+                    CreateCardPaymentRequestDTO cardRequest = new CreateCardPaymentRequestDTO(
                             BigDecimal.valueOf(finalPrice),
                             event.getTitle(),
-                            linkCodePayment,
-                            qrCodeBase64,
-                            payment.getDateOfExpiration().toLocalDateTime()
+                            dto.getCardToken(),
+                            installments,
+                            payerEmail,
+                            firstName,
+                            lastName,
+                            cpfParaPagamento,
+                            paymentMethodId
                     );
 
-                    // 5. CHAMADA DO NOVO SERVIÇO DE E-MAIL
-                    // Note que a assinatura do método de e-mail mudou para aceitar o PixPaymentData
-                    EmailParticipationDTO emailDto = new EmailParticipationDTO(
-                            eventParticipation.getEmail(),
-                            eventParticipation.getName(),
-                            event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                            event.getTitle()
-                    );
-                    emailEventParticipationService.sendPaymentJoinEvent(
-                            emailDto,
-                            event.getStartTime(),
-                            event.getEndTime(),
-                            event.getId().toString(),
-                            pixData
-                    );
-                } else {
-                    log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
-                    throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
+                    Payment payment = mercadoPagoClient.createCardPayment(cardRequest, generatedPaymentId);
+                    String paymentStatus = payment.getStatus();
+
+                    log.info("Pagamento com cartão retornou status: {}", paymentStatus);
+
+                    eventParticipation.setMercadoPagoPaymentId(payment.getId());
+
+                    if ("approved".equals(paymentStatus)) {
+                        eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
+                        eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
+
+                        template.convertAndSend("/topic/payments/" + generatedPaymentId,
+                                new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PAGO));
+
+                        EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                                eventParticipation.getEmail(),
+                                eventParticipation.getName(),
+                                event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                                event.getTitle()
+                        );
+                        emailEventParticipationService.sendComprovantEventParticipation(
+                                emailDto, event.getId().toString(),
+                                event.getWhatsAppGroupLink()
+                        );
+                    } else if ("in_process".equals(paymentStatus) || "pending".equals(paymentStatus)) {
+                        eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+
+                        template.convertAndSend("/topic/payments/" + generatedPaymentId,
+                                new PaymentStatusDTO(null, null, StatusPaymentEventParticipation.PENDENTE));
+                    } else {
+                        log.warn("Pagamento com cartão rejeitado. Status: {}, Detail: {}",
+                                paymentStatus, payment.getStatusDetail());
+                        throw new RuntimeException(
+                                "Pagamento recusado pelo operador do cartão. Por favor, verifique os dados e tente novamente.");
+                    }
+
+                } catch (MPApiException apiException) {
+                    log.error("Erro na API do Mercado Pago (cartão). Status: {}, Mensagem: {}. Detalhes: {}",
+                            apiException.getStatusCode(),
+                            apiException.getMessage(),
+                            apiException.getApiResponse().getContent());
+                    throw new RuntimeException("Erro ao processar pagamento com cartão. Por favor, tente novamente.",
+                            apiException);
+                } catch (MPException | RuntimeException e) {
+                    log.error("Erro ao criar pagamento com cartão no Mercado Pago: {}", e.getMessage(), e);
+                    throw new RuntimeException(e.getMessage(), e);
                 }
 
-            } catch (MPApiException apiException) {
-                log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
-                        apiException.getStatusCode(),
-                        apiException.getMessage(),
-                        apiException.getApiResponse().getContent());
-                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", apiException);
-            } catch (MPException | RuntimeException e) {
-                log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
-                throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
+            } else {
+                // Pagamento com PIX
+                // Repassa a taxa do Mercado Pago (PIX) ao pagador.
+                // Fórmula: amountToCharge = eventPrice / (1 - feeRate)
+                // Garante que após o desconto da taxa, a organização recebe exatamente eventPrice.
+                BigDecimal amountToCharge = BigDecimal.valueOf(eventPrice)
+                        .divide(BigDecimal.ONE.subtract(BigDecimal.valueOf(pixFeeRate)), 2, RoundingMode.HALF_UP);
+                double finalPrice = amountToCharge.doubleValue();
+
+                log.info("Preço do evento: R$ {}. Taxa MP PIX ({}%): R$ {}. Valor cobrado do pagador: R$ {}",
+                        eventPrice, pixFeeRate * 100,
+                        amountToCharge.subtract(BigDecimal.valueOf(eventPrice)).setScale(2, RoundingMode.HALF_UP),
+                        finalPrice);
+                try {
+                    CreatePixPaymentRequestDTO paymentRequestDTO =
+                            new CreatePixPaymentRequestDTO(
+                                    BigDecimal.valueOf(finalPrice),
+                                    event.getTitle(),
+                                    payerEmail,
+                                    firstName,
+                                    lastName,
+                                    cpfParaPagamento
+                            );
+
+                    Payment payment = mercadoPagoClient.createPixPayment(paymentRequestDTO, generatedPaymentId);
+
+                    if (payment != null && payment.getPointOfInteraction() != null &&
+                            payment.getPointOfInteraction().getTransactionData() != null) {
+                        eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PENDENTE);
+                        eventParticipation.setPixTxid(payment.getPointOfInteraction().getTransactionData().getQrCode());
+                        eventParticipation.setMercadoPagoPaymentId(payment.getId());
+                        String linkCodePayment = payment.getPointOfInteraction().getTransactionData().getQrCode();
+                        pixCodeText = linkCodePayment;
+
+                        template.convertAndSend("/topic/payments/" + generatedPaymentId,
+                                new PaymentStatusDTO(null, linkCodePayment,
+                                        StatusPaymentEventParticipation.PENDENTE));
+
+                        log.info("Pagamento Pix criado com sucesso de id {}. TXID: {}", generatedPaymentId,
+                                eventParticipation.getPixTxid());
+                        PixPaymentData pixData = new PixPaymentData(
+                                payment.getId(),
+                                BigDecimal.valueOf(finalPrice),
+                                event.getTitle(),
+                                linkCodePayment,
+                                qrCodeBase64,
+                                payment.getDateOfExpiration().toLocalDateTime()
+                        );
+
+                        EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                                eventParticipation.getEmail(),
+                                eventParticipation.getName(),
+                                event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                                event.getTitle()
+                        );
+                        emailEventParticipationService.sendPaymentJoinEvent(
+                                emailDto,
+                                event.getStartTime(),
+                                event.getEndTime(),
+                                event.getId().toString(),
+                                pixData
+                        );
+                    } else {
+                        log.error("Resposta do Mercado Pago incompleta, dados de transação ou de interação nulos.");
+                        throw new RuntimeException("Erro ao processar a resposta do Mercado Pago.");
+                    }
+
+                } catch (MPApiException apiException) {
+                    log.error("Erro na API do Mercado Pago. Status: {}, Mensagem: {}. Detalhes: {}",
+                            apiException.getStatusCode(),
+                            apiException.getMessage(),
+                            apiException.getApiResponse().getContent());
+                    throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.",
+                            apiException);
+                } catch (MPException | RuntimeException e) {
+                    log.error("Erro ao criar pagamento Pix no Mercado Pago: {}", e.getMessage(), e);
+                    throw new RuntimeException("Erro ao criar pagamento Pix. Por favor, tente novamente.", e);
+                }
             }
         } else {
-            try {
-
-                EmailParticipationDTO emailDto = new EmailParticipationDTO(
-                        eventParticipation.getEmail(),
-                        eventParticipation.getName(),
-                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                        event.getTitle()
-                );
-
-                emailEventParticipationService.sendComprovantEventParticipation(
-                        emailDto, event.getId().toString(),
-                        event.getWhatsAppGroupLink()
-                );
-            } catch (Exception e) {
-                log.error("Erro ao enviar e-mail de comprovante de participação: {}", e.getMessage(), e);
-                throw new GenerateReceiptException("Erro ao enviar e-mail de comprovante de participação. " + e);
-            }
-
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
         }
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
-        return EventParticipationResponse.toEventParticipation(participationSaved, qrCodeBase64);
+
+        if (!isPaidEvent) {
+            try {
+                EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                        eventParticipation.getEmail(),
+                        eventParticipation.getName(),
+                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                        event.getTitle()
+                );
+                emailEventParticipationService.sendFreeEventTicket(
+                        emailDto,
+                        participationSaved.getId().toString(),
+                        event.getLocal_event_name(),
+                        event.getId().toString(),
+                        event.getWhatsAppGroupLink()
+                );
+            } catch (Exception e) {
+                log.error("Erro ao enviar e-mail de ingresso gratuito: {}", e.getMessage(), e);
+            }
+        }
+
+        return EventParticipationResponse.toEventParticipation(participationSaved, qrCodeBase64, pixCodeText);
 
     }
 
@@ -339,14 +441,19 @@ public class UserEventService {
         Date birthDate = user.getDateBirth();
 
         log.info("Data de nascimento do usuário: {}", birthDate);
-        LocalDate birthLocalDate;
+        LocalDate birthLocalDate = null;
 
         if (birthDate instanceof java.sql.Date sqlDate) {
             birthLocalDate = sqlDate.toLocalDate();
-        } else {
+        } else if (birthDate != null) {
             birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         }
-        int years = eventParticipationUtils.calculateAge(birthLocalDate);
+
+        if (birthLocalDate == null) {
+            log.warn("Data de nascimento não informada — validação de faixa etária ignorada.");
+        }
+
+        int years = birthLocalDate != null ? eventParticipationUtils.calculateAge(birthLocalDate) : 25;
         ValidateAgeParticipantResponse validation =
                 eventParticipationUtils.validateAgeParticipant(years, event);
 
@@ -378,7 +485,7 @@ public class UserEventService {
         }
 
         return EventParticipationResponse.toEventParticipation(
-                this.eventParticipationRepository.save(participation), null
+                this.eventParticipationRepository.save(participation), null, null
         );
     }
 
@@ -410,15 +517,9 @@ public class UserEventService {
         }
 
         byte[] pixTxidBytes = participation.getPixTxid().getBytes();
-        try {
-            String qrCode = mercadoPagoClient.getPaymentQRCode(participation.getMercadoPagoPaymentId());
-
-            template.convertAndSend("/topic/payments/" + user.getId(),
-                    new PaymentStatusDTO(qrCode, participation.getPixTxid(),
-                            StatusPaymentEventParticipation.PENDENTE));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
+        template.convertAndSend("/topic/payments/" + user.getId(),
+                new PaymentStatusDTO(null, participation.getPixTxid(),
+                        StatusPaymentEventParticipation.PENDENTE));
 
 
         return new EventPayParticipationDetails(Base64.getEncoder().encodeToString(pixTxidBytes),
@@ -694,7 +795,7 @@ public class UserEventService {
         }
 
         EventParticipation updated = eventParticipationRepository.save(participation);
-        return EventParticipationResponse.toEventParticipation(updated, null);
+        return EventParticipationResponse.toEventParticipation(updated, null, null);
     }
 
     public EventParticipationResponse getParticipationById(UUID userId, UUID eventId) {
@@ -704,7 +805,7 @@ public class UserEventService {
                         "participation.event.not.found"));
         System.out.println(participation.getUser().getId() + " " + participation.getEvent().getId());
 
-        return EventParticipationResponse.toEventParticipation(participation, null);
+        return EventParticipationResponse.toEventParticipation(participation, null, null);
     }
 
     public Page<EventParticipationResponse> getAllParticipations(int page, int size) {
@@ -724,6 +825,7 @@ public class UserEventService {
                 participation.getIsMarried(),
                 participation.getHasParticipated(),
                 participation.getUserFunctionInEvent(),
+                null,
                 null
         ));
     }
@@ -763,7 +865,7 @@ public class UserEventService {
         eventParticipation.setUserFunctionInEvent(function);
         eventParticipationRepository.save(eventParticipation);
 
-        return EventParticipationResponse.toEventParticipation(eventParticipation, null);
+        return EventParticipationResponse.toEventParticipation(eventParticipation, null, null);
     }
 
     public UserEventStatus getStatusParticipationOfEvent(UUID userId, UUID eventId) {
@@ -774,7 +876,7 @@ public class UserEventService {
                     StatusPaymentEventParticipation.NAO_PAGO, null);
         }
         EventParticipation participation = eventParticipation.get();
-        if (eventParticipation.get().getEvent().getItsFree()) {
+        if (Boolean.TRUE.equals(eventParticipation.get().getEvent().getItsFree())) {
             if (eventParticipation.get().getStatusPaymentEventParticipation() == null) {
                 return new UserEventStatus(userId, UserEventStatusTypes.PARTICIPANTE,
                         null, null);
@@ -818,10 +920,13 @@ public class UserEventService {
     public EventParticipationResponse addParticipateAsAdminService(EventParticipationAdmDTO dto) {
         log.info("Add participant as Admin");
         EventParticipation eventParticipation = new EventParticipation();
+        log.info("{} user ID", dto.getUserId());
         Optional<User> optionalUser =
                 (dto.getUserId() != null) ? userRepository.findById(dto.getUserId()) : Optional.empty();
 
-        Optional<EventInvite> eventInviteOptional = this.eventInviteRepository.findById(dto.getEventInviteId());
+        Optional<EventInvite> eventInviteOptional =
+                (dto.getEventInviteId() != null) ? this.eventInviteRepository.findById(dto.getEventInviteId()) :
+                        Optional.empty();
 
         Event event = eventRepository.findById(dto.getEventId()).orElseThrow(
                 () -> new EventNotFoundException("event.id.not.found",
@@ -830,6 +935,9 @@ public class UserEventService {
         eventParticipation.setEvent(event);
         eventParticipation.setUserFunctionInEvent(dto.getUserFunctionInEvent());
         eventParticipation.setStatusPaymentEventParticipation(dto.getStatusPayment());
+        eventParticipation.setEventParticipationType(
+                dto.getEventParticipationType() == null ? EventParticipationType.COMUNIDADE :
+                        dto.getEventParticipationType());
         optionalUser.ifPresent(eventParticipation::setUser);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
@@ -892,7 +1000,7 @@ public class UserEventService {
             }
         }
         return EventParticipationResponse.toEventParticipation(eventParticipationRepository.save(eventParticipation),
-                null);
+                null, null);
     }
 
     public UserPaymentDetailResponse getUserPaymentDetail(UUID userId, UUID eventId) {
@@ -911,7 +1019,7 @@ public class UserEventService {
         String pdfBase64 = "";
 
         if (participation.getStatusPaymentEventParticipation() == StatusPaymentEventParticipation.PAGO
-                && !event.getItsFree()) {
+                && Boolean.FALSE.equals(event.getItsFree())) {
             valuePaid = participation.getAmountPaid();
 
             // Busca a transação associada para pegar o comprovante
@@ -935,9 +1043,11 @@ public class UserEventService {
             }
         }
 
-        return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
-                participation.getEventInviteAssociated().getValue(),
-                participation.getPaidDate(),
+        double eventValue = participation.getEventInviteAssociated() != null
+                ? participation.getEventInviteAssociated().getValue() : 0.0;
+
+        return new UserPaymentDetailResponse(participation.getId(), eventId, userId, event.getTitle(),
+                user.getName(), valuePaid, eventValue, participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
     }
 
@@ -1024,6 +1134,6 @@ public class UserEventService {
 
         EventParticipation updated = this.eventParticipationRepository.save(eventParticipation);
 
-        return EventParticipationResponse.toEventParticipation(updated, null);
+        return EventParticipationResponse.toEventParticipation(updated, null, null);
     }
 }

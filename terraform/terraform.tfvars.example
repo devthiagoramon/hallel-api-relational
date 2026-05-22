@@ -1,0 +1,35 @@
+# Copie este arquivo para terraform.tfvars e preencha os valores.
+# NUNCA comite terraform.tfvars no repositório (adicione ao .gitignore).
+
+gcp_credentials_file  = "C:/Users/User/Downloads/hallel-prod-6097247dbeae.json"
+cloudflare_api_token  = "seu_token_cloudflare_com_dns"
+cloudflare_account_id = "seu_account_id_cloudflare"
+
+# Segredos da aplicação (mesmos valores dos GitHub Secrets atuais)
+db_password                    = "senha_supabase_postgres"
+jwt_secret                     = "seu_jwt_secret"
+pepper_secret                  = "seu_pepper_secret"
+mail_username                  = "comunidadehallelti@gmail.com"
+mail_password                  = "sua_app_password_gmail"
+mercadopago_access_token       = "APP_USR-..."
+mercadopago_notification_url   = "https://api.comunidadecatolicahallel.com.br/public/payments/webhooks/mercadopago"
+firebase_fcm_token             = "seu_firebase_server_key"
+
+# Cole o conteúdo de cada arquivo JSON abaixo (use heredoc ou string em uma linha)
+crypto_avatar_json             = <<-EOT
+  COLE_O_CONTEUDO_DO_ARQUIVO_crypto-avatar.json_AQUI
+EOT
+
+google_services_json           = <<-EOT
+  COLE_O_CONTEUDO_DO_ARQUIVO_google-services.json_AQUI
+EOT
+
+hallel_messaging_firebase_json = <<-EOT
+  COLE_O_CONTEUDO_DO_ARQUIVO_hallel-messaging-firebase.json_AQUI
+EOT
+
+# Os demais valores já têm defaults:
+# gcp_project_id               = "hallel-prod"
+# gcp_region                   = "southamerica-east1"
+# cloudflare_zone_id           = "ec11479f117044648c9bd09863102e34"
+# domain_name                  = "comunidadecatolicahallel.com.br"

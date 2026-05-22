@@ -45,7 +45,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType,
+                        e.id, e.title, e.date, e.startTime,e.endTime, e.image_url, e.banner_url, e.itsFree, e.eventType,
                                     e.local_event_name,
                                 e.eventStatus
                     ),
@@ -62,7 +62,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType,
+                        e.id, e.title, e.date,e.startTime,e.endTime, e.image_url, e.banner_url, e.itsFree, e.eventType,
                                     e.local_event_name,
                                 e.eventStatus
                     ),
@@ -90,7 +90,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                    e.id AS UUID, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType,
+                    e.id AS UUID, e.title, e.date, e.startTime,e.endTime, e.image_url, e.banner_url, e.itsFree, e.eventType,
                                 e.local_event_name,
                                 e.eventStatus
                     ),
@@ -113,7 +113,7 @@ public interface EventScaleRepository extends JpaRepository<EventScale, UUID> {
                 SELECT new br.hallel.relational.api.app.event.dto.ScaleEventWithEventInfoResponse(
                     es.id,
                     new br.hallel.relational.api.app.event.dto.EventShortResponse(
-                        e.id, e.title, e.date, e.image_url, e.banner_url, e.itsFree, e.eventType, e.local_event_name,
+                        e.id, e.title, e.date, e.startTime,e.endTime,e.image_url, e.banner_url, e.itsFree, e.eventType, e.local_event_name,
                                 e.eventStatus
                     ),
                     m.id,

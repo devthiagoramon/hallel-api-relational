@@ -1,5 +1,6 @@
 package br.hallel.relational.api.app.event.dto;
 
+import br.hallel.relational.api.app.event.model.EventParticipationType;
 import br.hallel.relational.api.app.event.model.enum_type.StatusPaymentEventParticipation;
 import br.hallel.relational.api.app.event.model.enum_type.UserFunctionInEvent;
 import lombok.AllArgsConstructor;
@@ -26,4 +27,5 @@ public class EventParticipationAdmDTO {
     private OffsetDateTime dateBirth;
     private Boolean isMarried;
     private UUID eventInviteId;
+    private EventParticipationType eventParticipationType;
 }

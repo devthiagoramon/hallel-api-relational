@@ -358,4 +358,42 @@ public class EmailEventParticipationService {
             throw new IllegalStateException("Falha ao enviar e-mail de notificação de vaga liberada", e);
         }
     }
+
+    // 9. E-mail de Ingresso para Evento Gratuito
+    @Async
+    public void sendFreeEventTicket(
+            EmailParticipationDTO dto,
+            String participationId,
+            String localEventName,
+            String eventId,
+            String whatsAppGroupLink
+    ) {
+        try {
+            Context context = new Context(LOCALE_PT_BR);
+            context.setVariable("name", dto.name());
+            context.setVariable("eventTitle", dto.eventTitle());
+            context.setVariable("eventDate", dto.eventDate().format(DATETIME_FORMATTER));
+            context.setVariable("localEventName", localEventName);
+            context.setVariable("ticketNumber", participationId.substring(0, 8).toUpperCase());
+            context.setVariable("eventId", eventId);
+            context.setVariable("whatsAppGroupLink", whatsAppGroupLink);
+
+            String html = templateEngine.process("event-free-ticket", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailUtils.getFrom());
+            helper.setTo(dto.to());
+            helper.setSubject("Seu ingresso para: " + dto.eventTitle());
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            log.info("Ingresso gratuito enviado para: {}", dto.to());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar ingresso gratuito para {}: {}", dto.to(), e.getMessage());
+            throw new IllegalStateException("Falha ao enviar e-mail de ingresso gratuito", e);
+        }
+    }
 }

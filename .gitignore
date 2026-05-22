@@ -21,6 +21,7 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+/bin/**
 
 # Gradle
 .gradle/
@@ -103,3 +104,6 @@ crash.log
 
 # Override the above to allow non-secret variable files if you have them
 # Ex: !variables.tfvars
+
+bin
+/bin/

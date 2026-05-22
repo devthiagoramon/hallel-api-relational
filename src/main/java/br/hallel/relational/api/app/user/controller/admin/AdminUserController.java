@@ -22,9 +22,26 @@ public class AdminUserController {
     private UserService userService;
 
     @GetMapping("/get/{idUser}")
-    public ResponseEntity<UserProfileResponse> getUserById(
+    public ResponseEntity<UserProfileResponseWithRole> getUserById(
             @PathVariable(name = "idUser") UUID idUser) {
-        return ResponseEntity.ok(userService.getUserProfile(idUser, null));
+        
+        UserProfileResponse response = userService.getUserProfile(idUser, null);
+        UserRoleResponseDTO roles = userService.getUserRole(idUser);
+        
+        UserProfileResponseWithRole responseWithRole = new UserProfileResponseWithRole(
+                response.id(),
+                response.name(),
+                response.email(),
+                response.phoneNumber(),
+                response.dateBirth(),
+                response.fileImageUrl(),
+                response.cpf(),
+                response.status(),
+                response.date_view(),
+                response.last_access(),
+                roles.userRoleName()
+        );
+        return ResponseEntity.ok(responseWithRole);
     }
 
     @GetMapping("/list-all")

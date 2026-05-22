@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +38,6 @@ import java.util.*;
 public class ScaleChatMessageService {
 
     private final ScaleChatMessageRepository scaleChatMessageRepository;
-    private final SimpMessagingTemplate simpMessagingTemplate;
     private final EventScaleRepository scaleRepository;
     private final ScaleChatParticipantRepository scaleChatParticipantRepository;
     private final MessageScaleStatusRepository messageScaleStatusRepository;
@@ -63,9 +61,6 @@ public class ScaleChatMessageService {
 
         ScaleChatMessageResponse response = getScaleChatMessageResponse(eventScale, messageSaved);
 
-        String destinationSocket = "/topic/scale/chat/" + eventScale.getId().toString();
-
-        simpMessagingTemplate.convertAndSend(destinationSocket, response);
         sendNotificationsToParticipants(senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
                 otherParticipants, messageSaved, eventScale);
         return response;
@@ -97,9 +92,7 @@ public class ScaleChatMessageService {
 
         ScaleChatMessage messageUpdateWithContent = scaleChatMessageRepository.save(messageSaved);
         ScaleChatMessageResponse response = getScaleChatMessageResponse(eventScale, messageUpdateWithContent);
-        String destinationSocket = "/topic/scale/chat/" + eventScale.getId().toString();
 
-        simpMessagingTemplate.convertAndSend(destinationSocket, response);
         sendNotificationsToParticipants(senderParticipant.getMemberEventScale().getMemberMinistry().getUser().getName(),
                 otherParticipants, messageSaved, eventScale);
         return response;
@@ -189,17 +182,7 @@ public class ScaleChatMessageService {
         scaleChatMessage.setVisibility(ScaleChatMessageVisibility.DELETED);
         scaleChatMessage.setContentType(ScaleMessageType.TEXT);
         scaleChatMessage.setContent("Mensagem apagada");
-        ScaleChatMessage deletedMessage = scaleChatMessageRepository.save(scaleChatMessage);
-
-        String destination = "/topic/scale/chat/" + deletedMessage.getScale().getId().toString();
-
-        ScaleMessageUpdateEvent updateEvent = new ScaleMessageUpdateEvent(
-                deletedMessage.getId(),
-                ScaleMessageUpdateEventTypes.DELETE,
-                null
-        );
-
-        simpMessagingTemplate.convertAndSend(destination, updateEvent);
+        scaleChatMessageRepository.save(scaleChatMessage);
 
         return new ScaleChatMessageResponse(
                 scaleChatMessage.getId(),
@@ -223,14 +206,8 @@ public class ScaleChatMessageService {
 
         scaleChatMessage.setContent(request.content());
         scaleChatMessage.setUpdatedAt(OffsetDateTime.now());
-        ScaleChatMessage messageUpdated = scaleChatMessageRepository.save(scaleChatMessage);
-        String destination = "/topic/scale/chat/" + messageUpdated.getScale().getId().toString();
-        ScaleMessageUpdateEvent updateEvent = new ScaleMessageUpdateEvent(
-                messageUpdated.getId(),
-                ScaleMessageUpdateEventTypes.UPDATE,
-                messageUpdated
-        );
-        ScaleChatMessageResponse response = new ScaleChatMessageResponse(
+        scaleChatMessageRepository.save(scaleChatMessage);
+        return new ScaleChatMessageResponse(
                 scaleChatMessage.getId(),
                 scaleChatMessage.getScale().getId(),
                 scaleChatMessage.getMemberChatSender().getId(),
@@ -242,8 +219,6 @@ public class ScaleChatMessageService {
                 MessageScaleDeliveryStatus.SENT,
                 scaleChatMessage.getVisibility()
         );
-        simpMessagingTemplate.convertAndSend(destination, response);
-        return response;
     }
 
     public Page<ScaleChatMessageResponse> listMessagesOfScaleChatForUser(UUID scaleId, UUID userId, Pageable pageable) {
@@ -290,13 +265,6 @@ public class ScaleChatMessageService {
                 messageId, userId).orElseThrow(
                 (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
 
-        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
-                .toString() + "/message/status";
-
-        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
-                messageId,
-                MessageScaleDeliveryStatus.READ
-        ));
         messageScaleStatus.setStatus(MessageScaleDeliveryStatus.READ);
         this.messageScaleStatusRepository.save(messageScaleStatus);
         return messageScaleStatus.getStatus();
@@ -306,13 +274,6 @@ public class ScaleChatMessageService {
         MessageScaleStatus messageScaleStatus = this.messageScaleStatusRepository.findByMessage_IdAndChatParticipant_MemberEventScale_MemberMinistry_User_Id(
                 messageId, userId).orElseThrow(
                 (() -> new EventParticipationException("Usuário não encontrado ou não participa do chat")));
-        String destinationSocket = "/topic/scale/chat/" + messageScaleStatus.getMessage().getScale().getId()
-                .toString() + "/message/status";
-
-        simpMessagingTemplate.convertAndSend(destinationSocket, new MessageReadSocketResponse(
-                messageId,
-                MessageScaleDeliveryStatus.RECEIVED
-        ));
         messageScaleStatus.setStatus(MessageScaleDeliveryStatus.RECEIVED);
         this.messageScaleStatusRepository.save(messageScaleStatus);
         return messageScaleStatus.getStatus();

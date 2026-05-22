@@ -98,6 +98,7 @@ public class SecurityConfig {
                                     .requestMatchers("/admin/event/**").hasAnyRole("ADMIN", "ADMIN_EVENT")
                                     .requestMatchers("/admin/ministry/**").hasAnyRole("ADMIN", "ADMIN_MINISTRY")
                                     .requestMatchers("/admin/user/**").hasAnyRole("ADMIN", "ADMIN_USER")
+                                    .requestMatchers("/admin/pix-config/**").hasRole("ADMIN")
                                     .requestMatchers("/user/**").hasRole("USER")
                                     .requestMatchers("/ws-scale-chat").hasRole("USER")
                                     .requestMatchers("/ws-auth/**").permitAll()
