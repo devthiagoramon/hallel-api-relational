@@ -17,6 +17,11 @@ variable "gcp_credentials_file" {
 }
 
 # ── Cloudflare ────────────────────────────────────────────────────────────────
+variable "cloudflare_account_id" {
+  description = "Account ID do Cloudflare (em My Profile → Account ID)"
+  type        = string
+}
+
 variable "cloudflare_api_token" {
   description = "Token da API do Cloudflare (Zone:DNS:Edit)"
   type        = string

@@ -155,7 +155,13 @@ public class UserEventService {
         String pixCodeText = null;
         boolean isAnonymous = optionalUser.isEmpty();
 
-        boolean isPaidEvent = eventInviteOptional.isPresent();
+        // Sempre associa o ingresso à participação quando presente (incluindo gratuito)
+        eventInviteOptional.ifPresent(eventParticipation::setEventInviteAssociated);
+        double baseInviteValue = eventInviteOptional.map(EventInvite::getValue).orElse(0.0);
+        double resolvedIncreaseValue = (currentBatch != null && currentBatch.getValueIncrease() != null)
+                ? currentBatch.getValueIncrease() : 0.0;
+        double resolvedEventPrice = baseInviteValue + resolvedIncreaseValue;
+        boolean isPaidEvent = resolvedEventPrice > 0;
 
         User user = !isAnonymous ? optionalUser.get() : null;
 
@@ -203,13 +209,7 @@ public class UserEventService {
         }
 
         if (isPaidEvent) {
-            EventInvite eventInvite = eventInviteOptional.get();
-            eventParticipation.setEventInviteAssociated(eventInvite);
-            double baseValue = eventInvite.getValue();
-            double increaseValue = (currentBatch != null && currentBatch.getValueIncrease() != null)
-                    ? currentBatch.getValueIncrease()
-                    : 0.0;
-            double eventPrice = baseValue + increaseValue;
+            double eventPrice = resolvedEventPrice;
 
             String fullName = !isAnonymous ? user.getName() : dto.getName();
             String[] nameParts = UserUtils.splitFullName(fullName);
@@ -387,30 +387,33 @@ public class UserEventService {
                 }
             }
         } else {
-            try {
-
-                EmailParticipationDTO emailDto = new EmailParticipationDTO(
-                        eventParticipation.getEmail(),
-                        eventParticipation.getName(),
-                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                        event.getTitle()
-                );
-
-                emailEventParticipationService.sendComprovantEventParticipation(
-                        emailDto, event.getId().toString(),
-                        event.getWhatsAppGroupLink()
-                );
-            } catch (Exception e) {
-                log.error("Erro ao enviar e-mail de comprovante de participação: {}", e.getMessage(), e);
-                throw new GenerateReceiptException("Erro ao enviar e-mail de comprovante de participação. " + e);
-            }
-
             eventParticipation.setStatusPaymentEventParticipation(StatusPaymentEventParticipation.PAGO);
             eventParticipation.setPaidDate(OffsetDateTime.now(ZoneId.of("UTC")));
         }
 
         EventParticipation participationSaved = eventParticipationRepository.save(eventParticipation);
         log.info("Participação do evento salva no banco de dados com ID: {}", participationSaved.getId());
+
+        if (!isPaidEvent) {
+            try {
+                EmailParticipationDTO emailDto = new EmailParticipationDTO(
+                        eventParticipation.getEmail(),
+                        eventParticipation.getName(),
+                        event.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                        event.getTitle()
+                );
+                emailEventParticipationService.sendFreeEventTicket(
+                        emailDto,
+                        participationSaved.getId().toString(),
+                        event.getLocal_event_name(),
+                        event.getId().toString(),
+                        event.getWhatsAppGroupLink()
+                );
+            } catch (Exception e) {
+                log.error("Erro ao enviar e-mail de ingresso gratuito: {}", e.getMessage(), e);
+            }
+        }
+
         return EventParticipationResponse.toEventParticipation(participationSaved, qrCodeBase64, pixCodeText);
 
     }
@@ -1040,9 +1043,11 @@ public class UserEventService {
             }
         }
 
-        return new UserPaymentDetailResponse(eventId, userId, event.getTitle(), user.getName(), valuePaid,
-                participation.getEventInviteAssociated().getValue(),
-                participation.getPaidDate(),
+        double eventValue = participation.getEventInviteAssociated() != null
+                ? participation.getEventInviteAssociated().getValue() : 0.0;
+
+        return new UserPaymentDetailResponse(participation.getId(), eventId, userId, event.getTitle(),
+                user.getName(), valuePaid, eventValue, participation.getPaidDate(),
                 participation.getStatusPaymentEventParticipation(), comprovant, pdfBase64);
     }
 

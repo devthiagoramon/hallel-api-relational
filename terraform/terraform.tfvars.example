@@ -1,8 +1,9 @@
 # Copie este arquivo para terraform.tfvars e preencha os valores.
 # NUNCA comite terraform.tfvars no repositório (adicione ao .gitignore).
 
-gcp_credentials_file = "C:/Users/User/Downloads/hallel-prod-6097247dbeae.json"
-cloudflare_api_token = "seu_token_cloudflare_com_dns"
+gcp_credentials_file  = "C:/Users/User/Downloads/hallel-prod-6097247dbeae.json"
+cloudflare_api_token  = "seu_token_cloudflare_com_dns"
+cloudflare_account_id = "seu_account_id_cloudflare"
 
 # Segredos da aplicação (mesmos valores dos GitHub Secrets atuais)
 db_password                    = "senha_supabase_postgres"

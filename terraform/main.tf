@@ -111,6 +111,16 @@ resource "google_cloud_run_v2_service" "hallel_api" {
         startup_cpu_boost = true
       }
 
+      startup_probe {
+        tcp_socket {
+          port = 8080
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 10
+        failure_threshold     = 30
+        timeout_seconds       = 5
+      }
+
       # ── Banco de dados (Supabase) ──
       env {
         name  = "SPRING_PROFILES_ACTIVE"

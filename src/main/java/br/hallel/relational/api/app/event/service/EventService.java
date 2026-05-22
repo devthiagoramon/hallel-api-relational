@@ -95,6 +95,16 @@ public class EventService implements EventInterface {
         eventUtils.synchronizeEventSchedules(event, eventDTO.getEventScheduleDTOS());
         eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
 
+        // Garante que eventos gratuitos sempre têm um ingresso padrão
+        if (Boolean.TRUE.equals(event.getItsFree()) && event.getEventInvites().isEmpty()) {
+            EventInvite freeInvite = new EventInvite();
+            freeInvite.setName("Ingresso Gratuito");
+            freeInvite.setDescription("Acesso gratuito ao evento");
+            freeInvite.setValue(0.0);
+            freeInvite.setEvent(event);
+            event.addInvite(freeInvite);
+        }
+
         // Limites por faixa etária
         generateLimiteAgeGroupForEvent(event);
 
@@ -267,6 +277,16 @@ public class EventService implements EventInterface {
         eventUtils.synchronizeEventInvites(event, eventDTO.getEventInviteDTOS());
         eventUtils.synchronizeEventInviteBatches(event, eventDTO.getEventInviteBatchDTOS());
         event.setItsFree(itsFreeValue);
+
+        // Garante que eventos gratuitos sempre têm um ingresso padrão
+        if (Boolean.TRUE.equals(itsFreeValue) && event.getEventInvites().isEmpty()) {
+            EventInvite freeInvite = new EventInvite();
+            freeInvite.setName("Ingresso Gratuito");
+            freeInvite.setDescription("Acesso gratuito ao evento");
+            freeInvite.setValue(0.0);
+            freeInvite.setEvent(event);
+            event.addInvite(freeInvite);
+        }
         if (img_url != null) {
             log.info("Editing image {}", img_url.getOriginalFilename());
             String imageUrl;

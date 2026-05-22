@@ -12,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor @NoArgsConstructor
 @Getter @Setter
 public class UserPaymentDetailResponse {
+    private UUID participationId;
     private UUID eventId;
     private UUID userId;
     private String eventName;
