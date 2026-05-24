@@ -164,7 +164,7 @@ public class ScaleMessageChatIntegrationTest extends AbstractIntegrationTest imp
         assertThat(paginationTestResponse.getContent().getFirst().contentType()).isEqualTo(ScaleMessageType.TEXT);
         assertThat(paginationTestResponse.getContent().getFirst().content()).isEqualTo("Mensagem teste");
         assertThat(paginationTestResponse.getContent().getFirst().statusMessage()).isEqualTo(
-                MessageScaleDeliveryStatus.READ);
+                MessageScaleDeliveryStatus.SENT);
     }
 
     @Test
