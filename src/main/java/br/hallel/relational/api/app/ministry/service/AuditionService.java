@@ -21,8 +21,8 @@ import br.hallel.relational.api.app.ministry.repository.MemberAuditionMinistryRe
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,27 +32,18 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuditionService {
 
-    @Autowired
-    private AuditionRepository repository;
-    @Autowired
-    private EventScaleService eventScaleService;
-    @Autowired
-    private MinistryService ministryService;
-
-    @Autowired
-    private AuditionMapper auditionMapper;
-    @Autowired
-    private EventScaleMapper eventScaleMapper;
-    @Autowired
-    private MinistryMapper ministryMapper;
-    @Autowired
-    private MemberAuditionMinistryRepository memberAuditionMinistryRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private MemberMinistryRepository memberMinistryRepository;
+    private final AuditionRepository repository;
+    private final EventScaleService eventScaleService;
+    private final MinistryService ministryService;
+    private final AuditionMapper auditionMapper;
+    private final EventScaleMapper eventScaleMapper;
+    private final MinistryMapper ministryMapper;
+    private final MemberAuditionMinistryRepository memberAuditionMinistryRepository;
+    private final UserRepository userRepository;
+    private final MemberMinistryRepository memberMinistryRepository;
 
     public AuditionResponse createAudition(AuditionDTO auditionDTO, UUID memberAuditionId) {
         log.info("Scale: " + auditionDTO.getEventScale());

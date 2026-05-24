@@ -21,8 +21,8 @@ import br.hallel.relational.api.app.user.exceptions.UserNotFoundException;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,29 +39,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class MinistryService implements MinistryInterface {
 
-    @Autowired
-    private MinistryRepository ministryRepository;
-    @Autowired
-    private GoogleBucketService googleBucketService;
-    @Autowired
-    private MemberMinistryRepository memberMinistryRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private RoleMinistryRepository roleMinistryRepository;
-
-    @Autowired
-    private MinistryMemberRoleRepository ministryMemberRoleRepository;
-
+    private final MinistryRepository ministryRepository;
+    private final GoogleBucketService googleBucketService;
+    private final MemberMinistryRepository memberMinistryRepository;
+    private final UserRepository userRepository;
+    private final RoleMinistryRepository roleMinistryRepository;
+    private final MinistryMemberRoleRepository ministryMemberRoleRepository;
     private final MinistryMapper mapper;
     private final EventScaleMapper eventScaleMapper;
-
-    public MinistryService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
-        this.mapper = ministryMapper;
-        this.eventScaleMapper = eventScaleMapper;
-    }
 
     @Override
     public MinistryResponse createMinistry(

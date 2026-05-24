@@ -23,6 +23,7 @@ import br.hallel.relational.api.app.ministry.repository.RepertoryRepository;
 import br.hallel.relational.api.app.ministry.service.MinistryService;
 import br.hallel.relational.api.app.user.model.User;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -37,34 +38,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class EventScaleService implements ScaleInterface {
-    @Autowired
-    private MemberMinistryRepository memberMinistryRepository;
-    @Autowired
-    private EventScaleRepository eventScaleRepository;
-    @Autowired
-    private MinistryService ministryService;
+    private final MemberMinistryRepository memberMinistryRepository;
+    private final EventScaleRepository eventScaleRepository;
+    private final MinistryService ministryService;
     @Autowired
     @Lazy
     private MemberEventScaleService memberEventScaleService;
-    @Autowired
-    private MemberEventScaleRepository memberEventScaleRepository;
-    @Autowired
-    private RepertoryRepository repertoryRepository;
-    @Autowired
-    private EventScaleRepertoryRepository eventScaleRepertoryRepository;
-    @Autowired
-    private DeviceNotificationRepository deviceNotificationRepository;
-    @Autowired
-    private FCMSenderService fcmSenderService;
-
+    private final MemberEventScaleRepository memberEventScaleRepository;
+    private final RepertoryRepository repertoryRepository;
+    private final EventScaleRepertoryRepository eventScaleRepertoryRepository;
+    private final DeviceNotificationRepository deviceNotificationRepository;
+    private final FCMSenderService fcmSenderService;
     private final MinistryMapper ministryMapper;
     private final EventScaleMapper scaleMapper;
-
-    public EventScaleService(MinistryMapper ministryMapper, EventScaleMapper eventScaleMapper) {
-        this.ministryMapper = ministryMapper;
-        this.scaleMapper = eventScaleMapper;
-    }
 
     @Override
     public EventScaleResponse createScale(Event event, UUID idMinistry) {
