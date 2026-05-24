@@ -7,8 +7,8 @@ import br.hallel.relational.api.app.integrationtests.auth.dto.TokenDTO;
 import br.hallel.relational.api.app.integrationtests.auth.service.AuthServiceTest;
 import br.hallel.relational.api.app.integrationtests.ministry.dto.TokenCoordinatorDTO;
 import br.hallel.relational.api.app.integrationtests.ministry.service.AuthMinistryServiceTest;
+import br.hallel.relational.api.app.ministry.dto.ScaleChatParticipantResponse;
 import br.hallel.relational.api.app.ministry.model.ScaleChatParticipant;
-import br.hallel.relational.api.app.user.model.User;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.common.mapper.TypeRef;
@@ -39,7 +39,7 @@ public class ScaleChatIntegrationTest extends AbstractIntegrationTest implements
 
     private static String userCoordinatorToken;
     private static String coordinatorToken;
-    private static List<ScaleChatParticipant> scaleChatParticipants = new ArrayList<>();
+    private static List<ScaleChatParticipantResponse> scaleChatParticipants = new ArrayList<>();
 
 
     @BeforeEach
@@ -75,13 +75,13 @@ public class ScaleChatIntegrationTest extends AbstractIntegrationTest implements
 
         String url = "/coordinator/event/scale/chat/808bb575-e8cb-4186-a91b-e13f992d9457";
 
-        List<ScaleChatParticipant> createdChatParticipants = RestAssured.given()
+        List<ScaleChatParticipantResponse> createdChatParticipants = RestAssured.given()
                 .spec(getRequestSpecification(url))
                 .when()
                 .post()
                 .then()
                 .statusCode(201)
-                .extract().body().as(new TypeRef<List<ScaleChatParticipant>>() {
+                .extract().body().as(new TypeRef<List<ScaleChatParticipantResponse>>() {
                 });
 
         assertThat(createdChatParticipants).isNotNull();
@@ -95,7 +95,7 @@ public class ScaleChatIntegrationTest extends AbstractIntegrationTest implements
     @Order(2)
     public void removeParticipantOfScale() {
 
-        String url = "/coordinator/event/scale/chat/remove/participant/" + scaleChatParticipants.getFirst().getId();
+        String url = "/coordinator/event/scale/chat/remove/participant/" + scaleChatParticipants.getFirst().scaleParticipantId();
 
         RestAssured.given()
                 .spec(getRequestSpecification(url))
