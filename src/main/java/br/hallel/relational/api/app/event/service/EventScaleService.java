@@ -25,8 +25,6 @@ import br.hallel.relational.api.app.user.model.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -43,9 +41,7 @@ public class EventScaleService implements ScaleInterface {
     private final MemberMinistryRepository memberMinistryRepository;
     private final EventScaleRepository eventScaleRepository;
     private final MinistryService ministryService;
-    @Autowired
-    @Lazy
-    private MemberEventScaleService memberEventScaleService;
+    private final MemberEventScaleService memberEventScaleService;
     private final MemberEventScaleRepository memberEventScaleRepository;
     private final RepertoryRepository repertoryRepository;
     private final EventScaleRepertoryRepository eventScaleRepertoryRepository;
