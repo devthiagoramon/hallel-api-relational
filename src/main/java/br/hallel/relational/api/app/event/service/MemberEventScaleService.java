@@ -17,25 +17,16 @@ import br.hallel.relational.api.app.ministry.dto.mapper.RepertoryMapper;
 import br.hallel.relational.api.app.ministry.exception.MemberMinistryRegisterNotFoundException;
 import br.hallel.relational.api.app.ministry.model.MemberMinistry;
 import br.hallel.relational.api.app.ministry.repository.MemberMinistryRepository;
+import br.hallel.relational.api.app.global.pdf.PdfGenerationService;
 import br.hallel.relational.api.app.user.model.User;
 import br.hallel.relational.api.app.user.repository.UserRepository;
-import com.lowagie.text.*;
-import com.lowagie.text.Font;
-import com.lowagie.text.pdf.PdfWriter;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
-import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
 
@@ -53,8 +44,8 @@ public class MemberEventScaleService {
     private final InviteEventScaleRepository inviteRepository;
     private final MemberMinistryRepository memberMinistryRepository;
     private final FCMSenderService fcmSenderService;
-
     private final RepertoryMapper repertoryMapper;
+    private final PdfGenerationService pdfGenerationService;
 
     public EventScaleSimpleResponse inviteUserIntoScale(
             UUID eventScaleId, List<UUID> memberMinistryIds) {
@@ -443,101 +434,7 @@ public class MemberEventScaleService {
 
     public byte[] generateReportEventScale(EventScaleReportPDF dto,
                                            LocalDateTime start, LocalDateTime end) {
-        System.out.println("Gerando Relatório em PDF...");
-
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Document document = new Document();
-            PdfWriter.getInstance(document, out);
-            document.open();
-
-            Font tituloFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
-            Font subtituloFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
-            Font textoNormal = FontFactory.getFont(FontFactory.HELVETICA, 12);
-            Font cinza = new Font(Font.HELVETICA, 11, Font.NORMAL, new Color(90, 90, 90));
-
-            Paragraph titulo = new Paragraph("Relatório " + dto.title() + " do Ministério: " + dto.ministry_name(), tituloFont);
-            titulo.setAlignment(Element.ALIGN_CENTER);
-            titulo.setSpacingAfter(12);
-            document.add(titulo);
-
-            Paragraph intervalo = new Paragraph("Intervalo: " + start.toLocalDate() + " até " + end.toLocalDate(), textoNormal);
-            intervalo.setAlignment(Element.ALIGN_CENTER);
-            intervalo.setSpacingAfter(20);
-            document.add(intervalo);
-
-            document.add(new Paragraph("📆 Eventos", subtituloFont));
-
-            if (dto.events_title().isEmpty()) {
-                document.add(new Paragraph("Nenhum evento encontrado.", textoNormal));
-            } else {
-                DateTimeFormatter inputFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH'h'mm'min'");
-
-                ZoneId zonaBrasil = ZoneId.of("America/Sao_Paulo");
-
-                for (int i = 0; i < dto.events_title().size(); i++) {
-                    String title = dto.events_title().get(i);
-                    String dataStrOriginal = dto.date_events().size() > i ? dto.date_events().get(i) : null;
-
-                    String dataFormatada;
-                    if (dataStrOriginal != null) {
-                        try {
-                            OffsetDateTime offsetDateTime = OffsetDateTime.parse(dataStrOriginal, inputFormatter);
-                            ZonedDateTime dataBrasileira = offsetDateTime.atZoneSameInstant(zonaBrasil);
-                            dataFormatada = dataBrasileira.format(outputFormatter);
-                        } catch (DateTimeParseException e) {
-                            dataFormatada = "Data inválida";
-                        }
-                    } else {
-                        dataFormatada = "Data inválida";
-                    }
-
-                    document.add(new Paragraph("• " + title + " - " + dataFormatada, textoNormal));
-                }
-            }
-            document.add(new Paragraph(" "));
-
-            document.add(new Paragraph("👥 Coordenadores", subtituloFont));
-            document.add(new Paragraph("- Coordenador: " + dto.coordinator_name(), textoNormal));
-            document.add(new Paragraph("- Vice: " + dto.vice_coodinator_name(), textoNormal));
-            document.add(new Paragraph(" "));
-
-            document.add(new Paragraph("✅ Participantes (" + dto.participants().size() + ")", subtituloFont));
-            if (dto.participants().isEmpty()) {
-                document.add(new Paragraph("Nenhum participante.", textoNormal));
-            } else {
-                for (String p : new HashSet<>(dto.participants())) {
-                    document.add(new Paragraph("• " + p, textoNormal));
-                }
-            }
-            document.add(new Paragraph(" "));
-
-            document.add(new Paragraph("🎫 Convidados (" + dto.invited().size() + ")", subtituloFont));
-            if (dto.invited().isEmpty()) {
-                document.add(new Paragraph("Nenhum convidado.", textoNormal));
-            } else {
-                for (String c : new HashSet<>(dto.invited())) {
-                    document.add(new Paragraph("• " + c, textoNormal));
-                }
-            }
-            document.add(new Paragraph(" "));
-
-            document.add(new Paragraph("❌ Recusaram (" + dto.decline().size() + ")", subtituloFont));
-            if (dto.decline().isEmpty()) {
-                document.add(new Paragraph("Nenhuma recusa.", textoNormal));
-            } else {
-                for (String r : new HashSet<>(dto.decline())) {
-                    document.add(new Paragraph("• " + r, textoNormal));
-                }
-            }
-
-            document.add(new Paragraph("\n\nGeração: " + LocalDateTime.now(), cinza));
-
-            document.close();
-            return out.toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF", e);
-        }
+        return pdfGenerationService.generateReportEventScale(dto, start, end);
     }
 
 
