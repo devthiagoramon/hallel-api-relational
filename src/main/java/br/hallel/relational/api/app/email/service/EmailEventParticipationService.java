@@ -133,7 +133,7 @@ public class EmailEventParticipationService {
     }
 
     // 4. E-mail de Lembrete de Participação em Evento
-    @Async
+    @Async("emailTaskExecutor")
     public void sendEventParticipationReminderEmail(
             EmailParticipationDTO dto, // REFATORADO
             String eventId,
@@ -173,7 +173,7 @@ public class EmailEventParticipationService {
         }
     }
 
-    @Async
+    @Async("emailTaskExecutor")
     public void sendPaymentJoinEvent(
             EmailParticipationDTO dto,
             LocalDateTime startTime,
@@ -226,7 +226,7 @@ public class EmailEventParticipationService {
     }
 
     // 5. E-mail de Comprovante de Participação em Evento
-    @Async
+    @Async("emailTaskExecutor")
     public void sendComprovantEventParticipation(
             EmailParticipationDTO dto, // REFATORADO
             String eventId,
@@ -261,7 +261,7 @@ public class EmailEventParticipationService {
     }
 
     // 6. E-mail de Reembolso/Saída de Evento
-    @Async
+    @Async("emailTaskExecutor")
     public void sendRefundEventParticipation(
             EmailParticipationDTO dto, // REFATORADO
             Double amountRefunded
@@ -293,7 +293,7 @@ public class EmailEventParticipationService {
         }
     }
 
-    @Async
+    @Async("emailTaskExecutor")
     public void sendNotificationEventQueue(
             EmailParticipationDTO dto,
             int positionInQueue,
@@ -326,7 +326,7 @@ public class EmailEventParticipationService {
         }
     }
 
-    @Async
+    @Async("emailTaskExecutor")
     public void sendQueueSpaceAvailableNotification(
             EmailParticipationDTO dto,
             String autoLoginUrl  // ← Mude o parâmetro para receber a URL
@@ -360,7 +360,7 @@ public class EmailEventParticipationService {
     }
 
     // 9. E-mail de Ingresso para Evento Gratuito
-    @Async
+    @Async("emailTaskExecutor")
     public void sendFreeEventTicket(
             EmailParticipationDTO dto,
             String participationId,

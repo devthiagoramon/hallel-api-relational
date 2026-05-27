@@ -257,7 +257,7 @@ public class EventService implements EventInterface {
         if (!eventDTO.getStartTime().equals(event.getStartTime())) {
             this.eventScaleService.editEventDate(event.getId(), eventDTO.getStartTime());
         }
-        if (!eventDTO.getEndTime().equals(event.getEndTime())) {
+        if (eventDTO.getEndTime() != null && !eventDTO.getEndTime().equals(event.getEndTime())) {
             event.setEndTime(eventDTO.getEndTime());
         }
         event.setId(id);
@@ -265,7 +265,9 @@ public class EventService implements EventInterface {
         event.setDescription(eventDTO.getDescription());
         event.setDuration(eventDTO.getDuration());
         event.setStartTime(eventDTO.getStartTime());
-        event.setEndTime(eventDTO.getEndTime());
+        if (eventDTO.getEndTime() != null) {
+            event.setEndTime(eventDTO.getEndTime());
+        }
         event.setLocal_event_name(eventDTO.getLocal_event_name());
         event.setLocal_event_latitude(eventDTO.getLocal_event_latitude());
         event.setLocal_event_longitude(eventDTO.getLocal_event_longitude());

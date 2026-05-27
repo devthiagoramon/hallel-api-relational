@@ -2,7 +2,6 @@ package br.hallel.relational.api.app.event.dto;
 
 import br.hallel.relational.api.app.event.model.enum_type.EventType;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -62,7 +61,6 @@ public class EventDTO {
     private String whatsAppGroupLink;
 
     @NotNull(message = "Campo 'date' não pode ser nulo.")
-    @Future(message = "A data do evento deve está no futuro!")
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;

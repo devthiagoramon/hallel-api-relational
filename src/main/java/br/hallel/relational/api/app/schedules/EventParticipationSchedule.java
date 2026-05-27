@@ -177,12 +177,14 @@ public class EventParticipationSchedule {
 
         for (EventParticipation participation : participationsToVerify) {
 
+            if (participation.getMercadoPagoPaymentId() == null) {
+                continue;
+            }
+
             EventTransaction entradaTransaction = this.eventTransactionRepository.findByMercadoPagoPaymentId(
                     participation.getMercadoPagoPaymentId()
-            ).orElseThrow(
-                    () -> new RuntimeException("EventTransaction não encontrada para MercadoPagoPaymentId: "
-                            + participation.getMercadoPagoPaymentId())
-            );
+            ).orElse(null);
+
             if (entradaTransaction == null || entradaTransaction.getTransactionType() != TransactionType.ENTRADA) {
                 log.warn("Participation {} PAGA sem EventTransaction de ENTRADA. Pulando.", participation.getId());
                 continue;
